@@ -10,6 +10,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve admin interface
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Create HTTP server
 const server = http.createServer(app);
 
@@ -38,6 +43,42 @@ app.get('/status', (req, res) => {
     status: 'success',
     message: 'WebRTC Socket server is running',
     activeSessions: Array.from(activeSessions.keys())
+  });
+});
+
+// REST endpoint for injecting text into sessions
+app.post('/inject-text', (req, res) => {
+  const { sessionId, text, type = 'system' } = req.body;
+  
+  if (!sessionId || !text) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'sessionId and text are required'
+    });
+  }
+  
+  if (!activeSessions.has(sessionId)) {
+    return res.status(404).json({
+      status: 'error',
+      message: `Session ${sessionId} not found or has no active clients`
+    });
+  }
+  
+  console.log(`Injecting text into session ${sessionId}: "${text}"`);
+  
+  // Broadcast the text injection to all clients in the session
+  io.to(sessionId).emit('server-text-injection', {
+    text: text,
+    type: type,
+    timestamp: Date.now(),
+    injectedBy: 'server'
+  });
+  
+  res.json({
+    status: 'success',
+    message: `Text injected into session ${sessionId}`,
+    sessionId: sessionId,
+    clientsNotified: activeSessions.get(sessionId).size
   });
 });
 

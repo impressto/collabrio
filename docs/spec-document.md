@@ -54,6 +54,14 @@ Additionally, a permanent storage option will allow clients to save their shared
     - 🔄 WebRTC P2P connection (planned enhancement)
     - 🔄 Automatic fallback detection (planned)
 
+#### Server Text Injection (Experimental)
+- 📖 **As a system**, I want to inject text messages into collaborative sessions for notifications or bot interactions
+  - **Acceptance Criteria:**
+    - ✅ Server can send text to be inserted into document
+    - ✅ Injected text appears for all clients in session
+    - ✅ Clear distinction between user and system text with [TYPE] formatting
+    - ✅ REST endpoint `/inject-text` for programmatic injection
+
 #### File Sharing (Planned)
 - 📖 **As a user**, I want to drag and drop files to share them with other session participants
   - **Acceptance Criteria:**
@@ -164,6 +172,11 @@ For now we will be deploying manually
   - 🔄 **PENDING** - Multiple concurrent users (>5)
   - 🔄 **PENDING** - Large document handling
   - 🔄 **PENDING** - Network latency testing
+- [ ] **Test Case 7:** Server text injection
+  - ✅ **PASSED** - REST endpoint accepts injection requests
+  - ✅ **PASSED** - Text appears in all clients' documents
+  - ✅ **PASSED** - Different message types (system, bot, admin)
+  - ✅ **PASSED** - Proper formatting with [TYPE] labels
 
 ### Definition of Done
 For each feature to be considered complete:

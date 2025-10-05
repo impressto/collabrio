@@ -162,6 +162,39 @@
 
 ---
 
+### Server Text Injection Experiment
+**Date:** 2025-10-05  
+**Description:** Implemented experimental server-side text injection capability for system messages and bot interactions  
+**Rationale:** Enables server-initiated communication with collaborative sessions for notifications, announcements, or automated interactions  
+**Status:** Implemented and Tested  
+**Impact:** Medium - Opens possibilities for server-side features and automation  
+**Stakeholders:** Development team, potential admin users  
+**Implementation:** Added REST endpoint `/inject-text` and WebSocket event `server-text-injection` with formatted message display  
+
+**Technical Details:**
+- **REST Endpoint:** `POST /inject-text` with sessionId, text, and type parameters
+- **Socket Event:** `server-text-injection` broadcasts to all session clients
+- **Message Formatting:** `[TYPE] message` format for clear identification
+- **Error Handling:** Validates session existence and required parameters
+- **Response Data:** Confirms injection success and client notification count
+
+**Test Results:**
+- ✅ Successfully injected text into active sessions
+- ✅ All connected clients received and displayed messages
+- ✅ Different message types (system, bot, admin) working
+- ✅ Proper error handling for invalid sessions
+- ✅ Real-time delivery confirmed
+
+**Follow-up Actions:**
+- [x] Implement REST endpoint (Dev Team - 2025-10-05)
+- [x] Add client-side event handler (Dev Team - 2025-10-05)
+- [x] Test message injection (Dev Team - 2025-10-05)
+- [x] Create test script (Dev Team - 2025-10-05)
+- [ ] Consider admin web interface (Dev Team - TBD)
+- [ ] Add message history/persistence (Dev Team - TBD)
+
+---
+
 ### Frontend Core Features Implementation
 **Date:** 2025-10-04  
 **Description:** Implemented React frontend with collaborative text editor, WebSocket communication, QR code sharing, and session management  

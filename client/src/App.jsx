@@ -96,6 +96,14 @@ function App() {
       setConnectedUsers(data.users)
     })
 
+    socket.on('server-text-injection', (data) => {
+      console.log('Server text injection:', data)
+      
+      // Insert server text into the document with formatting
+      const injectedText = `\n\n[${data.type.toUpperCase()}] ${data.text}\n\n`
+      setDocument(prevDoc => prevDoc + injectedText)
+    })
+
     socketRef.current = socket
   }
 

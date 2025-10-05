@@ -61,6 +61,18 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ Injected text appears for all clients in session
     - ✅ Clear distinction between user and system text with [TYPE] formatting
     - ✅ REST endpoint `/inject-text` for programmatic injection
+- 📖 **As an external system**, I want to inject messages by creating/modifying files that are automatically detected
+  - **Acceptance Criteria:**
+    - 🔄 Server watches for files named `{sessionId}_{type}.txt`
+    - 🔄 File changes trigger automatic text injection
+    - 🔄 File content becomes the injected message
+    - 🔄 Files are processed and cleaned up after injection
+- 📖 **As an admin**, I want to drop text files that automatically inject into sessions based on filename
+  - **Acceptance Criteria:**
+    - 🔄 Server watches for files named `<sessionId>.txt` or `<sessionId>_<type>.txt`
+    - 🔄 File changes trigger automatic text injection into matching session
+    - 🔄 File content is injected and file is processed/archived
+    - 🔄 Support for different message types via filename patterns
 
 #### File Sharing (Planned)
 - 📖 **As a user**, I want to drag and drop files to share them with other session participants

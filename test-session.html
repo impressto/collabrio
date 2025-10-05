@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Session for File Injection Demo</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>Test Session for File Injection Demo</h1>
+    <p>Session ID: <span id="sessionId">connecting...</span></p>
+    <p>Status: <span id="status">Initializing...</span></p>
+    <textarea id="document" style="width: 100%; height: 300px;" readonly></textarea>
+    
+    <script>
+        const socket = io('http://localhost:3000');
+        const testSessionId = 'demo-test-session-' + Date.now();
+        
+        document.getElementById('sessionId').textContent = testSessionId;
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            document.getElementById('status').textContent = 'Connected';
+            
+            // Join the test session
+            socket.emit('join-session', {
+                sessionId: testSessionId,
+                clientId: 'demo-client-' + Date.now()
+            });
+        });
+        
+        socket.on('session-joined', (data) => {
+            console.log('Joined session:', data);
+            document.getElementById('status').textContent = 'Session active - ready for file injection';
+        });
+        
+        socket.on('document-updated', (data) => {
+            console.log('Document updated:', data);
+            document.getElementById('document').value = data.content;
+        });
+        
+        socket.on('text-injected', (data) => {
+            console.log('Text injected:', data);
+            const currentContent = document.getElementById('document').value;
+            document.getElementById('document').value = currentContent + '\n[' + data.type.toUpperCase() + '] ' + data.text;
+        });
+        
+        socket.on('disconnect', () => {
+            document.getElementById('status').textContent = 'Disconnected';
+        });
+        
+        // Keep the session alive
+        setInterval(() => {
+            if (socket.connected) {
+                console.log('Session alive:', testSessionId);
+            }
+        }, 30000);
+        
+        // Display the session ID for use in demo
+        console.log('Test session ID:', testSessionId);
+        
+        // Copy session ID to clipboard when clicked
+        document.getElementById('sessionId').onclick = function() {
+            navigator.clipboard.writeText(testSessionId).then(() => {
+                alert('Session ID copied to clipboard!');
+            });
+        };
+    </script>
+</body>
+</html>

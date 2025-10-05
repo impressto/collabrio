@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const chokidar = require('chokidar');
 
 // Create Express app
 const app = express();
@@ -32,9 +33,16 @@ const activeSessions = new Map();
 // Data directory path (for compatibility with PHP version)
 const dataDir = path.join(__dirname, '../data');
 
-// Ensure data directory exists
+// Message files directory for auto-injection
+const messageDir = path.join(__dirname, 'messages');
+
+// Ensure directories exist
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
+}
+if (!fs.existsSync(messageDir)) {
+  fs.mkdirSync(messageDir, { recursive: true });
+  console.log(`Created message directory: ${messageDir}`);
 }
 
 // REST endpoint for checking server status
@@ -79,6 +87,21 @@ app.post('/inject-text', (req, res) => {
     message: `Text injected into session ${sessionId}`,
     sessionId: sessionId,
     clientsNotified: activeSessions.get(sessionId).size
+  });
+});
+
+// Debug endpoint to show active sessions
+app.get('/debug/sessions', (req, res) => {
+  const sessionInfo = {};
+  for (const [sessionId, clients] of activeSessions.entries()) {
+    sessionInfo[sessionId] = {
+      clientCount: clients.size,
+      clients: Array.from(clients.keys())
+    };
+  }
+  res.json({
+    totalSessions: activeSessions.size,
+    sessions: sessionInfo
   });
 });
 
@@ -326,6 +349,102 @@ setInterval(() => {
     }
   }
 }, 10000); // Run every 10 seconds
+
+// File watching for auto-injection
+function setupFileWatcher() {
+  console.log(`Watching for message files in: ${messageDir}`);
+  console.log('File naming patterns:');
+  console.log('  - <sessionId>.txt (default type: system)');
+  console.log('  - <sessionId>_<type>.txt (e.g., abc123_bot.txt)');
+  
+  const watcher = chokidar.watch(messageDir, {
+    ignored: /^\./, // ignore dotfiles
+    persistent: true,
+    ignoreInitial: true // don't trigger on existing files during startup
+  });
+
+  watcher.on('add', handleMessageFile);
+  watcher.on('change', handleMessageFile);
+  
+  watcher.on('error', error => {
+    console.error('File watcher error:', error);
+  });
+}
+
+function handleMessageFile(filePath) {
+  const fileName = path.basename(filePath);
+  const fileExt = path.extname(fileName);
+  
+  // Only process .txt files
+  if (fileExt !== '.txt') {
+    return;
+  }
+  
+  console.log(`Processing message file: ${fileName}`);
+  
+  try {
+    // Parse filename to extract session ID and message type
+    const baseName = path.basename(fileName, '.txt');
+    let sessionId, messageType;
+    
+    if (baseName.includes('_')) {
+      // Format: sessionId_type.txt
+      const parts = baseName.split('_');
+      sessionId = parts[0];
+      messageType = parts.slice(1).join('_'); // Handle multiple underscores
+    } else {
+      // Format: sessionId.txt
+      sessionId = baseName;
+      messageType = 'system';
+    }
+    
+    // Check if session exists and has active clients
+    if (!activeSessions.has(sessionId)) {
+      console.log(`Session ${sessionId} not found or inactive, skipping file: ${fileName}`);
+      return;
+    }
+    
+    // Read file content
+    const messageText = fs.readFileSync(filePath, 'utf8').trim();
+    
+    if (!messageText) {
+      console.log(`Empty message file: ${fileName}`);
+      return;
+    }
+    
+    console.log(`Injecting message from file ${fileName} into session ${sessionId}`);
+    console.log(`Message type: ${messageType}`);
+    console.log(`Message: ${messageText.substring(0, 100)}${messageText.length > 100 ? '...' : ''}`);
+    
+    // Inject the message into the session
+    io.to(sessionId).emit('server-text-injection', {
+      text: messageText,
+      type: messageType,
+      timestamp: Date.now(),
+      injectedBy: 'file-watcher',
+      source: fileName
+    });
+    
+    // Move processed file to processed directory
+    const processedDir = path.join(messageDir, 'processed');
+    if (!fs.existsSync(processedDir)) {
+      fs.mkdirSync(processedDir, { recursive: true });
+    }
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const processedFileName = `${timestamp}_${fileName}`;
+    const processedPath = path.join(processedDir, processedFileName);
+    
+    fs.renameSync(filePath, processedPath);
+    console.log(`File processed and moved to: ${processedFileName}`);
+    
+  } catch (error) {
+    console.error(`Error processing message file ${fileName}:`, error);
+  }
+}
+
+// Initialize file watcher
+setupFileWatcher();
 
 // Start the server
 const PORT = process.env.PORT || 3000;

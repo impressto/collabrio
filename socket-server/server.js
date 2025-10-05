@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
   // Handle client joining a session
   socket.on('join-session', ({ sessionId: sid, clientId: cid }) => {
     sessionId = sid;
-    clientId = cid;
+    clientId = cid || socket.id; // Use socket ID as clientId if not provided
     
     console.log(`Client ${clientId} joined session ${sessionId}`);
     
@@ -71,6 +71,16 @@ io.on('connection', (socket) => {
     
     // Notify everyone in the session about active users
     updateSessionStatus(sessionId);
+    
+    // Send user joined event to React app
+    socket.to(sessionId).emit('user-joined', {
+      users: Array.from(activeSessions.get(sessionId).keys())
+    });
+    
+    // Send current user list to the new client
+    socket.emit('user-joined', {
+      users: Array.from(activeSessions.get(sessionId).keys())
+    });
   });
 
   // Handle WebRTC signaling
@@ -171,13 +181,34 @@ io.on('connection', (socket) => {
         if (activeSessions.get(sessionId).size === 0) {
           activeSessions.delete(sessionId);
         } else {
-          // Otherwise update session status for remaining clients
+          // Notify remaining clients about user leaving
+          io.to(sessionId).emit('user-left', {
+            users: Array.from(activeSessions.get(sessionId).keys())
+          });
+          // Update session status for remaining clients
           updateSessionStatus(sessionId);
         }
       }
     }
   });
   
+  // Handle document changes for collaborative editing
+  socket.on('document-change', ({ sessionId: docSessionId, document }) => {
+    if (!docSessionId) {
+      console.error('No session ID provided for document change');
+      return;
+    }
+    
+    console.log(`Document updated in session ${docSessionId}`);
+    
+    // Broadcast document update to all other clients in the session
+    socket.to(docSessionId).emit('document-update', {
+      document: document,
+      updatedBy: socket.id,
+      timestamp: Date.now()
+    });
+  });
+
   // Handle explicit leave session
   socket.on('leave-session', () => {
     if (sessionId && clientId && activeSessions.has(sessionId)) {

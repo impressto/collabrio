@@ -19,9 +19,36 @@ Additionally, a permanent storage option will allow clients to save their shared
 
 ### User Stories
 
-- 📖 As a user, I want to be able to start a new session so that I can share the link with one or more other users
-- 📖 As a user, I want to be able to click a "share" button and get a QR code in a modal that I can scan with a phone.
-- 📖 As a user, when webRTC is blocks, for example on a mobile network, I want to be able to fallback to using we websocket server to communicate and share files between clients
+#### Core Collaboration
+- 📖 **As a user**, I want to start a new session so that I can share the link with one or more other users
+  - **Acceptance Criteria:** 
+    - ✅ New session creates unique URL with hash
+    - ✅ Session ID visible in interface
+    - ✅ Multiple users can join same session
+- 📖 **As a user**, I want to click a "share" button and get a QR code in a modal that I can scan with a phone
+  - **Acceptance Criteria:**
+    - ✅ Share button opens modal with QR code
+    - ✅ QR code contains full session URL
+    - ✅ Link is copyable to clipboard
+- 📖 **As a user**, I want to type text and see it appear instantly on other users' screens
+  - **Acceptance Criteria:**
+    - ✅ Real-time text synchronization works
+    - ✅ No significant delay between typing and appearing
+    - ✅ Cursor position preserved during updates
+
+#### Network Resilience  
+- 📖 **As a user**, when WebRTC is blocked (e.g., on mobile networks), I want to fallback to WebSocket communication
+  - **Acceptance Criteria:**
+    - ✅ WebSocket connection established as primary method
+    - 🔄 WebRTC P2P connection (planned enhancement)
+    - 🔄 Automatic fallback detection (planned)
+
+#### File Sharing (Planned)
+- 📖 **As a user**, I want to drag and drop files to share them with other session participants
+  - **Acceptance Criteria:**
+    - 🔄 Drag-and-drop interface
+    - 🔄 File transfer via WebRTC or WebSocket
+    - 🔄 File download for recipients
 
 ### Features
 
@@ -30,21 +57,42 @@ Additionally, a permanent storage option will allow clients to save their shared
 The clients will have a common url, using a hack in the url, to allow them to establish a common connection via WebRTC
 
 - **Priority:** High
-- **Status:** Planned
+- **Status:** Planned (WebSocket foundation complete, ready for WebRTC layer)
 
 #### fallback to the use of webSockets
 
 If webRTC is fully blocked by a mobile network, allow a fallback to using a websocket server at socket.impressto.ca. The source code for the socket server will be part of this project.
 
 - **Priority:** High
-- **Status:** Planned
+- **Status:** ✅ Completed (WebSocket connection working, tested multi-user collaboration)
 
 #### Anonymous usage
 
 All usage will be anonymous. Users will need the specific url and hash to share a session, but otherwise there will be no authentication
 
 - **Priority:** Medium
-- **Status:** Planned
+- **Status:** ✅ Completed (URL hash-based sessions working)
+
+#### QR Code sharing
+
+Users can share sessions via QR code for easy mobile access
+
+- **Priority:** Medium
+- **Status:** ✅ Completed (QR modal with shareable links)
+
+#### Real-time collaborative editing
+
+Multiple users can edit the same document simultaneously with live updates
+
+- **Priority:** High
+- **Status:** ✅ Completed (Multi-user real-time text synchronization working)
+
+#### Session joining functionality
+
+Users can manually join specific sessions by entering session IDs
+
+- **Priority:** Medium
+- **Status:** ✅ Completed (Session input field added for easy collaboration setup)
 
 ## 🔧 Technical Requirements
 
@@ -68,6 +116,48 @@ we will be using a client with react and for the back-end a socket server that r
 ### 🏗️ Infrastructure
 
 For now we will be deploying manually
+
+## 🧪 Testing & Validation
+
+### Acceptance Tests
+
+#### Multi-User Collaboration
+- [ ] **Test Case 1:** Two users in same session
+  - ✅ **PASSED** - Users can join same session via URL hash
+  - ✅ **PASSED** - Real-time text synchronization works
+  - ✅ **PASSED** - User count updates correctly
+- [ ] **Test Case 2:** Session isolation
+  - ✅ **PASSED** - Different sessions remain separate
+  - ✅ **PASSED** - Users cannot see other sessions' content
+
+#### User Interface
+- [ ] **Test Case 3:** QR Code sharing
+  - ✅ **PASSED** - QR modal opens and displays code
+  - ✅ **PASSED** - Link copying works
+  - 🔄 **PENDING** - Mobile device QR scanning test
+- [ ] **Test Case 4:** Responsive design
+  - ✅ **PASSED** - Desktop browser compatibility
+  - 🔄 **PENDING** - Mobile browser testing
+  - 🔄 **PENDING** - Tablet testing
+
+#### Network & Performance
+- [ ] **Test Case 5:** Connection handling
+  - ✅ **PASSED** - WebSocket connection establishment
+  - ✅ **PASSED** - Connection status indicators
+  - 🔄 **PENDING** - Reconnection on network interruption
+- [ ] **Test Case 6:** Performance under load
+  - 🔄 **PENDING** - Multiple concurrent users (>5)
+  - 🔄 **PENDING** - Large document handling
+  - 🔄 **PENDING** - Network latency testing
+
+### Definition of Done
+For each feature to be considered complete:
+- [ ] Functional requirements met per acceptance criteria
+- [ ] User story acceptance tests pass
+- [ ] Cross-browser compatibility verified
+- [ ] Mobile responsiveness confirmed
+- [ ] Error handling implemented
+- [ ] Documentation updated
 
 ---
 

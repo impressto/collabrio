@@ -20,11 +20,22 @@ Additionally, a permanent storage option will allow clients to save their shared
 ### User Stories
 
 #### Core Collaboration
-- 📖 **As a user**, I want to start a new session so that I can share the link with one or more other users
+- 📖 **As a user**, I want to explicitly create a new session so that I control when collaboration begins
   - **Acceptance Criteria:** 
-    - ✅ New session creates unique URL with hash
-    - ✅ Session ID visible in interface
-    - ✅ Multiple users can join same session
+    - ✅ "Create New Session" button on landing page
+    - ✅ Button generates unique session ID and redirects to session
+    - ✅ Session ID visible in interface after creation
+    - 🔄 Multiple users can join same session via shared URL (needs testing)
+- 📖 **As a user**, I want to be unable to access collaborative features without a valid session
+  - **Acceptance Criteria:**
+    - ✅ Landing page shows session creation interface
+    - ✅ No auto-generated sessions on page load
+    - ✅ Clear messaging about needing to create or join session
+- 📖 **As a user**, I want to leave a session and return to the landing page
+  - **Acceptance Criteria:**
+    - ✅ "Leave Session" button in collaborative interface
+    - ✅ Button disconnects from session and returns to landing page
+    - ✅ Session state is cleared when leaving
 - 📖 **As a user**, I want to click a "share" button and get a QR code in a modal that I can scan with a phone
   - **Acceptance Criteria:**
     - ✅ Share button opens modal with QR code
@@ -122,10 +133,14 @@ For now we will be deploying manually
 ### Acceptance Tests
 
 #### Multi-User Collaboration
-- [ ] **Test Case 1:** Two users in same session
-  - ✅ **PASSED** - Users can join same session via URL hash
-  - ✅ **PASSED** - Real-time text synchronization works
-  - ✅ **PASSED** - User count updates correctly
+- [ ] **Test Case 1:** Session creation workflow
+  - 🔄 **PENDING** - Landing page shows session creation interface
+  - 🔄 **PENDING** - "Create New Session" button generates valid session
+  - 🔄 **PENDING** - Users can join session via shared URL
+- [ ] **Test Case 2:** Multi-user collaboration
+  - 🔄 **PENDING** - Two users in same session can collaborate
+  - 🔄 **PENDING** - Real-time text synchronization works
+  - 🔄 **PENDING** - User count updates correctly
 - [ ] **Test Case 2:** Session isolation
   - ✅ **PASSED** - Different sessions remain separate
   - ✅ **PASSED** - Users cannot see other sessions' content

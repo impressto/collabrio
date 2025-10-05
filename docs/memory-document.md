@@ -136,6 +136,32 @@
 
 ---
 
+### Explicit Session Creation Model
+**Date:** 2025-10-04  
+**Description:** Redesigned session creation to require explicit user action rather than auto-generating sessions  
+**Rationale:** Better user experience with clear session control, prevents accidental session creation, improves session sharing UX  
+**Status:** Implemented  
+**Impact:** High - Fundamental change to user interaction model  
+**Stakeholders:** Development team, end users  
+**Implementation:** Added landing page with "Create New Session" button, session joining input, and leave session functionality  
+
+**Changes Made:**
+- **Landing Page:** New interface for session creation and joining
+- **Explicit Creation:** "Create New Session" button generates session ID
+- **Session Control:** Users can leave sessions and return to landing page
+- **Visual Design:** Gradient landing page with clear call-to-action buttons
+- **State Management:** Added `isInSession` state to control UI flow
+
+**Follow-up Actions:**
+- [x] Implement landing page UI (Dev Team - 2025-10-04)
+- [x] Add session creation button (Dev Team - 2025-10-04)
+- [x] Add session joining input (Dev Team - 2025-10-04)
+- [x] Add leave session functionality (Dev Team - 2025-10-04)
+- [x] Style landing page (Dev Team - 2025-10-04)
+- [ ] Test new session creation workflow (Dev Team - In Progress)
+
+---
+
 ### Frontend Core Features Implementation
 **Date:** 2025-10-04  
 **Description:** Implemented React frontend with collaborative text editor, WebSocket communication, QR code sharing, and session management  

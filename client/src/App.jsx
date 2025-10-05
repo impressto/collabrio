@@ -11,35 +11,35 @@ function App() {
   const [showQRModal, setShowQRModal] = useState(false)
   const [connectedUsers, setConnectedUsers] = useState([])
   const [connectionType, setConnectionType] = useState('websocket') // 'webrtc' or 'websocket'
+  const [isInSession, setIsInSession] = useState(false)
   
   // Refs
   const socketRef = useRef(null)
   const textareaRef = useRef(null)
 
-  // Initialize session from URL hash or generate new one
+  // Initialize session from URL hash only (no auto-generation)
   useEffect(() => {
     const hash = window.location.hash.substring(1)
     if (hash) {
       setSessionId(hash)
-    } else {
-      const newSessionId = generateSessionId()
-      setSessionId(newSessionId)
-      window.location.hash = newSessionId
+      setIsInSession(true)
     }
+    // No auto-generation - user must explicitly create session
   }, [])
 
-  // Connect to socket when sessionId is available
+  // Connect to socket when sessionId is available and user is in session
   useEffect(() => {
-    if (sessionId && !socketRef.current) {
+    if (sessionId && isInSession && !socketRef.current) {
       connectToSocket()
     }
     
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect()
+        socketRef.current = null
       }
     }
-  }, [sessionId])
+  }, [sessionId, isInSession])
 
   // Debug: Log when document state changes
   useEffect(() => {
@@ -48,6 +48,19 @@ function App() {
 
   const generateSessionId = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+  }
+
+  const createNewSession = () => {
+    const newSessionId = generateSessionId()
+    setSessionId(newSessionId)
+    setIsInSession(true)
+    window.location.hash = newSessionId
+  }
+
+  const joinExistingSession = (sessionIdToJoin) => {
+    setSessionId(sessionIdToJoin)
+    setIsInSession(true)
+    window.location.hash = sessionIdToJoin
   }
 
   const connectToSocket = () => {
@@ -112,6 +125,55 @@ function App() {
     alert('Link copied to clipboard!')
   }
 
+  // Render landing page or collaborative editor
+  if (!isInSession) {
+    return (
+      <div className="clippy-container">
+        <div className="landing-page">
+          <header className="landing-header">
+            <h1>📎 Clippy</h1>
+            <p>Real-time collaborative text editor</p>
+          </header>
+          
+          <div className="landing-content">
+            <div className="session-actions">
+              <button onClick={createNewSession} className="create-session-button">
+                ✨ Create New Session
+              </button>
+              
+              <div className="join-session-section">
+                <p>or join an existing session:</p>
+                <input
+                  type="text"
+                  placeholder="Enter session ID..."
+                  className="join-session-input"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      const sessionIdToJoin = e.target.value.trim()
+                      if (sessionIdToJoin) {
+                        joinExistingSession(sessionIdToJoin)
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="landing-features">
+              <h3>Features:</h3>
+              <ul>
+                <li>✅ Real-time collaborative editing</li>
+                <li>✅ Anonymous sessions - no signup required</li>
+                <li>✅ QR code sharing for mobile devices</li>
+                <li>✅ Works on desktop and mobile browsers</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="clippy-container">
       <header className="clippy-header">
@@ -132,21 +194,19 @@ function App() {
         <button onClick={copyToClipboard} className="copy-button">
           📋 Copy Link
         </button>
-        <input
-          type="text"
-          placeholder="Enter session ID to join..."
-          className="session-input"
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              const newSessionId = e.target.value.trim()
-              if (newSessionId) {
-                setSessionId(newSessionId)
-                window.location.hash = newSessionId
-                window.location.reload()
-              }
+        <button 
+          onClick={() => {
+            setIsInSession(false)
+            setSessionId('')
+            window.location.hash = ''
+            if (socketRef.current) {
+              socketRef.current.disconnect()
             }
           }}
-        />
+          className="leave-session-button"
+        >
+          🚪 Leave Session
+        </button>
         <span className="session-id">Session: {sessionId}</span>
       </div>
 

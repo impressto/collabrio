@@ -443,3 +443,104 @@
     padding: 1rem;
   }
 }
+
+/* Theme Toggle Button */
+.collabrio-app .theme-toggle-button {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.collabrio-app .theme-toggle-button:hover {
+  background: #545b62;
+}
+
+/* Dark Theme Styles */
+.collabrio-app.dark-theme {
+  background: #1a1a1a !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .collabrio-header {
+  background: #2d3748 !important;
+  border-bottom: 1px solid #4a5568 !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .collabrio-header h1 {
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .toolbar {
+  background: #2d3748 !important;
+  border-bottom: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .collaborative-editor {
+  background: #2d3748 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .collaborative-editor:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+}
+
+.collabrio-app.dark-theme .editor-container {
+  background: #1a1a1a !important;
+}
+
+.collabrio-app.dark-theme .landing-page {
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+}
+
+.collabrio-app.dark-theme .landing-features {
+  background: rgba(45, 55, 72, 0.8) !important;
+}
+
+.collabrio-app.dark-theme .create-session-button {
+  background: rgba(224, 224, 224, 0.2) !important;
+  border: 2px solid rgba(224, 224, 224, 0.3) !important;
+}
+
+.collabrio-app.dark-theme .create-session-button:hover {
+  background: rgba(224, 224, 224, 0.3) !important;
+  border-color: rgba(224, 224, 224, 0.5) !important;
+}
+
+.collabrio-app.dark-theme .join-session-input {
+  background: rgba(45, 55, 72, 0.8) !important;
+  border: 2px solid rgba(224, 224, 224, 0.3) !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .join-session-input:focus {
+  border-color: rgba(224, 224, 224, 0.6) !important;
+  background: rgba(45, 55, 72, 0.9) !important;
+}
+
+.collabrio-app.dark-theme .modal-content {
+  background: #2d3748 !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .modal-content h3 {
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .share-link {
+  background: #1a1a1a !important;
+  border: 1px solid #4a5568 !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .session-id {
+  background: #2d3748 !important;
+  color: #a0aec0 !important;
+}

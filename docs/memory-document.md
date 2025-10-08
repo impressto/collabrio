@@ -1,7 +1,7 @@
 # Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 8, 2025 - Document State Persistence for New Session Joiners*  
+*Last Updated: October 8, 2025 - Dark Theme Implementation*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
@@ -470,6 +470,56 @@
 - [x] Deploy and verify on production server (Dev Team - 2025-10-08)
 - [ ] Add optional document persistence to database (Dev Team - TBD)
 - [ ] Implement document history/versioning (Dev Team - TBD)
+
+---
+
+### Dark Theme Implementation
+**Date:** 2025-10-08  
+**Description:** Added a dark theme toggle to address user complaints about screen brightness, with persistent theme preference storage  
+**Rationale:** Users complained that the default light theme was too bright for extended use, especially in low-light environments. A dark theme provides better eye comfort and follows modern UI/UX practices  
+**Status:** Implemented and Tested  
+**Impact:** Medium - Improves user experience and accessibility for extended use sessions  
+**Stakeholders:** Development team, end users who prefer dark interfaces  
+**Implementation:** Added theme toggle button, comprehensive dark mode CSS, and localStorage persistence for user preference  
+
+**Features Implemented:**
+- **Theme Toggle Button:** 🌙/☀️ button in toolbar for easy switching between light and dark modes
+- **Comprehensive Dark Styling:** Dark theme covers all UI components including landing page, editor, modals, and toolbar
+- **Persistent Preferences:** Theme choice saved to localStorage and remembered between sessions
+- **Seamless Integration:** Works with existing CSS isolation and embedding functionality
+- **Visual Consistency:** Maintains brand colors and usability in both light and dark modes
+
+**Technical Implementation:**
+- **State Management:** Added `darkTheme` state with localStorage initialization
+- **CSS Classes:** Added `.dark-theme` modifier class with comprehensive dark color scheme
+- **Color Palette:** Used consistent dark grays (#1a1a1a, #2d3748, #4a5568) with light text (#e0e0e0)
+- **Component Updates:** Updated both landing page and session page containers with conditional theme classes
+- **Persistence:** localStorage integration for remembering user preference across sessions
+
+**UI Components Styled:**
+- **Landing Page:** Dark gradient background and adjusted feature cards
+- **Header/Toolbar:** Dark backgrounds with proper contrast
+- **Text Editor:** Dark background with syntax-friendly colors
+- **Modals:** Dark themed QR code and sharing modals
+- **Buttons:** Consistent styling across light and dark themes
+- **Input Fields:** Dark backgrounds with proper focus states
+
+**User Experience Benefits:**
+- **Eye Strain Reduction:** Significant reduction in screen brightness for extended use
+- **Low-Light Compatibility:** Better visibility in dark environments
+- **Modern UI Standards:** Follows contemporary dark mode design patterns
+- **Accessibility:** Improved contrast ratios in dark mode
+- **Personal Preference:** Users can choose their preferred visual experience
+
+**Follow-up Actions:**
+- [x] Add dark theme state management (Dev Team - 2025-10-08)
+- [x] Implement comprehensive dark mode CSS (Dev Team - 2025-10-08)
+- [x] Add theme toggle button to toolbar (Dev Team - 2025-10-08)
+- [x] Implement localStorage persistence (Dev Team - 2025-10-08)
+- [x] Test build process with theme changes (Dev Team - 2025-10-08)
+- [x] Update memory documentation (Dev Team - 2025-10-08)
+- [ ] User testing for dark theme usability (Dev Team - TBD)
+- [ ] Consider automatic theme detection based on system preference (Dev Team - TBD)
 
 ---
 

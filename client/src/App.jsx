@@ -13,10 +13,20 @@ function App() {
   const [connectedUsers, setConnectedUsers] = useState([])
   const [connectionType, setConnectionType] = useState('websocket') // 'webrtc' or 'websocket'
   const [isInSession, setIsInSession] = useState(false)
+  const [darkTheme, setDarkTheme] = useState(() => {
+    // Initialize dark theme from localStorage
+    const saved = localStorage.getItem('collabrio-dark-theme')
+    return saved ? JSON.parse(saved) : false
+  })
   
   // Refs
   const socketRef = useRef(null)
   const textareaRef = useRef(null)
+
+  // Save theme preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('collabrio-dark-theme', JSON.stringify(darkTheme))
+  }, [darkTheme])
 
   // Initialize session from URL hash only (no auto-generation)
   useEffect(() => {
@@ -141,7 +151,7 @@ function App() {
   // Render landing page or collaborative editor
   if (!isInSession) {
     return (
-    <div className="collabrio-app">
+    <div className={`collabrio-app ${darkTheme ? 'dark-theme' : ''}`}>
       <div className="collabrio-container">
         <div className="landing-page">
           <header className="landing-header">
@@ -190,7 +200,7 @@ function App() {
   }
 
   return (
-    <div className="collabrio-app">
+    <div className={`collabrio-app ${darkTheme ? 'dark-theme' : ''}`}>
       <div className="collabrio-container">
       <header className="collabrio-header">
         <h1>🤝 Collabrio</h1>
@@ -209,6 +219,9 @@ function App() {
         </button>
         <button onClick={copyToClipboard} className="copy-button">
           📋 Copy Link
+        </button>
+        <button onClick={() => setDarkTheme(!darkTheme)} className="theme-toggle-button">
+          {darkTheme ? '☀️ Light' : '🌙 Dark'}
         </button>
         <button 
           onClick={() => {

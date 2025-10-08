@@ -31,6 +31,9 @@ const io = new Server(server, {
 // Store active sessions
 const activeSessions = new Map();
 
+// Store session documents (sessionId -> document content)
+const sessionDocuments = new Map();
+
 // Data directory path (for compatibility with PHP version)
 const dataDir = path.join(__dirname, '../data');
 
@@ -146,6 +149,18 @@ io.on('connection', (socket) => {
     socket.emit('user-joined', {
       users: Array.from(activeSessions.get(sessionId).keys())
     });
+    
+    // Send current document content to the new client
+    if (sessionDocuments.has(sessionId)) {
+      const currentDocument = sessionDocuments.get(sessionId);
+      console.log(`Sending current document to new client ${clientId} in session ${sessionId}`);
+      socket.emit('document-update', {
+        document: currentDocument,
+        updatedBy: 'server',
+        timestamp: Date.now(),
+        isInitialLoad: true
+      });
+    }
   });
 
   // Handle WebRTC signaling
@@ -245,6 +260,9 @@ io.on('connection', (socket) => {
         // If session is empty, remove it
         if (activeSessions.get(sessionId).size === 0) {
           activeSessions.delete(sessionId);
+          // Also remove the stored document for this session
+          sessionDocuments.delete(sessionId);
+          console.log(`Cleaned up document storage for empty session ${sessionId}`);
         } else {
           // Notify remaining clients about user leaving
           io.to(sessionId).emit('user-left', {
@@ -266,6 +284,9 @@ io.on('connection', (socket) => {
     
     console.log(`Document updated in session ${docSessionId}`);
     
+    // Store the updated document content for this session
+    sessionDocuments.set(docSessionId, document);
+    
     // Broadcast document update to all other clients in the session
     socket.to(docSessionId).emit('document-update', {
       document: document,
@@ -283,6 +304,9 @@ io.on('connection', (socket) => {
       // If session is empty, remove it
       if (activeSessions.get(sessionId).size === 0) {
         activeSessions.delete(sessionId);
+        // Also remove the stored document for this session
+        sessionDocuments.delete(sessionId);
+        console.log(`Cleaned up document storage for empty session ${sessionId}`);
       } else {
         // Otherwise update session status
         updateSessionStatus(sessionId);
@@ -347,6 +371,9 @@ setInterval(() => {
     // If no active clients, remove the session
     if (!hasActiveClients) {
       activeSessions.delete(sessionId);
+      // Also remove the stored document for this session
+      sessionDocuments.delete(sessionId);
+      console.log(`Cleaned up document storage for inactive session ${sessionId}`);
     }
   }
 }, 10000); // Run every 10 seconds

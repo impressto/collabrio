@@ -2,22 +2,25 @@
 <html>
 <head>
     <title>Test Session for File Injection Demo</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="test-config.js"></script>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <h1>Test Session for File Injection Demo</h1>
-    <p>Session ID: <span id="sessionId">connecting...</span></p>
-    <p>Status: <span id="status">Initializing...</span></p>
+    <h1>🤝 Collabrio Test Session</h1>
+    <p><strong>Socket Server:</strong> <span id="serverUrl">Loading...</span></p>
+    <p><strong>Session ID:</strong> <span id="sessionId" style="cursor: pointer; text-decoration: underline;">connecting...</span></p>
+    <p><strong>Status:</strong> <span id="status">Initializing...</span></p>
     <textarea id="document" style="width: 100%; height: 300px;" readonly></textarea>
     
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io(window.COLLABRIO_CONFIG.socketServerUrl);
         const testSessionId = 'demo-test-session-' + Date.now();
         
+        document.getElementById('serverUrl').textContent = window.COLLABRIO_CONFIG.socketServerUrl;
         document.getElementById('sessionId').textContent = testSessionId;
         
         socket.on('connect', () => {
-            console.log('Connected to server');
+            if (window.COLLABRIO_CONFIG.debug) console.log('Connected to server');
             document.getElementById('status').textContent = 'Connected';
             
             // Join the test session
@@ -52,7 +55,7 @@
             if (socket.connected) {
                 console.log('Session alive:', testSessionId);
             }
-        }, 30000);
+        }, window.COLLABRIO_CONFIG.sessionKeepAliveInterval);
         
         // Display the session ID for use in demo
         console.log('Test session ID:', testSessionId);

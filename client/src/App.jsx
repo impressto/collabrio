@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 import QRCode from 'react-qr-code'
+import config from './config.js'
 import './App.css'
 
 function App() {
@@ -64,13 +65,13 @@ function App() {
   }
 
   const connectToSocket = () => {
-    // Try to connect to the socket server (local for development)
-    const socket = io('http://localhost:3000', {
+    // Connect to the socket server using configuration
+    const socket = io(config.socketServerUrl, {
       transports: ['websocket', 'polling']
     })
 
     socket.on('connect', () => {
-      console.log('Connected to socket server')
+      console.log(`Connected to socket server at ${config.socketServerUrl}`)
       setIsConnected(true)
       socket.emit('join-session', { sessionId })
     })

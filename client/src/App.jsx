@@ -55,12 +55,14 @@ function App() {
 
   const createNewSession = () => {
     const newSessionId = generateSessionId()
+    setDocument('') // Clear document for new session
     setSessionId(newSessionId)
     setIsInSession(true)
     window.location.hash = newSessionId
   }
 
   const joinExistingSession = (sessionIdToJoin) => {
+    setDocument('') // Clear document when joining different session
     setSessionId(sessionIdToJoin)
     setIsInSession(true)
     window.location.hash = sessionIdToJoin
@@ -210,6 +212,7 @@ function App() {
         </button>
         <button 
           onClick={() => {
+            setDocument('') // Clear document when leaving session
             setIsInSession(false)
             setSessionId('')
             window.location.hash = ''

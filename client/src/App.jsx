@@ -18,6 +18,7 @@ function App() {
     const saved = localStorage.getItem('collabrio-dark-theme')
     return saved ? JSON.parse(saved) : false
   })
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
   
   // Refs
   const socketRef = useRef(null)
@@ -27,6 +28,14 @@ function App() {
   useEffect(() => {
     localStorage.setItem('collabrio-dark-theme', JSON.stringify(darkTheme))
   }, [darkTheme])
+
+  // Toast functionality
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' })
+    }, 3000)
+  }
 
   // Initialize session from URL hash only (no auto-generation)
   useEffect(() => {
@@ -145,7 +154,7 @@ function App() {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(getCurrentUrl())
-    alert('Link copied to clipboard!')
+    showToast('Link copied to clipboard!')
   }
 
   // Render landing page or collaborative editor
@@ -236,15 +245,27 @@ function App() {
       </div>
 
       <main className="editor-container">
-        <textarea
-          id="collaborative-editor"
-          ref={textareaRef}
-          key={`textarea-${sessionId}`}
-          value={document}
-          onChange={handleDocumentChange}
-          placeholder="Start typing your collaborative document here..."
-          className="collaborative-editor"
-        />
+        <div className="editor-wrapper">
+          <button 
+            className="copy-icon-btn" 
+            onClick={() => {
+              navigator.clipboard.writeText(document)
+              showToast('Document content copied to clipboard!')
+            }}
+            title="Copy document content"
+          >
+            ⧉
+          </button>
+          <textarea
+            id="collaborative-editor"
+            ref={textareaRef}
+            key={`textarea-${sessionId}`}
+            value={document}
+            onChange={handleDocumentChange}
+            placeholder="Start typing your collaborative document here..."
+            className="collaborative-editor"
+          />
+        </div>
       </main>
 
       {/* QR Code Modal */}
@@ -274,6 +295,13 @@ function App() {
               <button id="modal-close-btn" onClick={() => setShowQRModal(false)}>Close</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.message}
         </div>
       )}
     </div>

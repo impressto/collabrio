@@ -310,6 +310,39 @@ body > #root > .collabrio-app {
   min-height: 0; /* Important: allows flex child to shrink */
 }
 
+.collabrio-app .editor-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.collabrio-app .copy-icon-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6c757d;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.collabrio-app .copy-icon-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+  border-color: #ced4da;
+}
+
 .collabrio-app .collaborative-editor {
   width: 100%;
   height: 100%;
@@ -569,4 +602,81 @@ body > #root > .collabrio-app {
   background: #2d3748 !important;
   color: #e0e0e0 !important;
   border-color: #718096 !important;
+}
+
+.collabrio-app.dark-theme .copy-icon-btn {
+  background: #2d3748 !important;
+  color: #a0aec0 !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .copy-icon-btn:hover {
+  background: #4a5568 !important;
+  color: #e0e0e0 !important;
+  border-color: #718096 !important;
+}
+
+/* Toast Styles */
+.collabrio-app .toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #28a745;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2000;
+  font-size: 0.9rem;
+  font-weight: 500;
+  animation: toastSlideIn 0.3s ease-out;
+}
+
+.collabrio-app .toast-success {
+  background: #28a745;
+}
+
+.collabrio-app .toast-error {
+  background: #dc3545;
+}
+
+.collabrio-app .toast-warning {
+  background: #ffc107;
+  color: #212529;
+}
+
+.collabrio-app .toast-info {
+  background: #17a2b8;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Dark theme toast styles */
+.collabrio-app.dark-theme .toast-success {
+  background: #22543d !important;
+  color: #68d391 !important;
+}
+
+.collabrio-app.dark-theme .toast-error {
+  background: #742a2a !important;
+  color: #fc8181 !important;
+}
+
+.collabrio-app.dark-theme .toast-warning {
+  background: #744210 !important;
+  color: #f6e05e !important;
+}
+
+.collabrio-app.dark-theme .toast-info {
+  background: #2c5282 !important;
+  color: #63b3ed !important;
 }

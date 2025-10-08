@@ -1,7 +1,7 @@
 # Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 8, 2025 - Simplified Session ID Generation*  
+*Last Updated: October 8, 2025 - Document State Persistence for New Session Joiners*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
@@ -421,6 +421,55 @@
 - [x] Document decision in memory document (Dev Team - 2025-10-08)
 - [ ] Test collision handling in production environment (Dev Team - TBD)
 - [ ] Monitor session ID collision rates in production (Dev Team - TBD)
+
+---
+
+### Document State Persistence for New Session Joiners
+**Date:** 2025-10-08  
+**Description:** Implemented server-side document state storage so new users joining existing sessions immediately see the current document content instead of starting with a blank editor  
+**Rationale:** Users joining collaborative sessions with existing content were starting with blank editors and could only see content when new changes were made. This created a poor user experience and made it unclear what was being collaborated on  
+**Status:** Implemented and Tested  
+**Impact:** High - Significantly improves collaborative user experience and session joining workflow  
+**Stakeholders:** Development team, end users joining collaborative sessions  
+**Implementation:** Added server-side document storage with automatic synchronization to new session joiners and cleanup when sessions end  
+
+**Technical Implementation:**
+- **Document Storage:** Added `sessionDocuments` Map to store current document content per session
+- **New Joiner Sync:** Modified `join-session` handler to send current document to new clients
+- **State Management:** Updated `document-change` handler to store document updates server-side
+- **Memory Cleanup:** Added document cleanup when sessions become empty or inactive
+- **Event Enhancement:** Added `isInitialLoad` flag to distinguish initial sync from live updates
+
+**Features Added:**
+- **Immediate Content Access:** New users see current document content upon joining
+- **Persistent Session State:** Document content preserved while session is active
+- **Automatic Cleanup:** Document storage cleaned up when sessions end
+- **Seamless Experience:** No visible difference between initial load and live updates
+- **Memory Management:** Prevents memory leaks from abandoned sessions
+
+**Server Changes Made:**
+- Added `sessionDocuments` Map for document storage
+- Enhanced `join-session` event to include document synchronization
+- Updated `document-change` event to persist document state
+- Added cleanup in disconnect, leave-session, and periodic cleanup handlers
+- Added logging for document storage operations
+
+**Testing Results:**
+- ✅ New users joining sessions with existing content see document immediately
+- ✅ Document content persists while users are active in session
+- ✅ Document storage cleaned up when all users leave session
+- ✅ No memory leaks from inactive sessions
+- ✅ Seamless integration with existing collaborative editing features
+
+**Follow-up Actions:**
+- [x] Implement server-side document storage (Dev Team - 2025-10-08)
+- [x] Update join-session handler to send current document (Dev Team - 2025-10-08)
+- [x] Add document persistence to document-change handler (Dev Team - 2025-10-08)
+- [x] Implement cleanup for empty sessions (Dev Team - 2025-10-08)
+- [x] Test new joiner experience (Dev Team - 2025-10-08)
+- [x] Deploy and verify on production server (Dev Team - 2025-10-08)
+- [ ] Add optional document persistence to database (Dev Team - TBD)
+- [ ] Implement document history/versioning (Dev Team - TBD)
 
 ---
 

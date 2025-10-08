@@ -455,6 +455,29 @@ body > #root > .collabrio-app {
   background: #545b62;
 }
 
+/* Theme Toggle Icon */
+.collabrio-app .theme-toggle-icon {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.collabrio-app .theme-toggle-icon:hover {
+  background: #f8f9fa;
+  color: #495057;
+  border-color: #ced4da;
+}
+
 /* Dark Theme Styles */
 .collabrio-app.dark-theme {
   background: #1a1a1a !important;
@@ -534,4 +557,16 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .session-id {
   background: #2d3748 !important;
   color: #a0aec0 !important;
+}
+
+.collabrio-app.dark-theme .theme-toggle-icon {
+  background: transparent !important;
+  color: #a0aec0 !important;
+  border: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .theme-toggle-icon:hover {
+  background: #2d3748 !important;
+  color: #e0e0e0 !important;
+  border-color: #718096 !important;
 }

@@ -155,7 +155,7 @@ function App() {
       <div className="collabrio-container">
         <div className="landing-page">
           <header className="landing-header">
-            <h1><img src="./client/public/collaborio.png" alt="Collabrio" style={{width: '40px', height: '40px', marginRight: '12px', verticalAlign: 'middle'}} />Collabrio</h1>
+            <h1><img src="./client/public/collaborio.png" alt="Collabrio" style={{width: '56px', height: '56px', marginRight: '12px', verticalAlign: 'middle'}} />Collabrio</h1>
             <p>Real-time collaborative text editor</p>
           </header>
           
@@ -209,12 +209,6 @@ function App() {
         <button id="share-session-btn" onClick={shareSession} className="share-button">
           📱 Share Session
         </button>
-        <button id="copy-link-btn" onClick={copyToClipboard} className="copy-button">
-          📋 Copy Link
-        </button>
-        <button id="theme-toggle-btn" onClick={() => setDarkTheme(!darkTheme)} className="theme-toggle-button">
-          {darkTheme ? '☀️ Light' : '🌙 Dark'}
-        </button>
         <button 
           id="leave-session-btn"
           onClick={() => {
@@ -229,6 +223,14 @@ function App() {
           className="leave-session-button"
         >
           🚪 Leave Session
+        </button>
+        <button 
+          id="theme-toggle-btn" 
+          onClick={() => setDarkTheme(!darkTheme)} 
+          className="theme-toggle-icon"
+          title={darkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+        >
+          {darkTheme ? '☀️' : '🌙'}
         </button>
         <span id="session-id-display" className="session-id">Session: {sessionId}</span>
       </div>

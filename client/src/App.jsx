@@ -136,10 +136,10 @@ function App() {
   // Render landing page or collaborative editor
   if (!isInSession) {
     return (
-      <div className="clippy-container">
+      <div className="collabrio-container">
         <div className="landing-page">
           <header className="landing-header">
-            <h1>📎 Clippy</h1>
+            <h1>🤝 Collabrio</h1>
             <p>Real-time collaborative text editor</p>
           </header>
           
@@ -183,9 +183,9 @@ function App() {
   }
 
   return (
-    <div className="clippy-container">
-      <header className="clippy-header">
-        <h1>📎 Clippy</h1>
+    <div className="collabrio-container">
+      <header className="collabrio-header">
+        <h1>🤝 Collabrio</h1>
         <div className="connection-info">
           <span className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
             {isConnected ? '🟢 Connected' : '🔴 Disconnected'}

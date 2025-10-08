@@ -1,11 +1,11 @@
-# Clippy WebRTC Socket Server
+# Collabrio WebRTC Socket Server
 
-This is a Node.js WebSocket server that handles WebRTC signaling for the Clippy text sharing application. It replaces the PHP-based signaling endpoints with a more efficient real-time communication system using Socket.IO.
+This is a Node.js WebSocket server that handles WebRTC signaling for the Collabrio text sharing application. It replaces the PHP-based signaling endpoints with a more efficient real-time communication system using Socket.IO.
 
 ## Features
 
 - **Real-time Collaboration**: WebSocket-based document synchronization
-- **Session Management**: Anonymous sessions with URL hash-based access
+- **Session Ma3. Check server logs: `pm2 logs collabrio-socket-server`agement**: Anonymous sessions with URL hash-based access
 - **Client Presence Tracking**: Live user count and connection status
 - **Text Injection**: REST API and file-based message injection
 - **File Watching**: Automated message processing from file system
@@ -179,9 +179,9 @@ messages/
 - `server-text-injection` - Receive injected messages from server/automation
 - `signal` - Receive WebRTC signaling messages (future feature)
 
-## Integration with Clippy Frontend
+## Integration with Collabrio Frontend
 
-To use this WebSocket server with the Clippy frontend, set the `VITE_SOCKET_SERVER_URL` environment variable in your `.env` or `.env.local` file:
+To use this WebSocket server with the Collabrio frontend, set the `VITE_SOCKET_SERVER_URL` environment variable in your `.env` or `.env.local` file:
 
 ```
 VITE_SOCKET_SERVER_URL=http://localhost:3000
@@ -209,10 +209,10 @@ npm install
    ### Start the server with PM2:
    ```bash
    # Basic start
-   pm2 start server.js --name clippy-socket-server
+   pm2 start server.js --name collabrio-socket-server
 
    # With custom configuration
-   pm2 start server.js --name clippy-socket-server --watch --ignore-watch="node_modules messages/processed server.log"
+   pm2 start server.js --name collabrio-socket-server --watch --ignore-watch="node_modules messages/processed server.log"
    ```
 
    ### PM2 Management Commands:
@@ -222,20 +222,20 @@ npm install
    pm2 list
 
    # View logs
-   pm2 logs clippy-socket-server
-   pm2 logs clippy-socket-server --lines 100
+   pm2 logs collabrio-socket-server
+   pm2 logs collabrio-socket-server --lines 100
 
    # Monitor in real-time
    pm2 monit
 
    # Restart the server
-   pm2 restart clippy-socket-server
+   pm2 restart collabrio-socket-server
 
    # Stop the server
-   pm2 stop clippy-socket-server
+   pm2 stop collabrio-socket-server
 
    # Delete from PM2
-   pm2 delete clippy-socket-server
+   pm2 delete collabrio-socket-server
 
    # Save PM2 configuration
    pm2 save
@@ -302,7 +302,7 @@ npm install
    ```javascript
    module.exports = {
      apps: [{
-       name: 'clippy-socket-server',
+       name: 'collabrio-socket-server',
        script: 'server.js',
        instances: 1,
        exec_mode: 'fork',
@@ -336,7 +336,7 @@ npm install
 **Server not starting:**
 ```bash
 # Check PM2 logs
-pm2 logs clippy-socket-server
+pm2 logs collabrio-socket-server
 
 # Check if port is already in use
 netstat -tulpn | grep :3000
@@ -357,7 +357,7 @@ pm2 monit
 1. Ensure the session ID in the filename matches an active session
 2. Check `/debug/sessions` endpoint to see active sessions
 3. Verify file permissions allow reading
-4. Check server logs: `pm2 logs clippy-socket-server`
+4. Check server logs: `pm2 logs collabrio-socket-server`
 
 **Files not moving to processed directory:**
 1. Ensure `messages/processed/` directory exists
@@ -371,7 +371,7 @@ pm2 monit
 pm2 monit
 
 # View detailed process info
-pm2 show clippy-socket-server
+pm2 show collabrio-socket-server
 
 # Check memory usage
 pm2 list

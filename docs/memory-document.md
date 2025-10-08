@@ -1,17 +1,17 @@
-# Clippy the webRTC Chat - Memory Document
+# Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 4, 2025 - Core Collaboration Features Complete*  
+*Last Updated: October 7, 2025 - File-Based Message Injection System Implemented*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
 
-**Project Name:** Clippy the webRTC Chat with File Sharing  
+**Project Name:** Collabrio - Real-time Collaborative Text Editor  
 **Description:** A WebRTC-based collaborative text editor with file sharing capabilities, featuring fallback to WebSocket for restricted networks  
 **Team:** [To be updated as team members are identified]  
 **Start Date:** October 4, 2025  
-**Current Phase:** Development - Core Features Complete  
-**Repository:** /home/impressto/work/impressto/homeserver/www/homelab/clippy2  
+**Current Phase:** Development - Core Features + Automation Integration Complete  
+**Repository:** /home/impressto/work/impressto/homeserver/www/homelab/collabrio  
 **Live Demo:** Local development at http://localhost:5174 (Socket server: localhost:3000)  
 
 ## 📋 Decision Log
@@ -126,11 +126,17 @@
 - **User Counter:** ✅ Shows accurate number of connected users
 - **Session Joining:** ✅ Manual session ID entry working
 - **QR Code Sharing:** ✅ Shareable links generate correctly
+- **File-Based Injection:** ✅ Automated message injection from filesystem working
+- **Message Type Support:** ✅ Multiple message types (system, bot, admin) working
+- **File Processing:** ✅ Automatic archival and cleanup working
 
 **Follow-up Actions:**
 - [x] Test same-session collaboration (Dev Team - 2025-10-04)
 - [x] Verify session isolation (Dev Team - 2025-10-04)
 - [x] Confirm user count accuracy (Dev Team - 2025-10-04)
+- [x] Test file-based injection system (Dev Team - 2025-10-05)
+- [x] Verify message type parsing (Dev Team - 2025-10-05)
+- [x] Test file archival system (Dev Team - 2025-10-05)
 - [ ] Test on mobile devices (Dev Team - TBD)
 - [ ] Performance testing with many users (Dev Team - TBD)
 
@@ -190,8 +196,119 @@
 - [x] Add client-side event handler (Dev Team - 2025-10-05)
 - [x] Test message injection (Dev Team - 2025-10-05)
 - [x] Create test script (Dev Team - 2025-10-05)
+- [x] Implement file-based injection system (Dev Team - 2025-10-05)
+- [x] Add file watcher with chokidar (Dev Team - 2025-10-05)
+- [x] Create demo script for file injection (Dev Team - 2025-10-05)
+- [x] Update documentation with injection details (Dev Team - 2025-10-05)
 - [ ] Consider admin web interface (Dev Team - TBD)
 - [ ] Add message history/persistence (Dev Team - TBD)
+
+---
+
+### File-Based Message Injection System
+**Date:** 2025-10-05  
+**Description:** Implemented automated file-watching system for message injection using filesystem monitoring with chokidar  
+**Rationale:** Enables external automation tools, scripts, and systems to inject messages into collaborative sessions without direct API calls, providing a simple file-drop interface for integration  
+**Status:** Implemented and Tested  
+**Impact:** High - Opens new automation possibilities and simplifies integration with external systems  
+**Stakeholders:** Development team, automation tools, admin users, external integrations  
+**Implementation:** Added chokidar file watcher, automatic file processing, message parsing, and processed file archival system  
+
+**Technical Details:**
+- **File Naming Convention:** `{sessionId}.txt` (system) or `{sessionId}_{type}.txt` (typed messages)
+- **Watch Directory:** `socket-server/messages/` with automatic creation
+- **File Processing:** Automatic detection, parsing, injection, and archival to `processed/` folder
+- **Message Types:** Support for system, bot, user, alert, admin, and custom types
+- **Error Handling:** Validates session existence, file content, and handles processing errors
+- **Archive System:** Processed files moved with timestamps to prevent reprocessing
+
+**Features Implemented:**
+- **Automatic File Detection:** Chokidar watches for file additions and changes
+- **Session Validation:** Only processes files for active sessions with clients
+- **Message Type Parsing:** Extracts message type from filename (e.g., `abc123_bot.txt`)
+- **Real-time Injection:** Messages appear instantly in all connected clients
+- **File Archival:** Processed files timestamped and moved to `processed/` directory
+- **Demo Script:** `demo-file-injection.sh` for testing and demonstration
+
+**Test Results:**
+- ✅ File watcher detects new .txt files in messages directory
+- ✅ Session ID and message type parsed correctly from filenames
+- ✅ Messages injected into correct sessions with proper formatting
+- ✅ Files processed and archived automatically with timestamps
+- ✅ Only active sessions receive messages (inactive sessions ignored)
+- ✅ Demo script successfully demonstrates all functionality
+
+**Follow-up Actions:**
+- [x] Implement chokidar file watcher (Dev Team - 2025-10-05)
+- [x] Add filename parsing for session ID and type (Dev Team - 2025-10-05)
+- [x] Create processed file archival system (Dev Team - 2025-10-05)
+- [x] Test automated injection workflow (Dev Team - 2025-10-05)
+- [x] Create demonstration script (Dev Team - 2025-10-05)
+- [x] Document file naming conventions (Dev Team - 2025-10-05)
+- [ ] Add file size limits and security validation (Dev Team - TBD)
+- [ ] Create web interface for file management (Dev Team - TBD)
+
+---
+
+### Enhanced Documentation and Configuration
+**Date:** 2025-10-05  
+**Description:** Comprehensive updates to README documentation and Vite configuration for improved development experience  
+**Rationale:** Better documentation enables easier onboarding, deployment, and integration while configuration improvements streamline development workflow  
+**Status:** Implemented  
+**Impact:** Medium - Improves maintainability and developer experience  
+**Stakeholders:** Development team, future contributors, deployment teams  
+**Implementation:** Enhanced socket server README with complete API documentation, examples, and deployment guides; updated Vite configuration for better development experience
+
+---
+
+### Application Rebranding from Clippy to Collabrio
+**Date:** 2025-10-07  
+**Description:** Complete rebranding of the application from "Clippy" to "Collabrio" across all project files, documentation, and user interfaces  
+**Rationale:** "Collabrio" better represents the collaborative nature of the application and avoids potential trademark conflicts with Microsoft's Clippy assistant  
+**Status:** Implemented  
+**Impact:** Medium - Improves brand identity and clarity of purpose  
+**Stakeholders:** Development team, end users, documentation  
+**Implementation:** Updated all references in frontend components, backend services, documentation, package names, CSS classes, and deployment scripts
+
+**Changes Made:**
+- **Frontend UI:** Updated app title, headers, and CSS class names from clippy-* to collabrio-*
+- **Documentation:** Renamed in spec document, memory document, and README files
+- **Backend Services:** Updated package.json, deployment scripts, and admin interface
+- **Visual Identity:** Changed emoji from 📎 (paperclip) to 🤝 (handshake) to represent collaboration
+- **CSS Classes:** Renamed .clippy-container to .collabrio-container and .clippy-header to .collabrio-header
+
+**Follow-up Actions:**
+- [x] Update frontend React components (Dev Team - 2025-10-07)
+- [x] Update CSS class names and styles (Dev Team - 2025-10-07)
+- [x] Update backend package names and descriptions (Dev Team - 2025-10-07)
+- [x] Update all documentation files (Dev Team - 2025-10-07)
+- [x] Update deployment scripts and PM2 process names (Dev Team - 2025-10-07)
+- [x] Update admin interface branding (Dev Team - 2025-10-07)
+- [x] Regenerate package-lock.json with new names (Dev Team - 2025-10-07)
+- [ ] Update any external documentation or links (Dev Team - TBD)
+- [ ] Consider updating favicon and other visual assets (Dev Team - TBD)  
+
+**Documentation Enhancements:**
+- **Complete API Reference:** Detailed REST endpoint documentation with curl examples
+- **File-Based Injection Guide:** Comprehensive guide to filesystem-based message injection
+- **WebSocket Events:** Complete reference for client-server communication
+- **Production Deployment:** PM2 and manual deployment instructions
+- **Integration Examples:** Frontend integration and environment configuration
+- **Error Handling:** Example responses for success and error scenarios
+
+**Configuration Updates:**
+- **Vite Configuration:** Optimized build settings and development server configuration
+- **Dependency Management:** Updated yarn.lock with new file-watching dependencies
+- **Environment Variables:** Documented configuration options and defaults
+
+**Follow-up Actions:**
+- [x] Update README with API documentation (Dev Team - 2025-10-05)
+- [x] Add file injection documentation (Dev Team - 2025-10-05)
+- [x] Document WebSocket events (Dev Team - 2025-10-05)
+- [x] Add deployment instructions (Dev Team - 2025-10-05)
+- [x] Update Vite configuration (Dev Team - 2025-10-05)
+- [ ] Add API documentation website (Dev Team - TBD)
+- [ ] Create video tutorials (Dev Team - TBD)
 
 ---
 
@@ -248,6 +365,15 @@
 **Document State Management:** React state handling for collaborative text content synchronization  
 **Multi-client Testing:** Process of verifying functionality across multiple browser instances simultaneously  
 **Session Hash:** URL fragment identifier used for anonymous session management (#sessionId)  
+**File-Based Injection:** Automated system for injecting messages into sessions by creating/modifying text files in a watched directory  
+**Chokidar:** Node.js file system watcher library used for monitoring changes to message files  
+**Message File Archival:** System for moving processed message files to timestamped archive directory to prevent reprocessing  
+**File Watcher:** Automated monitoring system that detects file changes and triggers message injection workflow  
+**Session Validation:** Process of verifying that a session exists and has active clients before processing message injection  
+**Message Type Parsing:** Extraction of message type from filename patterns (e.g., `sessionId_type.txt`)  
+**Processed Directory:** Archive folder where successfully processed message files are moved with timestamps  
+**REST API Injection:** HTTP POST endpoint for programmatically injecting messages into collaborative sessions  
+**Automation Integration:** Capability for external systems to send messages via file drops or API calls  
 
 *Add all important terms, acronyms, and concepts that team members should understand*
 
@@ -307,7 +433,23 @@
 
 ---
 
-*Add more lessons using the same format above*  
+### File-Based System Integration Design
+**Date:** 2025-10-05  
+**Category:** Technical Architecture  
+**Situation:** Needed to enable external automation and scripts to inject messages into collaborative sessions without requiring direct API integration or authentication  
+**Lesson:** File-based interfaces provide excellent integration points for external systems. Using filesystem watching with automatic file processing creates a simple, reliable integration method that works across different platforms and programming languages  
+**Application:** Implemented chokidar file watcher to monitor a messages directory, parse session ID and message type from filenames, inject content into active sessions, and archive processed files. This enables any system that can write files to integrate with the collaboration platform  
+**Impact:** High - Opens significant automation possibilities and simplifies integration with external tools, scripts, and monitoring systems  
+
+---
+
+### Documentation-Driven Feature Implementation
+**Date:** 2025-10-05  
+**Category:** Project Management  
+**Situation:** Implemented comprehensive file-based injection system and enhanced REST API while maintaining detailed documentation throughout development  
+**Lesson:** Documenting features thoroughly during implementation (not after) leads to better API design, clearer error handling, and easier testing. Writing examples and use cases forces you to think through edge cases and user experience  
+**Application:** Created complete README documentation with curl examples, error scenarios, and integration guides while implementing the features. This led to better parameter validation, clearer error messages, and more robust functionality  
+**Impact:** Medium - Improves code quality, reduces support burden, and accelerates adoption by making features self-documenting  
 
 ---
 

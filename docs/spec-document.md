@@ -1,4 +1,4 @@
-# Clippy the webRTC chat with file sharing
+# Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*
 *Generated on October 4, 2025*

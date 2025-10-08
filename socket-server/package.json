@@ -1,7 +1,7 @@
 {
-  "name": "clippy-socket-server",
+  "name": "collabrio-socket-server",
   "version": "1.0.0",
-  "description": "WebSocket server for Clippy WebRTC functionality",
+  "description": "WebSocket server for Collabrio WebRTC functionality",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

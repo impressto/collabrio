@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Deploy script for Clippy WebRTC Socket Server
+# Deploy script for Collabrio WebRTC Socket Server
 # This script installs dependencies and starts/restarts the socket server
 
-echo "Deploying Clippy Socket Server..."
+echo "Deploying Collabrio Socket Server..."
 
 # Ensure we're in the socket-server directory
 cd "$(dirname "$0")"
@@ -31,14 +31,13 @@ echo "Installing dependencies..."
 npm install
 
 # Stop existing process if running
-if pm2 list | grep -q "clippy-socket-server"; then
-    echo "Stopping existing socket server..."
-    pm2 stop clippy-socket-server
-fi
+if pm2 list | grep -q "collabrio-socket-server"; then
+    echo "Stopping existing server..."
+    pm2 stop collabrio-socket-server
 
 # Start the server with PM2
 echo "Starting socket server with PM2..."
-pm2 start server.js --name clippy-socket-server
+pm2 start server.js --name collabrio-socket-server
 
 # Save PM2 configuration
 echo "Saving PM2 configuration..."

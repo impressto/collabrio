@@ -5,10 +5,11 @@ This is a Node.js WebSocket server that handles WebRTC signaling for the Collabr
 ## Features
 
 - **Real-time Collaboration**: WebSocket-based document synchronization
-- **Session Ma3. Check server logs: `pm2 logs collabrio-socket-server`agement**: Anonymous sessions with URL hash-based access
+- **Session Management**: Anonymous sessions with URL hash-based access
 - **Client Presence Tracking**: Live user count and connection status
 - **Text Injection**: REST API and file-based message injection
 - **File Watching**: Automated message processing from file system
+- **File Sharing (Phase 1)**: Ephemeral file sharing with 5-minute timeout
 - **QR Code Integration**: Easy session sharing via QR codes
 - **WebRTC Ready**: Prepared for P2P enhancement
 - **Production Ready**: PM2 process management support
@@ -96,6 +97,8 @@ curl -I http://localhost:4244/admin
 - `GET /status` - Check server status and get active sessions
 - `POST /inject-text` - Inject text into an active session
 - `GET /debug/sessions` - View active sessions and connected clients (debug endpoint)
+- `POST /upload-file` - Upload a file to share with session participants (Phase 1)
+- `GET /download-file/:fileId` - Download a shared file by ID (Phase 1)
 
 ### REST API Text Injection Examples
 
@@ -202,6 +205,54 @@ messages/
 └── [session files]     # Files to be processed
 ```
 
+## File Sharing API (Phase 1)
+
+### File Upload Endpoint
+
+**Upload a file to share with session participants:**
+```bash
+curl -X POST http://localhost:4244/upload-file \
+  -F "file=@example.pdf" \
+  -F "sessionId=abc123" \
+  -F "userId=user1"
+```
+
+**Parameters:**
+- `file` (multipart) - The file to upload (max 10MB)
+- `sessionId` (string) - Active session ID
+- `userId` (string) - User identifier for rate limiting
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "File uploaded successfully",
+  "fileId": "a1b2c3d4e5f6...",
+  "filename": "example.pdf",
+  "size": 1024576
+}
+```
+
+### File Download Endpoint
+
+**Download a shared file:**
+```bash
+curl "http://localhost:4244/download-file/a1b2c3d4e5f6?sessionId=abc123" \
+  -o downloaded_file.pdf
+```
+
+**Parameters:**
+- `:fileId` (path) - Unique file identifier from upload response
+- `sessionId` (query) - Session ID for access validation
+
+### File Sharing Configuration
+
+- **Maximum file size:** 10MB
+- **File timeout:** 5 minutes (ephemeral sharing)
+- **Rate limit:** 3 uploads per 5 minutes per user
+- **Allowed types:** Documents, images, archives, code files
+- **Blocked extensions:** .exe, .bat, .sh, .app, .dll, .sys, .scr, .vbs, .jar
+
 ## WebSocket Events
 
 ### Client to Server
@@ -210,6 +261,9 @@ messages/
 - `document-change` - Send document updates to other clients in session
 - `leave-session` - Leave the current session
 - `signal` - Send a WebRTC signaling message to another client (future feature)
+- `file-share-request` - Request to share a file with session participants (Phase 1)
+- `file-chunk` - Send file data chunk during upload (Phase 1)
+- `file-download-request` - Request download information for a file (Phase 1)
 
 ### Server to Client
 
@@ -218,6 +272,14 @@ messages/
 - `user-left` - Notification when a user leaves the session
 - `server-text-injection` - Receive injected messages from server/automation
 - `signal` - Receive WebRTC signaling messages (future feature)
+- `file-available` - Notification when a file is shared in the session (Phase 1)
+- `file-share-accepted` - Confirmation that file upload can proceed (Phase 1)
+- `file-share-error` - Error during file sharing operation (Phase 1)
+- `file-upload-progress` - Progress updates during file upload (Phase 1)
+- `file-upload-complete` - Confirmation that file upload finished (Phase 1)
+- `file-downloaded` - Notification when someone downloads a file (Phase 1)
+- `file-expired` - Notification when a shared file expires (Phase 1)
+- `file-download-ready` - Download URL provided for requested file (Phase 1)
 
 ## Integration with Collabrio Frontend
 

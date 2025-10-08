@@ -863,3 +863,321 @@ body > #root > .collabrio-app {
   background: #2c5282 !important;
   color: #63b3ed !important;
 }
+
+/* File Sharing Styles */
+.collabrio-app .share-file-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.collabrio-app .share-file-button:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.collabrio-app .share-file-button:active {
+  transform: translateY(0);
+}
+
+/* File notification container */
+.collabrio-app .file-notifications-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+  width: 90%;
+  max-width: 400px;
+}
+
+/* Individual file notification */
+.collabrio-app .file-notification {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fileNotificationSlideIn 0.3s ease-out;
+  transition: all 0.2s ease;
+}
+
+.collabrio-app .file-notification:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.collabrio-app .file-notification-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.collabrio-app .file-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.collabrio-app .file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.collabrio-app .file-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1a202c;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collabrio-app .file-meta {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.collabrio-app .dismiss-btn {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.collabrio-app .dismiss-btn:hover {
+  background: #f7fafc;
+  color: #718096;
+}
+
+.collabrio-app .file-notification-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.collabrio-app .download-btn {
+  background: #3182ce;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.collabrio-app .download-btn:hover:not(:disabled) {
+  background: #2c5282;
+  transform: translateY(-1px);
+}
+
+.collabrio-app .download-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.collabrio-app .download-btn.downloading {
+  background: #4299e1;
+}
+
+.collabrio-app .download-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.collabrio-app .download-progress {
+  margin-top: 0.75rem;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.collabrio-app .download-progress-bar {
+  height: 100%;
+  background: #3182ce;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* File notification animations */
+@keyframes fileNotificationSlideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Dark theme file notification styles */
+.collabrio-app.dark-theme .share-file-button {
+  background: #38a169;
+}
+
+.collabrio-app.dark-theme .share-file-button:hover {
+  background: #2f855a;
+}
+
+.collabrio-app.dark-theme .file-notification {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+.collabrio-app.dark-theme .file-name {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .file-meta {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .dismiss-btn {
+  color: #718096;
+}
+
+.collabrio-app.dark-theme .dismiss-btn:hover {
+  background: #4a5568;
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .download-btn {
+  background: #4299e1;
+}
+
+.collabrio-app.dark-theme .download-btn:hover:not(:disabled) {
+  background: #3182ce;
+}
+
+.collabrio-app.dark-theme .download-progress {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .download-progress-bar {
+  background: #4299e1;
+}
+
+/* Upload progress indicator */
+.collabrio-app .upload-progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.collabrio-app .upload-progress-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.collabrio-app .upload-progress-modal h3 {
+  margin: 0 0 1rem 0;
+  color: #1a202c;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.collabrio-app .upload-file-info {
+  margin-bottom: 1.5rem;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.collabrio-app .upload-progress {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.collabrio-app .upload-progress-bar {
+  height: 100%;
+  background: #3182ce;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.collabrio-app .upload-progress-text {
+  font-size: 0.85rem;
+  color: #4a5568;
+  margin-bottom: 1rem;
+}
+
+.collabrio-app .upload-cancel-btn {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.collabrio-app .upload-cancel-btn:hover {
+  background: #c53030;
+}
+
+/* Dark theme upload progress styles */
+.collabrio-app.dark-theme .upload-progress-modal {
+  background: #2d3748;
+}
+
+.collabrio-app.dark-theme .upload-progress-modal h3 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .upload-file-info {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .upload-progress {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .upload-progress-text {
+  color: #cbd5e0;
+}

@@ -6,6 +6,9 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const chokidar = require('chokidar');
+const crypto = require('crypto');
+const multer = require('multer');
+const mime = require('mime-types');
 
 // Create Express app
 const app = express();
@@ -34,6 +37,12 @@ const activeSessions = new Map();
 // Store session documents (sessionId -> document content)
 const sessionDocuments = new Map();
 
+// Store active file transfers (fileId -> file metadata and chunks)
+const activeFiles = new Map();
+
+// Store session file uploads tracking (sessionId -> Set of fileIds)
+const sessionFiles = new Map();
+
 // Data directory path (for compatibility with PHP version)
 const dataDir = path.join(__dirname, '../data');
 
@@ -49,12 +58,295 @@ if (!fs.existsSync(messageDir)) {
   console.log(`Created message directory: ${messageDir}`);
 }
 
+// File sharing configuration
+const FILE_CONFIG = {
+  maxFileSize: 10 * 1024 * 1024, // 10MB
+  timeoutMinutes: 5,
+  chunkSize: 64 * 1024, // 64KB
+  maxUploadsPerUser: 3,
+  uploadWindowMinutes: 5,
+  allowedTypes: [
+    // Documents
+    'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain', 'text/markdown',
+    // Images
+    'image/jpeg', 'image/png', 'image/gif', 'image/svg+xml',
+    // Archives
+    'application/zip', 'application/x-tar', 'application/gzip',
+    // Code
+    'application/javascript', 'text/javascript', 'text/css', 'text/html', 'application/json'
+  ],
+  blockedExtensions: ['.exe', '.bat', '.sh', '.app', '.dll', '.sys', '.scr', '.vbs', '.jar']
+};
+
+// Rate limiting for file uploads (userId -> upload timestamps)
+const uploadRateLimits = new Map();
+
+// File sharing helper functions
+function generateFileId() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+function validateFileType(filename, mimeType) {
+  const ext = path.extname(filename).toLowerCase();
+  
+  // Check blocked extensions
+  if (FILE_CONFIG.blockedExtensions.includes(ext)) {
+    return { valid: false, reason: `File type ${ext} is not allowed` };
+  }
+  
+  // Check allowed MIME types
+  if (!FILE_CONFIG.allowedTypes.includes(mimeType)) {
+    return { valid: false, reason: `MIME type ${mimeType} is not allowed` };
+  }
+  
+  return { valid: true };
+}
+
+function checkUploadRateLimit(userId) {
+  const now = Date.now();
+  const windowStart = now - (FILE_CONFIG.uploadWindowMinutes * 60 * 1000);
+  
+  if (!uploadRateLimits.has(userId)) {
+    uploadRateLimits.set(userId, []);
+  }
+  
+  const userUploads = uploadRateLimits.get(userId);
+  
+  // Remove old uploads outside the window
+  const recentUploads = userUploads.filter(timestamp => timestamp > windowStart);
+  uploadRateLimits.set(userId, recentUploads);
+  
+  return recentUploads.length < FILE_CONFIG.maxUploadsPerUser;
+}
+
+function addUploadToRateLimit(userId) {
+  const now = Date.now();
+  if (!uploadRateLimits.has(userId)) {
+    uploadRateLimits.set(userId, []);
+  }
+  uploadRateLimits.get(userId).push(now);
+}
+
+function cleanupExpiredFiles() {
+  const now = Date.now();
+  const expiredFiles = [];
+  
+  for (const [fileId, fileData] of activeFiles.entries()) {
+    if (now - fileData.uploadTimestamp > FILE_CONFIG.timeoutMinutes * 60 * 1000) {
+      expiredFiles.push(fileId);
+    }
+  }
+  
+  for (const fileId of expiredFiles) {
+    console.log(`Cleaning up expired file: ${fileId}`);
+    activeFiles.delete(fileId);
+    
+    // Remove from session tracking
+    for (const [sessionId, fileSet] of sessionFiles.entries()) {
+      fileSet.delete(fileId);
+    }
+    
+    // Notify session participants that file expired
+    const sessionId = activeFiles.get(fileId)?.sessionId;
+    if (sessionId && activeSessions.has(sessionId)) {
+      io.to(sessionId).emit('file-expired', { fileId });
+    }
+  }
+}
+
+// Run cleanup every minute
+setInterval(cleanupExpiredFiles, 60 * 1000);
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: FILE_CONFIG.maxFileSize,
+    files: 1 // Only allow single file upload
+  },
+  fileFilter: (req, file, cb) => {
+    const validation = validateFileType(file.originalname, file.mimetype);
+    if (validation.valid) {
+      cb(null, true);
+    } else {
+      cb(new Error(validation.reason));
+    }
+  }
+});
+
+// Phase 1: File upload endpoint
+app.post('/upload-file', upload.single('file'), (req, res) => {
+  try {
+    const { sessionId, userId } = req.body;
+    
+    if (!sessionId || !userId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'sessionId and userId are required'
+      });
+    }
+    
+    if (!activeSessions.has(sessionId)) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Session not found or inactive'
+      });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'No file provided'
+      });
+    }
+    
+    // Check upload rate limit
+    if (!checkUploadRateLimit(userId)) {
+      return res.status(429).json({
+        status: 'error',
+        message: `Upload limit exceeded. Maximum ${FILE_CONFIG.maxUploadsPerUser} uploads per ${FILE_CONFIG.uploadWindowMinutes} minutes.`
+      });
+    }
+    
+    // Generate file ID and store file data
+    const fileId = generateFileId();
+    const fileData = {
+      id: fileId,
+      filename: req.file.originalname,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      buffer: req.file.buffer,
+      uploadTimestamp: Date.now(),
+      sessionId: sessionId,
+      uploadedBy: userId,
+      downloadCount: 0
+    };
+    
+    // Store file in memory
+    activeFiles.set(fileId, fileData);
+    
+    // Track file for session
+    if (!sessionFiles.has(sessionId)) {
+      sessionFiles.set(sessionId, new Set());
+    }
+    sessionFiles.get(sessionId).add(fileId);
+    
+    // Add to rate limit tracking
+    addUploadToRateLimit(userId);
+    
+    console.log(`File uploaded: ${req.file.originalname} (${req.file.size} bytes) by ${userId} in session ${sessionId}`);
+    
+    // Notify all session participants about new file
+    io.to(sessionId).emit('file-available', {
+      fileId: fileId,
+      filename: req.file.originalname,
+      size: req.file.size,
+      mimeType: req.file.mimetype,
+      uploadedBy: userId,
+      timestamp: Date.now()
+    });
+    
+    res.json({
+      status: 'success',
+      message: 'File uploaded successfully',
+      fileId: fileId,
+      filename: req.file.originalname,
+      size: req.file.size
+    });
+    
+  } catch (error) {
+    console.error('File upload error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'File upload failed'
+    });
+  }
+});
+
+// Phase 1: File download endpoint
+app.get('/download-file/:fileId', (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const { sessionId } = req.query;
+    
+    if (!sessionId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'sessionId query parameter is required'
+      });
+    }
+    
+    if (!activeSessions.has(sessionId)) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Session not found or inactive'
+      });
+    }
+    
+    const fileData = activeFiles.get(fileId);
+    if (!fileData) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'File not found or expired'
+      });
+    }
+    
+    if (fileData.sessionId !== sessionId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'File not accessible from this session'
+      });
+    }
+    
+    // Increment download count
+    fileData.downloadCount++;
+    
+    console.log(`File downloaded: ${fileData.filename} (download #${fileData.downloadCount}) from session ${sessionId}`);
+    
+    // Set appropriate headers
+    res.setHeader('Content-Disposition', `attachment; filename="${fileData.filename}"`);
+    res.setHeader('Content-Type', fileData.mimeType);
+    res.setHeader('Content-Length', fileData.size);
+    
+    // Send file buffer
+    res.send(fileData.buffer);
+    
+    // Notify session participants about download
+    io.to(sessionId).emit('file-downloaded', {
+      fileId: fileId,
+      filename: fileData.filename,
+      downloadCount: fileData.downloadCount,
+      timestamp: Date.now()
+    });
+    
+    // Optional: Clean up file after first download (ephemeral behavior)
+    // Uncomment the following lines if you want files to be deleted after download
+    /*
+    activeFiles.delete(fileId);
+    if (sessionFiles.has(sessionId)) {
+      sessionFiles.get(sessionId).delete(fileId);
+    }
+    console.log(`File cleaned up after download: ${fileId}`);
+    */
+    
+  } catch (error) {
+    console.error('File download error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'File download failed'
+    });
+  }
+});
+
 // REST endpoint for checking server status
 app.get('/status', (req, res) => {
   res.json({
     status: 'success',
     message: 'WebRTC Socket server is running',
-    activeSessions: Array.from(activeSessions.keys())
+    activeSessions: Array.from(activeSessions.keys()),
+    activeFiles: activeFiles.size
   });
 });
 
@@ -295,6 +587,173 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle file sharing events
+  socket.on('file-share-request', ({ filename, size, mimeType }) => {
+    if (!sessionId || !clientId) {
+      socket.emit('file-share-error', { message: 'Must be in a session to share files' });
+      return;
+    }
+    
+    // Validate file before accepting
+    const validation = validateFileType(filename, mimeType);
+    if (!validation.valid) {
+      socket.emit('file-share-error', { message: validation.reason });
+      return;
+    }
+    
+    if (size > FILE_CONFIG.maxFileSize) {
+      socket.emit('file-share-error', { 
+        message: `File too large. Maximum size is ${FILE_CONFIG.maxFileSize / 1024 / 1024}MB` 
+      });
+      return;
+    }
+    
+    // Check rate limit
+    if (!checkUploadRateLimit(clientId)) {
+      socket.emit('file-share-error', { 
+        message: `Upload limit exceeded. Maximum ${FILE_CONFIG.maxUploadsPerUser} uploads per ${FILE_CONFIG.uploadWindowMinutes} minutes.` 
+      });
+      return;
+    }
+    
+    // Generate file ID for this transfer
+    const fileId = generateFileId();
+    
+    // Initialize file transfer tracking
+    activeFiles.set(fileId, {
+      id: fileId,
+      filename: filename,
+      mimeType: mimeType,
+      size: size,
+      sessionId: sessionId,
+      uploadedBy: clientId,
+      uploadTimestamp: Date.now(),
+      chunks: new Map(),
+      totalChunks: Math.ceil(size / FILE_CONFIG.chunkSize),
+      receivedChunks: 0,
+      buffer: null,
+      isComplete: false
+    });
+    
+    console.log(`File share initiated: ${filename} (${size} bytes) by ${clientId} in session ${sessionId}`);
+    
+    // Respond with file ID for chunked upload
+    socket.emit('file-share-accepted', { 
+      fileId: fileId,
+      chunkSize: FILE_CONFIG.chunkSize
+    });
+  });
+  
+  socket.on('file-chunk', ({ fileId, chunkIndex, chunkData, isLastChunk }) => {
+    const fileTransfer = activeFiles.get(fileId);
+    if (!fileTransfer) {
+      socket.emit('file-share-error', { message: 'File transfer not found or expired' });
+      return;
+    }
+    
+    if (fileTransfer.sessionId !== sessionId || fileTransfer.uploadedBy !== clientId) {
+      socket.emit('file-share-error', { message: 'Invalid file transfer session' });
+      return;
+    }
+    
+    // Convert base64 chunk data to buffer
+    const chunkBuffer = Buffer.from(chunkData, 'base64');
+    
+    // Store chunk
+    fileTransfer.chunks.set(chunkIndex, chunkBuffer);
+    fileTransfer.receivedChunks++;
+    
+    console.log(`Received chunk ${chunkIndex + 1}/${fileTransfer.totalChunks} for file ${fileTransfer.filename}`);
+    
+    // Send progress update
+    socket.emit('file-upload-progress', {
+      fileId: fileId,
+      progress: (fileTransfer.receivedChunks / fileTransfer.totalChunks) * 100,
+      receivedChunks: fileTransfer.receivedChunks,
+      totalChunks: fileTransfer.totalChunks
+    });
+    
+    // Check if all chunks received
+    if (fileTransfer.receivedChunks === fileTransfer.totalChunks || isLastChunk) {
+      // Reassemble file from chunks
+      const sortedChunks = [];
+      for (let i = 0; i < fileTransfer.totalChunks; i++) {
+        if (fileTransfer.chunks.has(i)) {
+          sortedChunks.push(fileTransfer.chunks.get(i));
+        }
+      }
+      
+      if (sortedChunks.length === fileTransfer.totalChunks) {
+        fileTransfer.buffer = Buffer.concat(sortedChunks);
+        fileTransfer.isComplete = true;
+        
+        // Clear chunks to save memory
+        fileTransfer.chunks.clear();
+        
+        // Add to rate limit tracking
+        addUploadToRateLimit(clientId);
+        
+        // Track file for session
+        if (!sessionFiles.has(sessionId)) {
+          sessionFiles.set(sessionId, new Set());
+        }
+        sessionFiles.get(sessionId).add(fileId);
+        
+        console.log(`File upload completed: ${fileTransfer.filename} by ${clientId}`);
+        
+        // Notify uploader
+        socket.emit('file-upload-complete', {
+          fileId: fileId,
+          filename: fileTransfer.filename,
+          size: fileTransfer.size
+        });
+        
+        // Notify all session participants about new file
+        io.to(sessionId).emit('file-available', {
+          fileId: fileId,
+          filename: fileTransfer.filename,
+          size: fileTransfer.size,
+          mimeType: fileTransfer.mimeType,
+          uploadedBy: clientId,
+          timestamp: Date.now()
+        });
+      } else {
+        socket.emit('file-share-error', { message: 'File assembly failed - missing chunks' });
+      }
+    }
+  });
+  
+  socket.on('file-download-request', ({ fileId }) => {
+    if (!sessionId || !clientId) {
+      socket.emit('file-share-error', { message: 'Must be in a session to download files' });
+      return;
+    }
+    
+    const fileData = activeFiles.get(fileId);
+    if (!fileData) {
+      socket.emit('file-share-error', { message: 'File not found or expired' });
+      return;
+    }
+    
+    if (fileData.sessionId !== sessionId) {
+      socket.emit('file-share-error', { message: 'File not accessible from this session' });
+      return;
+    }
+    
+    if (!fileData.isComplete) {
+      socket.emit('file-share-error', { message: 'File upload not yet complete' });
+      return;
+    }
+    
+    // Provide download URL
+    socket.emit('file-download-ready', {
+      fileId: fileId,
+      filename: fileData.filename,
+      size: fileData.size,
+      downloadUrl: `/download-file/${fileId}?sessionId=${sessionId}`
+    });
+  });
+
   // Handle explicit leave session
   socket.on('leave-session', () => {
     if (sessionId && clientId && activeSessions.has(sessionId)) {
@@ -307,6 +766,16 @@ io.on('connection', (socket) => {
         // Also remove the stored document for this session
         sessionDocuments.delete(sessionId);
         console.log(`Cleaned up document storage for empty session ${sessionId}`);
+        
+        // Clean up session files
+        if (sessionFiles.has(sessionId)) {
+          const fileIds = sessionFiles.get(sessionId);
+          for (const fileId of fileIds) {
+            activeFiles.delete(fileId);
+          }
+          sessionFiles.delete(sessionId);
+          console.log(`Cleaned up ${fileIds.size} files for empty session ${sessionId}`);
+        }
       } else {
         // Otherwise update session status
         updateSessionStatus(sessionId);
@@ -374,6 +843,16 @@ setInterval(() => {
       // Also remove the stored document for this session
       sessionDocuments.delete(sessionId);
       console.log(`Cleaned up document storage for inactive session ${sessionId}`);
+      
+      // Clean up session files
+      if (sessionFiles.has(sessionId)) {
+        const fileIds = sessionFiles.get(sessionId);
+        for (const fileId of fileIds) {
+          activeFiles.delete(fileId);
+        }
+        sessionFiles.delete(sessionId);
+        console.log(`Cleaned up ${fileIds.size} files for inactive session ${sessionId}`);
+      }
     }
   }
 }, 10000); // Run every 10 seconds

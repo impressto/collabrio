@@ -10,6 +10,8 @@ import Toolbar from './components/Toolbar'
 import Editor from './components/Editor'
 import ShareModal from './components/ShareModal'
 import Toast from './components/Toast'
+import FileNotification from './components/FileNotification'
+import UploadProgress from './components/UploadProgress'
 
 function App() {
   // State management
@@ -33,10 +35,17 @@ function App() {
     return saved || ''
   })
   
+  // File sharing state
+  const [fileNotifications, setFileNotifications] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [currentUploadFile, setCurrentUploadFile] = useState(null)
+  
   // Refs
   const socketRef = useRef(null)
   const textareaRef = useRef(null)
   const draftRef = useRef(null)
+  const currentFileUpload = useRef(null)
 
   // Save theme preference to localStorage
   useEffect(() => {
@@ -147,6 +156,69 @@ function App() {
       setDocument(prevDoc => prevDoc + injectedText)
     })
 
+    // File sharing event handlers
+    socket.on('file-available', (data) => {
+      console.log('File available:', data)
+      
+      // Don't show notification if this user uploaded the file
+      if (data.uploadedBy === socket.id) {
+        showToast(`File "${data.filename}" uploaded successfully!`, 'success')
+        return
+      }
+      
+      // Add notification for other users
+      setFileNotifications(prev => [...prev, {
+        id: Date.now(),
+        fileId: data.fileId,
+        filename: data.filename,
+        size: data.size,
+        mimeType: data.mimeType,
+        uploadedBy: data.uploadedBy,
+        timestamp: data.timestamp
+      }])
+    })
+
+    socket.on('file-share-accepted', (data) => {
+      console.log('File share accepted:', data)
+      // Start chunked upload
+      if (currentFileUpload.current) {
+        startChunkedUpload(currentFileUpload.current, data.fileId, data.chunkSize)
+      }
+    })
+
+    socket.on('file-share-error', (data) => {
+      console.error('File share error:', data)
+      showToast(data.message, 'error')
+      setIsUploading(false)
+      setUploadProgress(0)
+      setCurrentUploadFile(null)
+      currentFileUpload.current = null
+    })
+
+    socket.on('file-upload-progress', (data) => {
+      setUploadProgress(data.progress)
+    })
+
+    socket.on('file-upload-complete', (data) => {
+      console.log('File upload complete:', data)
+      setIsUploading(false)
+      setUploadProgress(0)
+      setCurrentUploadFile(null)
+      currentFileUpload.current = null
+      showToast(`File "${data.filename}" shared with session participants!`, 'success')
+    })
+
+    socket.on('file-downloaded', (data) => {
+      console.log('File downloaded:', data)
+      showToast(`Someone downloaded "${data.filename}"`, 'info')
+    })
+
+    socket.on('file-expired', (data) => {
+      console.log('File expired:', data)
+      setFileNotifications(prev => prev.filter(notif => notif.fileId !== data.fileId))
+      showToast('A shared file has expired', 'warning')
+    })
+
     socketRef.current = socket
   }
 
@@ -224,6 +296,127 @@ function App() {
     showToast('Draft content copied to clipboard!')
   }
 
+  // File sharing functions
+  const handleFileShare = async (file) => {
+    if (!socketRef.current || !isConnected) {
+      showToast('Not connected to session', 'error')
+      return
+    }
+
+    // Validate file size
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      showToast('File too large. Maximum size is 10MB.', 'error')
+      return
+    }
+
+    console.log('Starting file share:', file.name, file.size, 'bytes')
+    
+    setIsUploading(true)
+    setUploadProgress(0)
+    setCurrentUploadFile(file)
+    currentFileUpload.current = file
+
+    // Request file share from server
+    socketRef.current.emit('file-share-request', {
+      filename: file.name,
+      size: file.size,
+      mimeType: file.type || 'application/octet-stream'
+    })
+  }
+
+  const startChunkedUpload = (file, fileId, chunkSize) => {
+    const reader = new FileReader()
+    let offset = 0
+    let chunkIndex = 0
+    const totalChunks = Math.ceil(file.size / chunkSize)
+
+    const readSlice = () => {
+      if (offset >= file.size) {
+        return
+      }
+
+      const slice = file.slice(offset, offset + chunkSize)
+      reader.readAsArrayBuffer(slice)
+    }
+
+    reader.onload = (e) => {
+      const arrayBuffer = e.target.result
+      const uint8Array = new Uint8Array(arrayBuffer)
+      const base64String = btoa(String.fromCharCode.apply(null, uint8Array))
+      
+      const isLastChunk = offset + chunkSize >= file.size
+      
+      socketRef.current.emit('file-chunk', {
+        fileId: fileId,
+        chunkIndex: chunkIndex,
+        chunkData: base64String,
+        isLastChunk: isLastChunk
+      })
+
+      offset += chunkSize
+      chunkIndex++
+
+      if (!isLastChunk) {
+        // Continue reading next chunk
+        setTimeout(readSlice, 10) // Small delay to prevent overwhelming
+      }
+    }
+
+    reader.onerror = (error) => {
+      console.error('File read error:', error)
+      showToast('File read error occurred', 'error')
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+
+    // Start reading
+    readSlice()
+  }
+
+  const handleFileDownload = async (fileId, onProgress) => {
+    try {
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined' || typeof document === 'undefined') {
+        throw new Error('File download not available in this environment')
+      }
+
+      const downloadUrl = `${config.socketServerUrl}/download-file/${fileId}?sessionId=${sessionId}`
+      
+      // Create a temporary anchor element for download
+      const link = window.document.createElement('a')
+      link.href = downloadUrl
+      link.download = '' // Let browser determine filename from headers
+      link.style.display = 'none' // Hide the link
+      
+      // Add to DOM, click, then remove
+      window.document.body.appendChild(link)
+      link.click()
+      window.document.body.removeChild(link)
+      
+      showToast('File download started!', 'success')
+      
+      // Remove notification after download
+      setFileNotifications(prev => prev.filter(notif => notif.fileId !== fileId))
+      
+    } catch (error) {
+      console.error('Download error:', error)
+      showToast('Download failed: ' + error.message, 'error')
+    }
+  }
+
+  const dismissFileNotification = (fileId) => {
+    setFileNotifications(prev => prev.filter(notif => notif.fileId !== fileId))
+  }
+
+  const cancelUpload = () => {
+    setIsUploading(false)
+    setUploadProgress(0)
+    setCurrentUploadFile(null)
+    currentFileUpload.current = null
+    showToast('Upload cancelled', 'warning')
+  }
+
   // Render landing page or collaborative editor
   if (!isInSession) {
     return (
@@ -250,6 +443,7 @@ function App() {
           setDarkTheme={setDarkTheme}
           sessionId={sessionId}
           leaveSession={leaveSession}
+          onFileShare={handleFileShare}
         />
 
         <Editor 
@@ -273,6 +467,30 @@ function App() {
           setShowQRModal={setShowQRModal}
           getCurrentUrl={getCurrentUrl}
           copyToClipboard={copyToClipboard}
+        />
+
+        {/* File Notifications */}
+        {fileNotifications.length > 0 && (
+          <div className="file-notifications-container">
+            {fileNotifications.map((notification) => (
+              <FileNotification
+                key={notification.id}
+                notification={notification}
+                onDownload={handleFileDownload}
+                onDismiss={dismissFileNotification}
+                darkTheme={darkTheme}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Upload Progress */}
+        <UploadProgress
+          isUploading={isUploading}
+          filename={currentUploadFile?.name}
+          progress={uploadProgress}
+          onCancel={cancelUpload}
+          darkTheme={darkTheme}
         />
 
         <Toast toast={toast} />

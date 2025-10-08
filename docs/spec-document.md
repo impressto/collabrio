@@ -1,7 +1,34 @@
 # Collabrio - Real-time Collaborative Text Editor
 
-*Technical Specification Document*
-*Last Updated: October 8, 2025 - Draft Mode & Floating UI Complete*
+*Technical Specification Document*  
+*Last Updated: October 8, #### File Sha#### File Sharing (Ephemeral)
+- 📖 **As a user**, I want to drag and drop a single file to share it with other session participants
+  - **Acceptance Criteria:**
+    - 🔄 Drag-and-drop interface for single files in collaborative editor area
+    - 🔄 Visual feedback during drag operations (highlight drop zone)
+    - 🔄 File upload progress indicator for large files
+    - 🔄 Single file selection only (no batch uploads)
+    - 🔄 File size limits with clear error messages (e.g., 10MB per file)
+    - 🔄 File type restrictions with whitelist/blacklist capability
+- 📖 **As a user**, I want to click a "Share File" button to select and upload a single file
+  - **Acceptance Criteria:**
+    - 🔄 File picker button accessible in session toolbar
+    - 🔄 Standard file selection dialog (single file only)
+    - 🔄 Preview of selected file before upload
+    - 🔄 Cancel upload option during file selectionuser**, I want to click a "Share File" button to select and upload a single file
+  - **Acceptance Criteria:**
+    - 🔄 File picker button accessible in session toolbar
+    - 🔄 Standard file selection dialog (single file only)
+    - 🔄 Preview of selected file before upload
+    - 🔄 Cancel upload option during file selectioneral)
+- 📖 **As a user**, I want to drag and drop a single file to share it with other session participants
+  - **Acceptance Criteria:**
+    - 🔄 Drag-and-drop interface for single files in collaborative editor area
+    - 🔄 Visual feedback during drag operations (highlight drop zone)
+    - 🔄 File upload progress indicator for large files
+    - 🔄 File size limits with clear error messages (e.g., 10MB per file)
+    - 🔄 File type restrictions with whitelist/blacklist capability
+- 📖 **As a user**, I want to click a "Share File" button to select and upload a single filee Sharing Specification Complete*
 
 ---
 
@@ -112,12 +139,98 @@ Additionally, a permanent storage option will allow clients to save their shared
     - 🔄 File content is injected and file is processed/archived
     - 🔄 Support for different message types via filename patterns
 
-#### File Sharing (Planned)
+#### File Sharing
 - 📖 **As a user**, I want to drag and drop files to share them with other session participants
   - **Acceptance Criteria:**
-    - 🔄 Drag-and-drop interface
-    - 🔄 File transfer via WebRTC or WebSocket
-    - 🔄 File download for recipients
+    - 🔄 Drag-and-drop interface for files in collaborative editor area
+    - 🔄 Visual feedback during drag operations (highlight drop zone)
+    - � File upload progress indicator for large files
+    - 🔄 Support for multiple file selection and batch upload
+    - 🔄 File size limits with clear error messages (e.g., 10MB per file)
+    - 🔄 File type restrictions with whitelist/blacklist capability
+- �📖 **As a user**, I want to click a "Share File" button to select and upload files
+  - **Acceptance Criteria:**
+    - 🔄 File picker button accessible in session toolbar
+    - 🔄 Standard file selection dialog
+    - 🔄 Multiple file selection support
+    - 🔄 Preview of selected files before upload
+    - 🔄 Cancel upload option during file selection
+- 📖 **As a user**, I want to receive immediate notifications when someone shares a file
+  - **Acceptance Criteria:**
+    - 🔄 Toast notification appears when another user shares a file
+    - 🔄 Notification shows filename, file size, and sender (if applicable)
+    - 🔄 Download and dismiss buttons available in notification
+    - 🔄 Notification auto-dismisses after 30 seconds if ignored
+    - 🔄 Visual/audio notification options for file sharing events
+- 📖 **As a user**, I want to download files shared by other participants immediately
+  - **Acceptance Criteria:**
+    - 🔄 One-click download directly from notification
+    - 🔄 Download progress indicator for large files
+    - 🔄 Original filename preservation
+    - 🔄 File integrity verification (checksums)
+    - 🔄 Automatic file cleanup after download or timeout
+- 📖 **As a user**, I understand that file sharing is ephemeral and real-time only
+  - **Acceptance Criteria:**
+    - 🔄 Clear messaging that files are only available when shared (no persistent storage)
+    - 🔄 No file history or list of previously shared files
+    - 🔄 Files automatically expire if not downloaded within reasonable time (5 minutes)
+    - 🔄 New session joiners do not see previously shared files
+    - 🔄 Simple, lightweight file sharing focused on immediate collaboration needs
+
+## 🔧 Technical Requirements for File Sharing (Ephemeral)
+
+### File Upload & Storage
+- **File Size Limits:** Maximum 10MB per file (single file only, no batch uploads)
+- **File Types:** Support common file types with configurable whitelist/blacklist
+  - **Allowed:** Documents (pdf, doc, docx, txt, md), Images (jpg, jpeg, png, gif, svg), Archives (zip, tar, gz), Code (js, py, css, html, json)
+  - **Blocked:** Executables (exe, bat, sh, app), System files (dll, sys), Potentially dangerous (scr, vbs, jar)
+- **Storage Method:** Minimal temporary server-side storage for active transfers only
+- **File Persistence:** Files available only during active transfer (5-minute timeout)
+- **Cleanup Policy:** Immediate deletion after download completion or 5-minute timeout
+
+### Upload/Download Protocol
+- **Primary Method:** WebSocket-based chunked transfer for broad compatibility
+- **Future Enhancement:** WebRTC peer-to-peer for direct file transfer
+- **Chunk Size:** 64KB chunks for optimal memory usage and progress tracking
+- **Progress Tracking:** Real-time upload/download progress for files >1MB
+- **Error Handling:** Simple retry mechanism, no resumable uploads needed
+- **Concurrency:** Single file transfer per user (no simultaneous transfers)
+
+### File Metadata Management
+- **File Information:** Original filename, size, MIME type, upload timestamp
+- **Unique Identifiers:** Simple server-generated file IDs for active transfers
+- **Integrity Verification:** Basic checksum validation for transfer accuracy
+- **Session Association:** Files tied to specific session IDs for security
+- **No Persistence:** No file history, lists, or permanent storage
+
+### Security & Validation
+- **File Scanning:** MIME type verification, extension validation
+- **Size Validation:** Client and server-side file size limits
+- **Rate Limiting:** Maximum 3 file uploads per 5 minutes per user
+- **Authentication:** Files accessible only to active session participants
+- **Privacy:** No file storage, immediate cleanup ensures complete privacy
+
+### UI/UX Integration
+- **No File Panel:** No dedicated files tab or persistent file list
+- **Drag & Drop:** Drop zone overlay with visual feedback for immediate sharing
+- **Progress Indicators:** Upload/download progress bars with percentage and ETA
+- **Notification System:** Enhanced toast notifications with download/dismiss actions
+- **Responsive Design:** File notifications work on mobile and desktop
+- **Theme Integration:** File notifications support light/dark themes
+
+### WebSocket Events (New)
+- **file-share:** Client initiates file sharing with metadata and transfer initiation
+- **file-chunk:** Binary chunk transfer events for real-time delivery
+- **file-available:** Notification to all session users that a file is ready for download
+- **file-download:** Download request from notification recipient
+- **file-expired:** Automatic cleanup notification when file times out
+
+### Server-Side Requirements
+- **Minimal Storage:** In-memory temporary storage for active transfers only
+- **Immediate Cleanup:** Files deleted immediately after download or 5-minute timeout
+- **Memory Management:** Streaming transfers to prevent memory buildup
+- **Error Logging:** Basic logging for transfer operations and errors
+- **Configuration:** Environment variables for file size limits, allowed types, timeout duration
 
 ### Features
 
@@ -245,6 +358,80 @@ For now we will be deploying manually
   - ✅ **PASSED** - Text appears in all clients' documents
   - ✅ **PASSED** - Different message types (system, bot, admin)
   - ✅ **PASSED** - Proper formatting with [TYPE] labels
+
+## 🚀 File Sharing Implementation Plan (Ephemeral)
+
+### Phase 1: Basic File Transfer (Week 1)
+**Goal:** Single file sharing with immediate notification system
+- [ ] **Server-side file handling:** Create temporary upload/download endpoint with 5-minute timeout
+- [ ] **Client-side upload UI:** File picker button and drag-and-drop zone (single file only)
+- [ ] **WebSocket events:** Implement file-share, file-chunk, file-available events
+- [ ] **File validation:** Size limits, type checking, basic security validation
+- [ ] **Notification system:** Enhanced toast with download/dismiss buttons
+
+### Phase 2: Real-time Delivery (Week 2)  
+**Goal:** Complete the ephemeral sharing workflow
+- [ ] **Download system:** Direct download from notification, progress tracking
+- [ ] **Real-time notifications:** File available notifications to all active session users
+- [ ] **Automatic cleanup:** File deletion after download or 5-minute timeout
+- [ ] **Error handling:** Upload/download failure recovery with user feedback
+- [ ] **Progress indicators:** Upload and download progress for better UX
+
+### Phase 3: Polish & Integration (Week 3)
+**Goal:** Integrate seamlessly with existing UI and ensure reliability
+- [ ] **Theme integration:** File notifications work with light/dark themes
+- [ ] **Responsive design:** Mobile-friendly file sharing interface
+- [ ] **Performance optimization:** Memory management for file transfers
+- [ ] **Rate limiting:** Prevent abuse with upload frequency limits
+- [ ] **Visual feedback:** Clear drag-and-drop zones and upload states
+
+## 🧪 File Sharing Testing Plan
+
+### Functional Testing
+- [ ] **Test Case 1:** Single file upload and download
+  - Upload various file types (documents, images, archives)  
+  - Verify file integrity with checksum comparison
+  - Test progress indicators for large files (>5MB)
+  - Confirm notification appears for all session participants
+- [ ] **Test Case 2:** Ephemeral file operations
+  - Single file uploads by different users (one at a time)
+  - File notification and download workflow
+  - Automatic file cleanup after download or timeout
+  - Real-time notification delivery to all session participants
+- [ ] **Test Case 3:** Session behavior
+  - New joiners do NOT see previously shared files
+  - File timeout after 5 minutes if not downloaded
+  - File cleanup after successful download
+  - No file persistence across session reconnections
+
+### Error & Edge Case Testing
+- [ ] **Test Case 4:** File size and type restrictions  
+  - Upload files exceeding size limits (>10MB)
+  - Attempt to upload blocked file types
+  - Test server response to malformed uploads
+  - Verify client-side validation before upload
+- [ ] **Test Case 5:** Network interruption handling
+  - Upload interruption and resumption
+  - Download failure and retry mechanisms
+  - WebSocket disconnection during file operations
+  - Chunk-level error handling and recovery
+- [ ] **Test Case 6:** Concurrent user scenarios
+  - Single user upload while others are in session
+  - Rate limiting validation (3 uploads per 5 minutes)
+  - Session joining during active file transfer
+  - Notification delivery to multiple users simultaneously
+
+### Performance & Security Testing  
+- [ ] **Test Case 7:** Large file handling
+  - Upload/download files near size limit (10MB)
+  - Memory usage monitoring during transfers
+  - Progress tracking accuracy for large files
+  - Server stability with multiple large transfers
+- [ ] **Test Case 8:** Security validation
+  - Attempt to upload malicious file types
+  - Verify file access restrictions between sessions
+  - Test file path traversal protection
+  - Validate MIME type detection accuracy
 
 ### Definition of Done
 For each feature to be considered complete:

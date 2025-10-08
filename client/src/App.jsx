@@ -12,6 +12,7 @@ import ShareModal from './components/ShareModal'
 import Toast from './components/Toast'
 import FileNotification from './components/FileNotification'
 import UploadProgress from './components/UploadProgress'
+import Footer from './components/Footer'
 
 function App() {
   // State management
@@ -440,7 +441,6 @@ function App() {
       <div className="collabrio-container">
         <Header 
           isConnected={isConnected}
-          connectionType={connectionType}
           connectedUsers={connectedUsers}
         />
 
@@ -501,6 +501,8 @@ function App() {
         />
 
         <Toast toast={toast} />
+        
+        <Footer connectionType={connectionType} />
       </div>
     </div>
   )

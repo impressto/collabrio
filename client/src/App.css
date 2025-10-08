@@ -63,6 +63,7 @@
   display: flex;
   flex-direction: column;
   font-family: inherit;
+  padding-bottom: 2.5rem; /* Space for fixed footer */
 }
 
 /* Full viewport height when used standalone (not embedded) */
@@ -1200,4 +1201,32 @@ body > #root > .collabrio-app {
 
 .collabrio-app.dark-theme .upload-progress-text {
   color: #cbd5e0;
+}
+
+/* Footer styles */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #f7fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: #718096;
+  text-align: center;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.footer .connection-type {
+  font-family: 'Courier New', monospace;
+  opacity: 0.7;
+}
+
+/* Dark theme footer styles */
+.collabrio-app.dark-theme .footer {
+  background: #2d3748;
+  border-top: 1px solid #4a5568;
+  color: #a0aec0;
 }

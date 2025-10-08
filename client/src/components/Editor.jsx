@@ -18,6 +18,40 @@ function Editor({
   const isLiveMode = editorMode === 'live'
   const isDraftMode = editorMode === 'draft'
 
+  // Handle tab key in textareas
+  const handleKeyDown = (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      
+      const textarea = e.target
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      
+      // Insert tab character at cursor position
+      const newValue = textarea.value.substring(0, start) + '\t' + textarea.value.substring(end)
+      
+      // Update the appropriate state based on editor mode
+      if (isLiveMode) {
+        // Create synthetic event for live editor
+        const syntheticEvent = {
+          target: { value: newValue }
+        }
+        handleDocumentChange(syntheticEvent)
+      } else {
+        // Create synthetic event for draft editor
+        const syntheticEvent = {
+          target: { value: newValue }
+        }
+        handleDraftChange(syntheticEvent)
+      }
+      
+      // Set cursor position after the inserted tab
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1
+      }, 0)
+    }
+  }
+
   return (
     <main className="editor-container">
       {/* Tab Navigation */}
@@ -81,6 +115,7 @@ function Editor({
             key={`textarea-${sessionId}`}
             value={document}
             onChange={handleDocumentChange}
+            onKeyDown={handleKeyDown}
             placeholder="Start typing your collaborative document here..."
             className="collaborative-editor"
           />
@@ -93,6 +128,7 @@ function Editor({
             ref={draftRef}
             value={draftContent}
             onChange={handleDraftChange}
+            onKeyDown={handleKeyDown}
             placeholder="Compose your draft here privately before adding to the shared document..."
             className="collaborative-editor draft-editor"
           />

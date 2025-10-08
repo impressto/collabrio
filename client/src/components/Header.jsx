@@ -1,7 +1,7 @@
 import React from 'react'
 import { config } from '../config.js'
 
-function Header({ isConnected, connectionType, connectedUsers }) {
+function Header({ isConnected, connectedUsers }) {
   return (
     <header className="collabrio-header">
       <h1>
@@ -16,7 +16,6 @@ function Header({ isConnected, connectionType, connectedUsers }) {
         <span id="connection-status" className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
           {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
         </span>
-        <span id="connection-type-display" className="connection-type">({connectionType})</span>
         <span id="user-count-display" className="users">👥 {connectedUsers.length} user(s)</span>
       </div>
     </header>

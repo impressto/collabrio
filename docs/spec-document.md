@@ -1,7 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*
-*Last Updated: October 8, 2025 - Component Architecture & Toast System*
+*Last Updated: October 8, 2025 - Draft Mode & Floating UI Complete*
 
 ---
 
@@ -75,6 +75,15 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ App fills entire viewport with no margins
     - ✅ Consistent branding with logo integration
     - ✅ Reduced toolbar clutter (removed redundant copy button)
+- 📖 **As a user**, I want to draft messages offline before sharing them live
+  - **Acceptance Criteria:**
+    - ✅ Draft mode accessible via tab interface (Live/Draft)
+    - ✅ Draft content persists in localStorage across sessions
+    - ✅ Visual tabs that look like authentic browser tabs
+    - ✅ Floating action buttons for copy and add-to-live operations
+    - ✅ Draft content copyable with toast notification
+    - ✅ Clear draft button for content reset
+    - ✅ Floating icons instead of traditional buttons for modern UI
 
 #### Network Resilience  
 - 📖 **As a user**, when WebRTC is blocked (e.g., on mobile networks), I want to fallback to WebSocket communication

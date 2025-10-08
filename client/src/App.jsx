@@ -26,15 +26,27 @@ function App() {
     return saved ? JSON.parse(saved) : false
   })
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [editorMode, setEditorMode] = useState('live') // 'live' or 'draft'
+  const [draftContent, setDraftContent] = useState(() => {
+    // Initialize draft content from localStorage
+    const saved = localStorage.getItem('collabrio-draft-content')
+    return saved || ''
+  })
   
   // Refs
   const socketRef = useRef(null)
   const textareaRef = useRef(null)
+  const draftRef = useRef(null)
 
   // Save theme preference to localStorage
   useEffect(() => {
     localStorage.setItem('collabrio-dark-theme', JSON.stringify(darkTheme))
   }, [darkTheme])
+
+  // Save draft content to localStorage
+  useEffect(() => {
+    localStorage.setItem('collabrio-draft-content', draftContent)
+  }, [draftContent])
 
   // Toast functionality
   const showToast = (message, type = 'success') => {
@@ -166,12 +178,50 @@ function App() {
 
   const leaveSession = () => {
     setDocument('') // Clear document when leaving session
+    // Note: Keep draft content in localStorage so user can continue later
+    setEditorMode('live') // Reset to live mode
     setIsInSession(false)
     setSessionId('')
     window.location.hash = ''
     if (socketRef.current) {
       socketRef.current.disconnect()
     }
+  }
+
+  const clearDraft = () => {
+    setDraftContent('')
+    localStorage.removeItem('collabrio-draft-content')
+    showToast('Draft cleared!')
+  }
+
+  const handleDraftChange = (e) => {
+    setDraftContent(e.target.value)
+  }
+
+  const addDraftToLive = () => {
+    if (draftContent.trim()) {
+      const newContent = document + (document ? '\n\n' : '') + draftContent
+      setDocument(newContent)
+      
+      // Send the updated document to other users
+      if (socketRef.current && isConnected) {
+        socketRef.current.emit('document-change', {
+          sessionId,
+          document: newContent
+        })
+      }
+      
+      // Clear draft and switch to live mode
+      setDraftContent('')
+      localStorage.removeItem('collabrio-draft-content')
+      setEditorMode('live')
+      showToast('Draft content added to live document!')
+    }
+  }
+
+  const copyDraftContent = () => {
+    navigator.clipboard.writeText(draftContent)
+    showToast('Draft content copied to clipboard!')
   }
 
   // Render landing page or collaborative editor
@@ -204,9 +254,17 @@ function App() {
 
         <Editor 
           textareaRef={textareaRef}
+          draftRef={draftRef}
           sessionId={sessionId}
           document={document}
+          draftContent={draftContent}
+          editorMode={editorMode}
+          setEditorMode={setEditorMode}
           handleDocumentChange={handleDocumentChange}
+          handleDraftChange={handleDraftChange}
+          addDraftToLive={addDraftToLive}
+          copyDraftContent={copyDraftContent}
+          clearDraft={clearDraft}
           showToast={showToast}
         />
 

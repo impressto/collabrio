@@ -1,34 +1,102 @@
 import React from 'react'
 
 function Editor({ 
-  textareaRef, 
+  textareaRef,
+  draftRef,
   sessionId, 
-  document, 
-  handleDocumentChange, 
+  document,
+  draftContent,
+  editorMode,
+  setEditorMode,
+  handleDocumentChange,
+  handleDraftChange,
+  addDraftToLive,
+  copyDraftContent,
+  clearDraft,
   showToast 
 }) {
+  const isLiveMode = editorMode === 'live'
+  const isDraftMode = editorMode === 'draft'
+
   return (
     <main className="editor-container">
-      <div className="editor-wrapper">
+      {/* Tab Navigation */}
+      <div className="editor-tabs">
+        <button 
+          className={`tab-button ${isLiveMode ? 'active' : ''}`}
+          onClick={() => setEditorMode('live')}
+        >
+          📡 Live
+        </button>
+        <button 
+          className={`tab-button ${isDraftMode ? 'active' : ''}`}
+          onClick={() => setEditorMode('draft')}
+        >
+          📝 Draft {draftContent.trim() && <span className="draft-indicator">●</span>}
+        </button>
+      </div>
+
+      <div className={`editor-wrapper ${isDraftMode ? 'draft-mode' : ''}`}>
+        {/* Copy Button - changes function based on mode */}
         <button 
           className="copy-icon-btn" 
           onClick={() => {
-            navigator.clipboard.writeText(document)
-            showToast('Document content copied to clipboard!')
+            if (isLiveMode) {
+              navigator.clipboard.writeText(document)
+              showToast('Live document copied to clipboard!')
+            } else {
+              copyDraftContent()
+            }
           }}
-          title="Copy document content"
+          title={isLiveMode ? "Copy live document content" : "Copy draft content"}
         >
           ⧉
         </button>
-        <textarea
-          id="collaborative-editor"
-          ref={textareaRef}
-          key={`textarea-${sessionId}`}
-          value={document}
-          onChange={handleDocumentChange}
-          placeholder="Start typing your collaborative document here..."
-          className="collaborative-editor"
-        />
+
+        {/* Draft Mode Buttons */}
+        {isDraftMode && draftContent.trim() && (
+          <>
+            <button 
+              className="add-draft-btn" 
+              onClick={addDraftToLive}
+              title="Add draft to live document"
+            >
+              ➕
+            </button>
+            <button 
+              className="clear-draft-btn" 
+              onClick={clearDraft}
+              title="Clear draft content"
+            >
+              🗑️
+            </button>
+          </>
+        )}
+
+        {/* Live Editor */}
+        {isLiveMode && (
+          <textarea
+            id="collaborative-editor"
+            ref={textareaRef}
+            key={`textarea-${sessionId}`}
+            value={document}
+            onChange={handleDocumentChange}
+            placeholder="Start typing your collaborative document here..."
+            className="collaborative-editor"
+          />
+        )}
+
+        {/* Draft Editor */}
+        {isDraftMode && (
+          <textarea
+            id="draft-editor"
+            ref={draftRef}
+            value={draftContent}
+            onChange={handleDraftChange}
+            placeholder="Compose your draft here privately before adding to the shared document..."
+            className="collaborative-editor draft-editor"
+          />
+        )}
       </div>
     </main>
   )

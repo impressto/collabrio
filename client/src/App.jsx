@@ -161,13 +161,14 @@ function App() {
           
           <div className="landing-content">
             <div className="session-actions">
-              <button onClick={createNewSession} className="create-session-button">
+              <button id="create-session-btn" onClick={createNewSession} className="create-session-button">
                 ✨ Create New Session
               </button>
               
               <div className="join-session-section">
                 <p>or join an existing session:</p>
                 <input
+                  id="join-session-input"
                   type="text"
                   placeholder="Enter session ID..."
                   className="join-session-input"
@@ -205,25 +206,26 @@ function App() {
       <header className="collabrio-header">
         <h1>🤝 Collabrio</h1>
         <div className="connection-info">
-          <span className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
+          <span id="connection-status" className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
             {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
           </span>
-          <span className="connection-type">({connectionType})</span>
-          <span className="users">👥 {connectedUsers.length} user(s)</span>
+          <span id="connection-type-display" className="connection-type">({connectionType})</span>
+          <span id="user-count-display" className="users">👥 {connectedUsers.length} user(s)</span>
         </div>
       </header>
 
       <div className="toolbar">
-        <button onClick={shareSession} className="share-button">
+        <button id="share-session-btn" onClick={shareSession} className="share-button">
           📱 Share Session
         </button>
-        <button onClick={copyToClipboard} className="copy-button">
+        <button id="copy-link-btn" onClick={copyToClipboard} className="copy-button">
           📋 Copy Link
         </button>
-        <button onClick={() => setDarkTheme(!darkTheme)} className="theme-toggle-button">
+        <button id="theme-toggle-btn" onClick={() => setDarkTheme(!darkTheme)} className="theme-toggle-button">
           {darkTheme ? '☀️ Light' : '🌙 Dark'}
         </button>
         <button 
+          id="leave-session-btn"
           onClick={() => {
             setDocument('') // Clear document when leaving session
             setIsInSession(false)
@@ -237,11 +239,12 @@ function App() {
         >
           🚪 Leave Session
         </button>
-        <span className="session-id">Session: {sessionId}</span>
+        <span id="session-id-display" className="session-id">Session: {sessionId}</span>
       </div>
 
       <main className="editor-container">
         <textarea
+          id="collaborative-editor"
           ref={textareaRef}
           key={`textarea-${sessionId}`}
           value={document}
@@ -253,11 +256,12 @@ function App() {
 
       {/* QR Code Modal */}
       {showQRModal && (
-        <div className="modal-overlay" onClick={() => setShowQRModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div id="qr-modal-overlay" className="modal-overlay" onClick={() => setShowQRModal(false)}>
+          <div id="qr-modal-content" className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Share This Session</h3>
             <div className="qr-container">
               <QRCode
+                id="qr-code"
                 size={200}
                 value={getCurrentUrl()}
                 viewBox="0 0 256 256"
@@ -265,6 +269,7 @@ function App() {
             </div>
             <p>Scan this QR code or share the link:</p>
             <input
+              id="share-link-input"
               type="text"
               value={getCurrentUrl()}
               readOnly
@@ -272,8 +277,8 @@ function App() {
               onClick={(e) => e.target.select()}
             />
             <div className="modal-buttons">
-              <button onClick={copyToClipboard}>Copy Link</button>
-              <button onClick={() => setShowQRModal(false)}>Close</button>
+              <button id="modal-copy-btn" onClick={copyToClipboard}>Copy Link</button>
+              <button id="modal-close-btn" onClick={() => setShowQRModal(false)}>Close</button>
             </div>
           </div>
         </div>

@@ -588,9 +588,19 @@ io.on('connection', (socket) => {
   });
 
   // Handle file sharing events
-  socket.on('file-share-request', ({ filename, size, mimeType }) => {
-    if (!sessionId || !clientId) {
+  socket.on('file-share-request', ({ filename, size, mimeType, sessionId: requestSessionId }) => {
+    // Use sessionId from request if provided, otherwise fall back to socket's sessionId
+    const activeSessionId = requestSessionId || sessionId;
+    const activeClientId = clientId || socket.id;
+    
+    if (!activeSessionId || !activeClientId) {
       socket.emit('file-share-error', { message: 'Must be in a session to share files' });
+      return;
+    }
+    
+    // Validate that the session actually exists and is active
+    if (!activeSessions.has(activeSessionId)) {
+      socket.emit('file-share-error', { message: 'Session not found or inactive' });
       return;
     }
     
@@ -609,7 +619,7 @@ io.on('connection', (socket) => {
     }
     
     // Check rate limit
-    if (!checkUploadRateLimit(clientId)) {
+    if (!checkUploadRateLimit(activeClientId)) {
       socket.emit('file-share-error', { 
         message: `Upload limit exceeded. Maximum ${FILE_CONFIG.maxUploadsPerUser} uploads per ${FILE_CONFIG.uploadWindowMinutes} minutes.` 
       });
@@ -625,8 +635,8 @@ io.on('connection', (socket) => {
       filename: filename,
       mimeType: mimeType,
       size: size,
-      sessionId: sessionId,
-      uploadedBy: clientId,
+      sessionId: activeSessionId,
+      uploadedBy: activeClientId,
       uploadTimestamp: Date.now(),
       chunks: new Map(),
       totalChunks: Math.ceil(size / FILE_CONFIG.chunkSize),
@@ -635,7 +645,7 @@ io.on('connection', (socket) => {
       isComplete: false
     });
     
-    console.log(`File share initiated: ${filename} (${size} bytes) by ${clientId} in session ${sessionId}`);
+    console.log(`File share initiated: ${filename} (${size} bytes) by ${activeClientId} in session ${activeSessionId}`);
     
     // Respond with file ID for chunked upload
     socket.emit('file-share-accepted', { 

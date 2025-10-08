@@ -1,4 +1,5 @@
 import React from 'react'
+import { config } from '../config.js'
 
 function LandingPage({ darkTheme, createNewSession, joinExistingSession }) {
   return (
@@ -8,7 +9,7 @@ function LandingPage({ darkTheme, createNewSession, joinExistingSession }) {
           <header className="landing-header">
             <h1>
               <img 
-                src="./client/public/collaborio.png" 
+                src={config.logoUrl} 
                 alt="Collabrio" 
                 style={{width: '56px', height: '56px', marginRight: '12px', verticalAlign: 'middle'}} 
               />

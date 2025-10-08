@@ -5,6 +5,9 @@ export const config = {
   // Socket server configuration
   socketServerUrl: import.meta.env.VITE_SOCKET_SERVER_URL || 'http://localhost:3000',
   
+  // Asset configuration
+  logoUrl: import.meta.env.VITE_LOGO_URL || 'https://impressto.ca/collabrio/client/public/collaborio.png',
+  
   // Debug configuration
   debug: import.meta.env.VITE_DEBUG === 'true' || import.meta.env.DEV,
   

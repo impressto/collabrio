@@ -1,11 +1,12 @@
 import React from 'react'
+import { config } from '../config.js'
 
 function Header({ isConnected, connectionType, connectedUsers }) {
   return (
     <header className="collabrio-header">
       <h1>
         <img 
-          src="./client/public/collaborio.png" 
+          src={config.logoUrl} 
           alt="Collabrio" 
           style={{width: '32px', height: '32px', marginRight: '10px', verticalAlign: 'middle'}} 
         />

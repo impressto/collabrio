@@ -16,7 +16,7 @@ echo "Injecting text into session: $SESSION_ID"
 echo "Text: $TEXT"
 echo ""
 
-curl -X POST http://localhost:3000/inject-text \
+curl -X POST http://localhost:4244/inject-text \
   -H "Content-Type: application/json" \
   -d "{
     \"sessionId\": \"$SESSION_ID\",

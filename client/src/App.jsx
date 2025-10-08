@@ -123,8 +123,9 @@ function App() {
 
     socket.on('connect', () => {
       console.log(`Connected to socket server at ${config.socketServerUrl}`)
+      console.log(`Joining session: ${sessionId}`)
       setIsConnected(true)
-      socket.emit('join-session', { sessionId })
+      socket.emit('join-session', { sessionId, clientId: socket.id })
     })
 
     socket.on('disconnect', () => {
@@ -303,6 +304,11 @@ function App() {
       return
     }
 
+    if (!sessionId) {
+      showToast('No active session found', 'error')
+      return
+    }
+
     // Validate file size
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
@@ -310,18 +316,19 @@ function App() {
       return
     }
 
-    console.log('Starting file share:', file.name, file.size, 'bytes')
+    console.log('Starting file share:', file.name, file.size, 'bytes', 'Session:', sessionId)
     
     setIsUploading(true)
     setUploadProgress(0)
     setCurrentUploadFile(file)
     currentFileUpload.current = file
 
-    // Request file share from server
+    // Request file share from server with session validation
     socketRef.current.emit('file-share-request', {
       filename: file.name,
       size: file.size,
-      mimeType: file.type || 'application/octet-stream'
+      mimeType: file.type || 'application/octet-stream',
+      sessionId: sessionId // Explicitly include sessionId for validation
     })
   }
 

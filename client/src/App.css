@@ -576,8 +576,8 @@ body > #root > .collabrio-app {
     margin-top: 0.5rem;
   }
   
-  .editor-container {
-    padding: 1rem;
+  .collabrio-app .editor-container {
+    padding: 0.5rem 0.25rem !important; /* Minimal horizontal padding for mobile */
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -586,6 +586,26 @@ body > #root > .collabrio-app {
   .collaborative-editor {
     flex: 1;
     min-height: 300px; /* Smaller minimum on mobile */
+    padding: 0.75rem; /* Reduced from 1rem for mobile */
+  }
+  
+  /* Optimize file notifications for mobile */
+  .file-notifications-container {
+    top: 10px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  
+  .file-notification {
+    padding: 0.75rem !important; /* Reduce padding on mobile */
+  }
+  
+  /* Optimize toolbar buttons for mobile */
+  .toolbar button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
   }
 }
 

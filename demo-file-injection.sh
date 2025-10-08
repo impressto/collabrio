@@ -9,7 +9,7 @@ echo ""
 
 # Get current active sessions
 echo "📡 Checking active sessions..."
-ACTIVE_SESSIONS=$(curl -s http://localhost:3000/status | grep -o '"activeSessions":\[[^]]*\]' | grep -o '"[^"]*"' | tr -d '"' | grep -v activeSessions)
+ACTIVE_SESSIONS=$(curl -s http://localhost:4244/status | grep -o '"activeSessions":\[[^]]*\]' | grep -o '"[^"]*"' | tr -d '"' | grep -v activeSessions)
 
 if [ -z "$ACTIVE_SESSIONS" ]; then
     echo "❌ No active sessions found. Please:"

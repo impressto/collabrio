@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
-import QRCode from 'react-qr-code'
 import config from './config.js'
 import './App.css'
+
+// Components
+import LandingPage from './components/LandingPage'
+import Header from './components/Header'
+import Toolbar from './components/Toolbar'
+import Editor from './components/Editor'
+import ShareModal from './components/ShareModal'
+import Toast from './components/Toast'
 
 function App() {
   // State management
@@ -157,154 +164,61 @@ function App() {
     showToast('Link copied to clipboard!')
   }
 
+  const leaveSession = () => {
+    setDocument('') // Clear document when leaving session
+    setIsInSession(false)
+    setSessionId('')
+    window.location.hash = ''
+    if (socketRef.current) {
+      socketRef.current.disconnect()
+    }
+  }
+
   // Render landing page or collaborative editor
   if (!isInSession) {
     return (
-    <div className={`collabrio-app ${darkTheme ? 'dark-theme' : ''}`}>
-      <div className="collabrio-container">
-        <div className="landing-page">
-          <header className="landing-header">
-            <h1><img src="./client/public/collaborio.png" alt="Collabrio" style={{width: '56px', height: '56px', marginRight: '12px', verticalAlign: 'middle'}} />Collabrio</h1>
-            <p>Real-time collaborative text editor</p>
-          </header>
-          
-          <div className="landing-content">
-            <div className="session-actions">
-              <button id="create-session-btn" onClick={createNewSession} className="create-session-button">
-                ✨ Create New Session
-              </button>
-              
-              <div className="join-session-section">
-                <p>or join an existing session:</p>
-                <input
-                  id="join-session-input"
-                  type="text"
-                  placeholder="Enter session ID..."
-                  className="join-session-input"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      const sessionIdToJoin = e.target.value.trim()
-                      if (sessionIdToJoin) {
-                        joinExistingSession(sessionIdToJoin)
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </div>
-  
-          </div>
-        </div>
-      </div>
-    </div>
+      <LandingPage 
+        darkTheme={darkTheme}
+        createNewSession={createNewSession}
+        joinExistingSession={joinExistingSession}
+      />
     )
   }
 
   return (
     <div className={`collabrio-app ${darkTheme ? 'dark-theme' : ''}`}>
       <div className="collabrio-container">
-      <header className="collabrio-header">
-        <h1><img src="./client/public/collaborio.png" alt="Collabrio" style={{width: '32px', height: '32px', marginRight: '10px', verticalAlign: 'middle'}} />Collabrio</h1>
-        <div className="connection-info">
-          <span id="connection-status" className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
-            {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
-          </span>
-          <span id="connection-type-display" className="connection-type">({connectionType})</span>
-          <span id="user-count-display" className="users">👥 {connectedUsers.length} user(s)</span>
-        </div>
-      </header>
+        <Header 
+          isConnected={isConnected}
+          connectionType={connectionType}
+          connectedUsers={connectedUsers}
+        />
 
-      <div className="toolbar">
-        <button id="share-session-btn" onClick={shareSession} className="share-button">
-          📱 Share Session
-        </button>
-        <button 
-          id="leave-session-btn"
-          onClick={() => {
-            setDocument('') // Clear document when leaving session
-            setIsInSession(false)
-            setSessionId('')
-            window.location.hash = ''
-            if (socketRef.current) {
-              socketRef.current.disconnect()
-            }
-          }}
-          className="leave-session-button"
-        >
-          🚪 Leave Session
-        </button>
-        <button 
-          id="theme-toggle-btn" 
-          onClick={() => setDarkTheme(!darkTheme)} 
-          className="theme-toggle-icon"
-          title={darkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-        >
-          {darkTheme ? '☀️' : '🌙'}
-        </button>
-        <span id="session-id-display" className="session-id">Session: {sessionId}</span>
+        <Toolbar 
+          shareSession={shareSession}
+          darkTheme={darkTheme}
+          setDarkTheme={setDarkTheme}
+          sessionId={sessionId}
+          leaveSession={leaveSession}
+        />
+
+        <Editor 
+          textareaRef={textareaRef}
+          sessionId={sessionId}
+          document={document}
+          handleDocumentChange={handleDocumentChange}
+          showToast={showToast}
+        />
+
+        <ShareModal 
+          showQRModal={showQRModal}
+          setShowQRModal={setShowQRModal}
+          getCurrentUrl={getCurrentUrl}
+          copyToClipboard={copyToClipboard}
+        />
+
+        <Toast toast={toast} />
       </div>
-
-      <main className="editor-container">
-        <div className="editor-wrapper">
-          <button 
-            className="copy-icon-btn" 
-            onClick={() => {
-              navigator.clipboard.writeText(document)
-              showToast('Document content copied to clipboard!')
-            }}
-            title="Copy document content"
-          >
-            ⧉
-          </button>
-          <textarea
-            id="collaborative-editor"
-            ref={textareaRef}
-            key={`textarea-${sessionId}`}
-            value={document}
-            onChange={handleDocumentChange}
-            placeholder="Start typing your collaborative document here..."
-            className="collaborative-editor"
-          />
-        </div>
-      </main>
-
-      {/* QR Code Modal */}
-      {showQRModal && (
-        <div id="qr-modal-overlay" className="modal-overlay" onClick={() => setShowQRModal(false)}>
-          <div id="qr-modal-content" className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Share This Session</h3>
-            <div className="qr-container">
-              <QRCode
-                id="qr-code"
-                size={200}
-                value={getCurrentUrl()}
-                viewBox="0 0 256 256"
-              />
-            </div>
-            <p>Scan this QR code or share the link:</p>
-            <input
-              id="share-link-input"
-              type="text"
-              value={getCurrentUrl()}
-              readOnly
-              className="share-link"
-              onClick={(e) => e.target.select()}
-            />
-            <div className="modal-buttons">
-              <button id="modal-copy-btn" onClick={copyToClipboard}>Copy Link</button>
-              <button id="modal-close-btn" onClick={() => setShowQRModal(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {toast.show && (
-        <div className={`toast toast-${toast.type}`}>
-          {toast.message}
-        </div>
-      )}
-    </div>
     </div>
   )
 }

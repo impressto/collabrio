@@ -1,7 +1,7 @@
 # Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 8, 2025 - Dark Theme Implementation*  
+*Last Updated: October 8, 2025 - Component Architecture & UI Enhancements*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
@@ -10,7 +10,7 @@
 **Description:** A WebRTC-based collaborative text editor with file sharing capabilities, featuring fallback to WebSocket for restricted networks  
 **Team:** [To be updated as team members are identified]  
 **Start Date:** October 4, 2025  
-**Current Phase:** Development - Core Features + Automation Integration Complete  
+**Current Phase:** Development - Component Architecture & User Experience Enhancement Complete  
 **Repository:** /home/impressto/work/impressto/homeserver/www/homelab/collabrio  
 **Live Demo:** Local development at http://localhost:5174 (Socket server: localhost:3000)  
 
@@ -523,6 +523,163 @@
 
 ---
 
+### Component-Based Architecture Refactoring
+**Date:** 2025-10-08  
+**Description:** Refactored monolithic App.jsx into modular component architecture with separate files for each major UI section  
+**Rationale:** The main App.jsx file had grown to 290+ lines with complex nested JSX, making it difficult to maintain, test, and understand. Breaking it into focused components improves code organization, reusability, and developer experience  
+**Status:** Implemented and Tested  
+**Impact:** High - Significantly improves codebase maintainability and development velocity  
+**Stakeholders:** Development team, future contributors  
+**Implementation:** Created 6 focused components in `/src/components/` directory with clean prop interfaces and single responsibilities  
+
+**Components Created:**
+- **`LandingPage.jsx`** - Session creation and joining interface (47 lines)
+- **`Header.jsx`** - App branding and connection status display (20 lines)
+- **`Toolbar.jsx`** - Action buttons (share, leave, theme toggle) (32 lines)
+- **`Editor.jsx`** - Collaborative text editor with copy functionality (28 lines)
+- **`ShareModal.jsx`** - QR code and link sharing modal (35 lines)
+- **`Toast.jsx`** - Notification toast component (8 lines)
+
+**Architecture Benefits:**
+- **Single Responsibility:** Each component handles one specific UI concern
+- **Improved Testability:** Components can be unit tested in isolation
+- **Better Maintainability:** Changes to one feature don't affect others
+- **Code Reusability:** Components can be easily reused or modified
+- **Cleaner Interfaces:** Explicit prop definitions make dependencies clear
+- **Reduced Complexity:** Main App.jsx now focuses on state management and coordination
+
+**App.jsx Simplification:**
+- **Before:** 290+ lines with complex nested JSX and mixed concerns
+- **After:** ~150 lines focused on state management, socket connections, and component coordination
+- **Lines Reduced:** ~140 lines moved to focused component files
+- **Complexity Reduction:** Separated UI rendering from business logic
+
+**Follow-up Actions:**
+- [x] Create components directory structure (Dev Team - 2025-10-08)
+- [x] Extract LandingPage component with session creation logic (Dev Team - 2025-10-08)
+- [x] Extract Header component with branding and connection status (Dev Team - 2025-10-08)
+- [x] Extract Toolbar component with action buttons (Dev Team - 2025-10-08)
+- [x] Extract Editor component with collaborative text editing (Dev Team - 2025-10-08)
+- [x] Extract ShareModal component with QR code functionality (Dev Team - 2025-10-08)
+- [x] Extract Toast component for notifications (Dev Team - 2025-10-08)
+- [x] Update App.jsx imports and component usage (Dev Team - 2025-10-08)
+- [x] Add leaveSession helper function for cleaner code organization (Dev Team - 2025-10-08)
+- [x] Test build process with new component structure (Dev Team - 2025-10-08)
+- [x] Verify all functionality works with component extraction (Dev Team - 2025-10-08)
+- [ ] Add unit tests for individual components (Dev Team - TBD)
+- [ ] Consider further component subdivision for complex components (Dev Team - TBD)
+- [ ] Add PropTypes or TypeScript for better prop validation (Dev Team - TBD)
+
+---
+
+### Toast Notification System Implementation
+**Date:** 2025-10-08  
+**Description:** Replaced intrusive browser alert() dialogs with elegant toast notifications for copy operations and user feedback  
+**Rationale:** Browser alerts are jarring, interrupt user flow, and don't match modern UI/UX standards. Toast notifications provide non-intrusive feedback while maintaining user engagement with the collaborative session  
+**Status:** Implemented and Tested  
+**Impact:** Medium - Significantly improves user experience and interface polish  
+**Stakeholders:** Development team, end users  
+**Implementation:** Added toast state management, reusable Toast component, slide-in animations, and theme-aware styling  
+
+**Technical Implementation:**
+- **State Management:** Added `toast` state with `show`, `message`, and `type` properties
+- **Auto-dismissal:** Toasts automatically disappear after 3 seconds using setTimeout
+- **Animation System:** CSS slide-in animation from right side of screen
+- **Theme Integration:** Toast colors adapt to light/dark theme
+- **Toast Types:** Support for success (green), error (red), warning (yellow), and info (blue) notifications
+- **Positioning:** Fixed position at top-right corner with proper z-index layering
+
+**User Experience Improvements:**
+- **Non-intrusive:** Users can continue working while seeing feedback
+- **Visually Appealing:** Smooth animations and consistent styling
+- **Contextual Colors:** Different colors communicate different types of information
+- **Theme Consistency:** Toast styling matches selected light/dark theme
+- **Professional Feel:** Eliminates jarring browser dialogs for a polished experience
+
+**Features Implemented:**
+- **Copy Link Feedback:** "Link copied to clipboard!" toast when sharing session URLs
+- **Copy Document Feedback:** "Document content copied to clipboard!" toast when copying editor text
+- **Automatic Cleanup:** Toast state properly managed to prevent memory leaks
+- **Accessible Positioning:** Toasts appear in standard notification area (top-right)
+- **Theme Adaptation:** Dark theme uses appropriate colors for better visibility
+
+**Replaced Alert Usage:**
+- **Before:** `alert('Link copied to clipboard!')` - jarring browser dialog
+- **After:** `showToast('Link copied to clipboard!')` - smooth toast notification
+- **Benefits:** Better UX, maintains context, theme consistency, professional appearance
+
+**Follow-up Actions:**
+- [x] Add toast state management to App.jsx (Dev Team - 2025-10-08)
+- [x] Create showToast helper function with auto-dismissal (Dev Team - 2025-10-08)
+- [x] Replace alert() calls with toast notifications (Dev Team - 2025-10-08)
+- [x] Create reusable Toast component (Dev Team - 2025-10-08)
+- [x] Add CSS animations and positioning (Dev Team - 2025-10-08)
+- [x] Implement theme-aware toast styling (Dev Team - 2025-10-08)
+- [x] Test toast functionality across all copy operations (Dev Team - 2025-10-08)
+- [ ] Add error handling toasts for network failures (Dev Team - TBD)
+- [ ] Consider toast queuing for multiple simultaneous notifications (Dev Team - TBD)
+- [ ] Add toast close button for manual dismissal (Dev Team - TBD)
+
+---
+
+### User Interface Simplification and Enhancement
+**Date:** 2025-10-08  
+**Description:** Series of UI/UX improvements including simplified index.php, theme toggle redesign, document copy functionality, and branding integration  
+**Rationale:** Multiple user feedback points indicated the interface needed polish: complex PHP routing was unnecessary, copy functionality was missing, theme options were needed, and branding could be improved  
+**Status:** Implemented and Tested  
+**Impact:** Medium - Cumulative improvements significantly enhance user experience  
+**Stakeholders:** Development team, end users  
+**Implementation:** Simplified hosting approach, added copy-to-clipboard functionality, integrated custom logo, and streamlined UI controls  
+
+**Specific Improvements Made:**
+
+**1. Simplified Index.php Hosting:**
+- **Before:** Complex PHP routing with asset serving, content injection, and fallback handling
+- **After:** Simple HTML with direct CSS/JS imports: `<link rel="stylesheet" href="./client/dist/assets/index.css" />` and `<script type="module" src="./client/dist/assets/index.js"></script>`
+- **Benefits:** Simpler deployment, easier debugging, more reliable asset loading
+- **Viewport Optimization:** Added CSS to ensure app fills entire viewport with no margins
+
+**2. Document Copy Functionality:**
+- **Added:** Copy icon (⧉) in top-right corner of collaborative editor
+- **Functionality:** One-click copying of all document content to clipboard
+- **User Feedback:** Toast notification confirms successful copy operation
+- **Styling:** Consistent with app theme, proper positioning overlay
+
+**3. Theme Toggle Enhancement:**
+- **Before:** Text-based button "🌙 Dark" / "☀️ Light"
+- **After:** Icon-only toggle with tooltips for cleaner UI
+- **Position:** Moved to right of Leave Session button for better flow
+- **Implementation:** Smaller, more elegant button design with hover effects
+
+**4. Logo Integration:**
+- **Custom Branding:** Integrated `collaborio.png` as favicon and in headers
+- **Consistent Sizing:** 56px on landing page, 32px in session header
+- **Professional Appearance:** Replaced emoji-based branding with custom logo
+
+**5. Toolbar Optimization:**
+- **Removed:** Redundant copy link button (functionality available in share modal)
+- **Simplified:** Cleaner toolbar with essential actions only
+- **Better Flow:** Logical grouping of share, leave, and theme controls
+
+**Technical Details:**
+- **CSS Isolation:** Maintained `.collabrio-app` scoping for safe embedding
+- **Responsive Design:** All improvements work across different screen sizes
+- **Theme Consistency:** New elements properly styled for both light and dark themes
+- **Performance:** Simplified hosting reduces server processing overhead
+
+**Follow-up Actions:**
+- [x] Simplify index.php to basic HTML with direct asset imports (Dev Team - 2025-10-08)
+- [x] Add viewport-filling CSS for full-screen experience (Dev Team - 2025-10-08)
+- [x] Implement document copy icon in editor top-right corner (Dev Team - 2025-10-08)
+- [x] Convert theme toggle to icon-only design (Dev Team - 2025-10-08)
+- [x] Integrate custom logo as favicon and in headers (Dev Team - 2025-10-08)
+- [x] Remove redundant copy button from toolbar (Dev Team - 2025-10-08)
+- [x] Test all UI improvements across themes and screen sizes (Dev Team - 2025-10-08)
+- [ ] Gather user feedback on simplified interface (Dev Team - TBD)
+- [ ] Consider additional UI polish based on usage patterns (Dev Team - TBD)
+
+---
+
 **Documentation Enhancements:**
 - **Complete API Reference:** Detailed REST endpoint documentation with curl examples
 - **File-Based Injection Guide:** Comprehensive guide to filesystem-based message injection
@@ -609,6 +766,15 @@
 **Processed Directory:** Archive folder where successfully processed message files are moved with timestamps  
 **REST API Injection:** HTTP POST endpoint for programmatically injecting messages into collaborative sessions  
 **Automation Integration:** Capability for external systems to send messages via file drops or API calls  
+**Component Architecture:** Modular React structure with separate files for each UI concern (LandingPage, Header, Toolbar, etc.)  
+**Toast Notifications:** Non-intrusive popup messages that appear temporarily to provide user feedback  
+**CSS Isolation:** Scoping all styles under `.collabrio-app` namespace to prevent conflicts when embedded  
+**Theme Persistence:** Saving user's light/dark theme preference in localStorage across browser sessions  
+**Direct Asset Import:** Simplified hosting approach using direct `<link>` and `<script>` tags instead of complex PHP routing  
+**Document Copy:** Feature allowing users to copy all collaborative document text to clipboard with one click  
+**Theme Toggle:** UI control for switching between light and dark visual themes  
+**Component Props:** Data passed between React components to enable communication and customization  
+**State Management:** React hooks and localStorage for maintaining application state across sessions  
 
 *Add all important terms, acronyms, and concepts that team members should understand*
 

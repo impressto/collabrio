@@ -1,7 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*
-*Generated on October 4, 2025*
+*Last Updated: October 8, 2025 - Component Architecture & Toast System*
 
 ---
 
@@ -46,6 +46,35 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ Real-time text synchronization works
     - ✅ No significant delay between typing and appearing
     - ✅ Cursor position preserved during updates
+    - ✅ New users joining sessions see existing document content immediately
+
+#### User Experience Enhancements
+- 📖 **As a user**, I want visual feedback when I copy links or document content
+  - **Acceptance Criteria:**
+    - ✅ Toast notifications appear for copy operations
+    - ✅ Toasts automatically disappear after 3 seconds
+    - ✅ Toast styling matches app theme (light/dark)
+    - ✅ No more intrusive browser alert() dialogs
+- 📖 **As a user**, I want to easily copy the document content to my clipboard
+  - **Acceptance Criteria:**
+    - ✅ Copy icon (⧉) appears in top-right corner of editor
+    - ✅ Clicking icon copies all document text
+    - ✅ Toast confirmation appears after copying
+    - ✅ Icon styling matches app theme
+- 📖 **As a user**, I want to switch between light and dark themes for better visual comfort
+  - **Acceptance Criteria:**
+    - ✅ Theme toggle icon in toolbar (🌙/☀️)
+    - ✅ Complete dark theme covering all UI components
+    - ✅ Theme preference saved in localStorage
+    - ✅ Theme persists across browser sessions
+    - ✅ Smooth visual transitions between themes
+- 📖 **As a user**, I want a clean, simple interface with organized components
+  - **Acceptance Criteria:**
+    - ✅ Modular component architecture (LandingPage, Header, Toolbar, Editor, etc.)
+    - ✅ Simplified hosting with direct CSS/JS imports
+    - ✅ App fills entire viewport with no margins
+    - ✅ Consistent branding with logo integration
+    - ✅ Reduced toolbar clutter (removed redundant copy button)
 
 #### Network Resilience  
 - 📖 **As a user**, when WebRTC is blocked (e.g., on mobile networks), I want to fallback to WebSocket communication
@@ -129,7 +158,20 @@ Users can manually join specific sessions by entering session IDs
 
 ### Architecture Overview
 
-we will be using a client with react and for the back-end a socket server that runs on socket.impressto.ca. The socket server uses nodejs
+Component-based React frontend with Node.js WebSocket backend. The application uses a modular architecture with isolated components for maintainability and a simplified hosting approach with direct asset imports.
+
+#### Frontend Architecture
+- **Component Structure:** Modular React components (LandingPage, Header, Toolbar, Editor, ShareModal, Toast)
+- **State Management:** React hooks with localStorage persistence for theme preferences
+- **Styling:** CSS isolation with `.collabrio-app` namespace for safe embedding
+- **Build System:** Vite with environment variable configuration
+- **Hosting:** Simplified PHP wrapper with direct CSS/JS imports
+
+#### Backend Architecture  
+- **WebSocket Server:** Node.js with Socket.IO for real-time communication
+- **Document Persistence:** Server-side document storage with automatic cleanup
+- **Text Injection:** REST API and file-based system for external message injection
+- **Session Management:** In-memory session tracking with user count monitoring
 
 
 ### 💻 Technologies
@@ -168,10 +210,15 @@ For now we will be deploying manually
 #### User Interface
 - [ ] **Test Case 3:** QR Code sharing
   - ✅ **PASSED** - QR modal opens and displays code
-  - ✅ **PASSED** - Link copying works
+  - ✅ **PASSED** - Link copying works with toast notifications
   - 🔄 **PENDING** - Mobile device QR scanning test
-- [ ] **Test Case 4:** Responsive design
+- [ ] **Test Case 4:** Responsive design & Components
   - ✅ **PASSED** - Desktop browser compatibility
+  - ✅ **PASSED** - Component-based architecture implemented
+  - ✅ **PASSED** - Dark theme toggle with persistence
+  - ✅ **PASSED** - Toast notification system
+  - ✅ **PASSED** - Document content copy functionality
+  - ✅ **PASSED** - Simplified index.php for direct CSS/JS imports
   - 🔄 **PENDING** - Mobile browser testing
   - 🔄 **PENDING** - Tablet testing
 

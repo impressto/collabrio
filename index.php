@@ -13,6 +13,10 @@
     <meta name="twitter:title" content="Collabrio - Real-time Collaborative Text Editor">
     <meta name="twitter:description" content="Anonymous collaborative editing sessions with instant synchronization">
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./client/public/collaborio.png">
+    <link rel="apple-touch-icon" href="./client/public/collaborio.png">
+    
     <!-- Styles -->
     <link rel="stylesheet" href="./client/dist/assets/index.css" type="text/css" />
     

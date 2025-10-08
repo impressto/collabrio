@@ -165,31 +165,6 @@ body > #root > .collabrio-app {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.collabrio-app .landing-features {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.collabrio-app .landing-features h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-}
-
-.collabrio-app .landing-features ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  text-align: left;
-}
-
-.collabrio-app .landing-features li {
-  padding: 0.5rem 0;
-  opacity: 0.9;
-}
-
 .collabrio-app .collabrio-header {
   display: flex;
   justify-content: space-between;
@@ -518,10 +493,6 @@ body > #root > .collabrio-app {
 
 .collabrio-app.dark-theme .landing-page {
   background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
-}
-
-.collabrio-app.dark-theme .landing-features {
-  background: rgba(45, 55, 72, 0.8) !important;
 }
 
 .collabrio-app.dark-theme .create-session-button {

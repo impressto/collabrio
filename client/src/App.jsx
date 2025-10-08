@@ -155,7 +155,7 @@ function App() {
       <div className="collabrio-container">
         <div className="landing-page">
           <header className="landing-header">
-            <h1>🤝 Collabrio</h1>
+            <h1><img src="./client/public/collaborio.png" alt="Collabrio" style={{width: '40px', height: '40px', marginRight: '12px', verticalAlign: 'middle'}} />Collabrio</h1>
             <p>Real-time collaborative text editor</p>
           </header>
           
@@ -183,16 +183,7 @@ function App() {
                 />
               </div>
             </div>
-            
-            <div className="landing-features">
-              <h3>Features:</h3>
-              <ul>
-                <li>✅ Real-time collaborative editing</li>
-                <li>✅ Anonymous sessions - no signup required</li>
-                <li>✅ QR code sharing for mobile devices</li>
-                <li>✅ Works on desktop and mobile browsers</li>
-              </ul>
-            </div>
+  
           </div>
         </div>
       </div>
@@ -204,7 +195,7 @@ function App() {
     <div className={`collabrio-app ${darkTheme ? 'dark-theme' : ''}`}>
       <div className="collabrio-container">
       <header className="collabrio-header">
-        <h1>🤝 Collabrio</h1>
+        <h1><img src="./client/public/collaborio.png" alt="Collabrio" style={{width: '32px', height: '32px', marginRight: '10px', verticalAlign: 'middle'}} />Collabrio</h1>
         <div className="connection-info">
           <span id="connection-status" className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
             {isConnected ? '🟢 Connected' : '🔴 Disconnected'}

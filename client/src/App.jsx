@@ -48,7 +48,9 @@ function App() {
   }, [document])
 
   const generateSessionId = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    // Generate a simple 6-character session ID
+    // Using base36 (0-9, a-z) for URL-friendly characters
+    return Math.random().toString(36).substring(2, 8)
   }
 
   const createNewSession = () => {
@@ -137,6 +139,7 @@ function App() {
   // Render landing page or collaborative editor
   if (!isInSession) {
     return (
+    <div className="collabrio-app">
       <div className="collabrio-container">
         <div className="landing-page">
           <header className="landing-header">
@@ -180,11 +183,13 @@ function App() {
           </div>
         </div>
       </div>
+    </div>
     )
   }
 
   return (
-    <div className="collabrio-container">
+    <div className="collabrio-app">
+      <div className="collabrio-container">
       <header className="collabrio-header">
         <h1>🤝 Collabrio</h1>
         <div className="connection-info">
@@ -257,6 +262,7 @@ function App() {
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

@@ -18,6 +18,9 @@ build/
 # Generated config files
 test-config.js
 
+# Development scripts (keep these tracked)
+# update_css_isolation.py - keep tracked for development
+
 # Logs
 logs
 *.log

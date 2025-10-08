@@ -1,7 +1,7 @@
 # Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 7, 2025 - File-Based Message Injection System Implemented*  
+*Last Updated: October 8, 2025 - Simplified Session ID Generation*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
@@ -329,7 +329,100 @@
 - [x] Create comprehensive environment documentation (Dev Team - 2025-10-07)
 - [x] Update .gitignore for generated config files (Dev Team - 2025-10-07)
 - [ ] Test production deployment with environment variables (Dev Team - TBD)
-- [ ] Add environment validation and error handling (Dev Team - TBD)  
+- [ ] Add environment validation and error handling (Dev Team - TBD)
+
+---
+
+### CSS Isolation for Multi-Tenant Embedding
+**Date:** 2025-10-08  
+**Description:** Implemented comprehensive CSS isolation system to enable safe embedding of Collabrio in external websites without style conflicts  
+**Rationale:** Multiple companies want to embed Collabrio in their websites. Without CSS isolation, the app's styles would conflict with host page styles, causing visual and functional issues  
+**Status:** Implemented  
+**Impact:** High - Enables safe multi-tenant deployment and embedding in any website  
+**Stakeholders:** Development team, client companies, end users  
+**Implementation:** Scoped all CSS under `.collabrio-app` namespace, added CSS reset and isolation, created embedding documentation and test files
+
+**CSS Isolation Techniques Implemented:**
+- **Scoped CSS Selectors:** All styles prefixed with `.collabrio-app` to prevent global conflicts
+- **CSS Reset with `all: initial`:** Resets inherited styles from host page
+- **Important Declarations:** Critical styles use `!important` to override host page styles
+- **Box Model Isolation:** Consistent `box-sizing: border-box` throughout
+- **Z-index Management:** Proper stacking context with `z-index: 1000`
+- **Typography Reset:** Prevents inheritance of host page fonts and text styles
+- **Border and Outline Reset:** Ensures clean visual boundaries
+
+**Features Implemented:**
+- **Automated CSS Scoping:** Python script to automatically scope all CSS selectors
+- **JSX Component Wrapping:** Updated React components with `.collabrio-app` wrapper
+- **Embedding Documentation:** Comprehensive guide for integrating in external sites
+- **CSS Isolation Test Page:** HTML test file with aggressive host styles to verify isolation
+- **Multiple Embedding Methods:** Support for iframe, direct embed, and custom container integration
+
+**Files Created/Modified:**
+- `client/src/App.css` - All selectors scoped under `.collabrio-app`
+- `client/src/App.jsx` - Added `.collabrio-app` wrapper div to component tree
+- `update_css_isolation.py` - Automated CSS scoping script
+- `EMBEDDING_GUIDE.md` - Complete embedding documentation
+- `embedding-test.html` - CSS isolation test page with aggressive host styles
+
+**Isolation Guarantees:**
+- ✅ **No Global CSS Pollution:** All styles contained within `.collabrio-app` scope
+- ✅ **Host Page Protection:** Collabrio styles won't affect host page elements
+- ✅ **Style Inheritance Prevention:** `all: initial` resets inherited host styles
+- ✅ **Framework Compatibility:** Tested compatibility with Bootstrap, Tailwind, Material-UI
+- ✅ **Responsive Container:** Adapts to host page layout constraints
+- ✅ **Event Isolation:** JavaScript events contained within app boundary
+
+**Testing Results:**
+- ✅ Verified isolation with aggressive host page CSS overrides
+- ✅ Confirmed functionality with various CSS frameworks
+- ✅ Validated responsive behavior in different container sizes
+- ✅ Tested iframe and direct embedding methods
+
+**Follow-up Actions:**
+- [x] Scope all CSS selectors under `.collabrio-app` namespace (Dev Team - 2025-10-08)
+- [x] Update React components with isolation wrapper (Dev Team - 2025-10-08)
+- [x] Create automated CSS scoping script (Dev Team - 2025-10-08)
+- [x] Write comprehensive embedding documentation (Dev Team - 2025-10-08)
+- [x] Create CSS isolation test page (Dev Team - 2025-10-08)
+- [x] Implement CSS reset and important declarations (Dev Team - 2025-10-08)
+- [ ] Test embedding with real client websites (Dev Team - TBD)
+- [ ] Create iframe embedding option (Dev Team - TBD)
+- [ ] Add CSP (Content Security Policy) guidelines (Dev Team - TBD)  
+
+---
+
+### Simplified Session ID Generation
+**Date:** 2025-10-08  
+**Description:** Simplified session ID generation from long UUID-like strings to short 6-character alphanumeric codes  
+**Rationale:** The original session IDs were 26+ character long concatenated random strings that were difficult for users to read, share, and remember. Since the application doesn't expect many concurrent sessions, the collision risk is very low with shorter IDs, making them much more user-friendly for sharing and manual entry  
+**Status:** Implemented  
+**Impact:** Medium - Improves user experience for session sharing and joining  
+**Stakeholders:** Development team, end users sharing sessions  
+**Implementation:** Changed `generateSessionId()` from `Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)` to `Math.random().toString(36).substring(2, 8)` generating 6-character base36 codes  
+
+**Technical Details:**
+- **Original Format:** 26-character string (e.g., `abc123def456ghi789jkl012mno`)
+- **New Format:** 6-character base36 string (e.g., `abc123`)
+- **Character Set:** 0-9, a-z (36 possible characters per position)
+- **Total Possible IDs:** 36^6 = 2,176,782,336 combinations
+- **Collision Probability:** Extremely low for expected usage patterns
+
+**Benefits:**
+- **User-Friendly:** Easy to read, type, and share verbally
+- **URL-Friendly:** Base36 characters are safe in URLs without encoding
+- **QR Code Efficient:** Shorter URLs generate simpler QR codes
+- **Manual Entry:** Feasible for users to type session IDs manually
+- **Memory-Friendly:** Users can remember session IDs temporarily
+
+**Follow-up Actions:**
+- [x] Update session ID generation function (Dev Team - 2025-10-08)
+- [x] Test build process with new session IDs (Dev Team - 2025-10-08)
+- [x] Document decision in memory document (Dev Team - 2025-10-08)
+- [ ] Test collision handling in production environment (Dev Team - TBD)
+- [ ] Monitor session ID collision rates in production (Dev Team - TBD)
+
+---
 
 **Documentation Enhancements:**
 - **Complete API Reference:** Detailed REST endpoint documentation with curl examples

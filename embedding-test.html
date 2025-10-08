@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collabrio Embedding Test</title>
+    <style>
+        /* Simulate a host page with existing styles */
+        body {
+            font-family: Georgia, serif;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 0;
+            padding: 20px;
+            color: #2c3e50;
+        }
+        
+        .host-header {
+            background: rgba(255,255,255,0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .host-content {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .embed-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 2rem 0;
+        }
+        
+        /* These styles should NOT affect Collabrio */
+        h1, h2, h3 {
+            color: #e74c3c !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+        }
+        
+        button {
+            background: #e74c3c !important;
+            color: white !important;
+            border: none !important;
+            padding: 1rem 2rem !important;
+            font-size: 18px !important;
+            border-radius: 25px !important;
+        }
+        
+        input, textarea {
+            background: #ecf0f1 !important;
+            border: 3px solid #3498db !important;
+            color: #2c3e50 !important;
+            font-size: 16px !important;
+            padding: 15px !important;
+        }
+        
+        div {
+            border: 2px dashed rgba(231, 76, 60, 0.3) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="host-header">
+        <h1>Host Website with Embedded Collabrio</h1>
+        <p>This page demonstrates CSS isolation. The red/aggressive styles above should NOT affect the embedded Collabrio app below.</p>
+    </div>
+    
+    <div class="host-content">
+        <h2>About This Test</h2>
+        <p>This page has intentionally aggressive CSS that tries to override many common HTML elements:</p>
+        <ul>
+            <li>All headings are forced to be red and uppercase</li>
+            <li>All buttons are forced to be red with specific styling</li>
+            <li>All inputs/textareas have blue borders and gray backgrounds</li>
+            <li>All divs have red dashed borders</li>
+        </ul>
+        <p><strong>The Collabrio app below should maintain its own styling despite these overrides.</strong></p>
+    </div>
+    
+    <div class="embed-container">
+        <h3>Embedded Collabrio Application</h3>
+        <p>The collaborative editor below is isolated from the host page styles:</p>
+        
+        <!-- This is where Collabrio would be embedded -->
+        <div id="collabrio-embed-point" style="min-height: 600px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+            <h2 style="color: #666; text-transform: none;">🤝 Collabrio Placeholder</h2>
+            <p style="color: #888; text-align: center; max-width: 400px;">
+                In a real deployment, the Collabrio app would be rendered here with full CSS isolation.
+                <br><br>
+                To test with the actual app:
+                <br>
+                1. Run <code>npm run build</code>
+                <br>
+                2. Replace this placeholder with the built app
+            </p>
+            
+            <!-- Simulate what embedded Collabrio elements would look like -->
+            <div class="simulated-collabrio" style="border: none !important; padding: 20px; background: white; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4 style="color: #2c3e50 !important; text-transform: none !important; margin: 0 0 10px 0;">Simulated Collabrio Elements:</h4>
+                <button style="background: #667eea !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 4px !important; font-size: 14px !important; margin: 5px;">Create Session</button>
+                <input type="text" placeholder="Session ID..." style="background: rgba(255,255,255,0.1) !important; border: 2px solid rgba(255,255,255,0.3) !important; color: #333 !important; padding: 8px !important; border-radius: 4px !important; margin: 5px;">
+                <div style="border: 1px solid #e9ecef !important; padding: 10px; margin: 10px 0; background: #f8f9fa;">
+                    <small>This simulates how Collabrio maintains its styling even with aggressive host page CSS</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="host-content">
+        <h2>Integration Instructions</h2>
+        <p>To embed the actual Collabrio application:</p>
+        <ol>
+            <li>Build the application: <code>npm run build</code></li>
+            <li>Replace the placeholder above with: <code>&lt;div id="collabrio-root"&gt;&lt;/div&gt;</code></li>
+            <li>Include the built JavaScript: <code>&lt;script type="module" src="/path/to/dist/assets/index.js"&gt;&lt;/script&gt;</code></li>
+        </ol>
+        
+        <h3>Testing CSS Isolation</h3>
+        <p>When properly embedded, Collabrio should:</p>
+        <ul>
+            <li>✅ Maintain its blue/purple color scheme (not red)</li>
+            <li>✅ Keep its modern button styling (not forced red)</li>
+            <li>✅ Preserve its input field styling (not blue borders)</li>
+            <li>✅ Show no red dashed borders on its containers</li>
+            <li>✅ Use its own typography (not Georgia serif)</li>
+        </ul>
+    </div>
+</body>
+</html>

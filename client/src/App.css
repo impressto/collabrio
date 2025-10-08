@@ -1,14 +1,71 @@
-/* Collabrio Application Styles */
-.collabrio-container {
-  max-width: 100vw;
-  height: 100vh;
+/* Collabrio Application Styles - CSS Isolated */
+/* 
+ * CSS Isolation: All styles are scoped under .collabrio-app to prevent
+ * conflicts with host page styles. This ensures the app can be embedded
+ * safely in any external website.
+ */
+
+.collabrio-app {
+  /* CSS Reset and Isolation for embedded context */
+  all: initial;
+  
+  /* Core container styles */
+  display: flex !important;
+  flex-direction: column !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #333 !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+  
+  /* Size constraints for embedded context */
+  width: 100% !important;
+  min-height: 600px !important;
+  max-width: 100% !important;
+  
+  /* Ensure proper stacking context */
+  position: relative !important;
+  z-index: 1000 !important;
+  
+  /* Prevent inheritance from parent page */
+  font-weight: normal !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+  text-shadow: none !important;
+  
+  /* Border and outline reset */
+  border: none !important;
+  outline: none !important;
+  
+  /* Margin and padding isolation */
+  margin: 0 !important;
+  padding: 0 !important;
+  
+  /* Prevent unwanted styling from parent */
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.collabrio-app *,
+.collabrio-app *::before,
+.collabrio-app *::after {
+  box-sizing: border-box;
+}
+
+.collabrio-app .collabrio-container {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: inherit;
 }
 
 /* Landing Page Styles */
-.landing-page {
+.collabrio-app .landing-page {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20,105 +77,114 @@
   padding: 2rem;
 }
 
-.landing-header h1 {
+.collabrio-app .landing-header h1 {
   font-size: 3rem;
-  margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  font-weight: 700;
+  margin: 0 0 1rem 0;
 }
 
-.landing-header p {
+.collabrio-app .landing-header p {
   font-size: 1.2rem;
-  margin-bottom: 3rem;
   opacity: 0.9;
+  margin: 0 0 2rem 0;
 }
 
-.landing-content {
-  max-width: 500px;
+.collabrio-app .landing-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.collabrio-app .session-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  max-width: 400px;
   width: 100%;
 }
 
-.session-actions {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2rem;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  margin-bottom: 2rem;
-}
-
-.create-session-button {
-  background: #28a745;
+.collabrio-app .create-session-button {
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  border: none;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
   border-radius: 8px;
-  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
   width: 100%;
+  max-width: 300px;
 }
 
-.create-session-button:hover {
-  background: #218838;
+.collabrio-app .create-session-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
-.join-session-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 1.5rem;
+.collabrio-app .join-session-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.join-session-section p {
-  margin-bottom: 1rem;
+.collabrio-app .join-session-section p {
+  font-size: 0.9rem;
   opacity: 0.8;
+  margin: 0;
 }
 
-.join-session-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  font-size: 1rem;
+.collabrio-app .join-session-input {
+  padding: 0.8rem 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  text-align: center;
+  border-radius: 6px;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 300px;
 }
 
-.join-session-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+.collabrio-app .join-session-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.join-session-input:focus {
+.collabrio-app .join-session-input:focus {
   outline: none;
   border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.landing-features {
-  background: rgba(255, 255, 255, 0.05);
+.collabrio-app .landing-features {
+  margin-top: 2rem;
   padding: 1.5rem;
-  border-radius: 8px;
-  backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
-.landing-features h3 {
-  margin-bottom: 1rem;
+.collabrio-app .landing-features h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
 }
 
-.landing-features ul {
+.collabrio-app .landing-features ul {
   list-style: none;
   padding: 0;
+  margin: 0;
   text-align: left;
 }
 
-.landing-features li {
+.collabrio-app .landing-features li {
   padding: 0.5rem 0;
   opacity: 0.9;
 }
 
-.collabrio-header {
+.collabrio-app .collabrio-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -128,50 +194,70 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.collabrio-header h1 {
+.collabrio-app .collabrio-header h1 {
   margin: 0;
   color: #2c3e50;
   font-size: 1.8rem;
 }
 
-.connection-info {
+.collabrio-app .collabrio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.collabrio-app .collabrio-header h1 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+}
+
+.collabrio-app .connection-info {
   display: flex;
   align-items: center;
   gap: 1rem;
   font-size: 0.9rem;
 }
 
-.status {
-  padding: 0.25rem 0.5rem;
+.collabrio-app .status {
+  padding: 0.3rem 0.8rem;
   border-radius: 12px;
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
-.status.connected {
+.collabrio-app .status.connected {
   background: #d4edda;
   color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
-.status.disconnected {
+.collabrio-app .status.disconnected {
   background: #f8d7da;
   color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
-.connection-type {
-  background: #e2e3e5;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
+.collabrio-app .connection-type {
+  color: #6c757d;
   font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
-.users {
+.collabrio-app .users {
   background: #cce5ff;
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
   color: #004085;
 }
 
-.toolbar {
+.collabrio-app .toolbar {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -180,7 +266,7 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.share-button, .copy-button {
+.collabrio-app .share-button, .copy-button {
   background: #007bff;
   color: white;
   border: none;
@@ -191,11 +277,11 @@
   transition: background-color 0.2s;
 }
 
-.share-button:hover, .copy-button:hover {
+.collabrio-app .share-button:hover, .copy-button:hover {
   background: #0056b3;
 }
 
-.leave-session-button {
+.collabrio-app .leave-session-button {
   background: #dc3545;
   color: white;
   border: none;
@@ -206,11 +292,11 @@
   transition: background-color 0.2s;
 }
 
-.leave-session-button:hover {
+.collabrio-app .leave-session-button:hover {
   background: #c82333;
 }
 
-.session-input {
+.collabrio-app .session-input {
   padding: 0.5rem;
   border: 1px solid #ced4da;
   border-radius: 6px;
@@ -218,13 +304,13 @@
   width: 200px;
 }
 
-.session-input:focus {
+.collabrio-app .session-input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-.session-id {
+.collabrio-app .session-id {
   background: #f8f9fa;
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -234,13 +320,13 @@
   margin-left: auto;
 }
 
-.editor-container {
+.collabrio-app .editor-container {
   flex: 1;
   padding: 2rem;
   background: #ffffff;
 }
 
-.collaborative-editor {
+.collabrio-app .collaborative-editor {
   width: 100%;
   height: 100%;
   border: 1px solid #ced4da;
@@ -254,13 +340,13 @@
   transition: border-color 0.2s;
 }
 
-.collaborative-editor:focus {
+.collabrio-app .collaborative-editor:focus {
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 /* Modal Styles */
-.modal-overlay {
+.collabrio-app .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -273,7 +359,7 @@
   z-index: 1000;
 }
 
-.modal-content {
+.collabrio-app .modal-content {
   background: white;
   padding: 2rem;
   border-radius: 12px;
@@ -283,18 +369,18 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.modal-content h3 {
+.collabrio-app .modal-content h3 {
   margin-top: 0;
   color: #2c3e50;
 }
 
-.qr-container {
+.collabrio-app .qr-container {
   margin: 1.5rem 0;
   display: flex;
   justify-content: center;
 }
 
-.share-link {
+.collabrio-app .share-link {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ced4da;
@@ -305,14 +391,14 @@
   background: #f8f9fa;
 }
 
-.modal-buttons {
+.collabrio-app .modal-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
   margin-top: 1.5rem;
 }
 
-.modal-buttons button {
+.collabrio-app .modal-buttons button {
   background: #007bff;
   color: white;
   border: none;
@@ -323,15 +409,15 @@
   transition: background-color 0.2s;
 }
 
-.modal-buttons button:hover {
+.collabrio-app .modal-buttons button:hover {
   background: #0056b3;
 }
 
-.modal-buttons button:last-child {
+.collabrio-app .modal-buttons button:last-child {
   background: #6c757d;
 }
 
-.modal-buttons button:last-child:hover {
+.collabrio-app .modal-buttons button:last-child:hover {
   background: #545b62;
 }
 

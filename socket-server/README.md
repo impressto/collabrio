@@ -51,6 +51,46 @@ Start the server in production mode:
 npm start
 ```
 
+## Testing Server Connection
+
+You can test if the socket server is running and responding using these commands:
+
+### Quick Health Check
+```bash
+# Test if server is responding (returns HTTP headers only)
+curl -I http://localhost:4244/status
+
+# Get full status response with JSON
+curl http://localhost:4244/status
+```
+
+### Expected Response
+When the server is running correctly, you should see:
+```json
+{
+  "status": "success",
+  "message": "WebRTC Socket server is running",
+  "activeSessions": []
+}
+```
+
+### Check if Port is Listening
+```bash
+# Check if the server is listening on the configured port
+ss -tulpn | grep :4244
+
+# Alternative command (if netstat is available)
+netstat -tulpn | grep :4244
+```
+
+### Admin Interface Test
+```bash
+# Test admin interface accessibility
+curl -I http://localhost:4244/admin
+```
+
+**Note:** Replace `4244` with your configured port number from the `.env` file.
+
 ## API Endpoints
 
 - `GET /status` - Check server status and get active sessions

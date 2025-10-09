@@ -91,6 +91,25 @@ function IdentityModal({
     })
   }
 
+  const handleAvatarClick = (avatar) => {
+    if (takenAvatars.includes(avatar) && avatar !== existingAvatar) {
+      return // Don't select taken avatars
+    }
+    
+    setSelectedAvatar(avatar)
+    
+    // Auto-submit if we have a valid username
+    const skipLengthCheck = !hasManuallyEditedUsername && username.length > 0
+    const error = validateUsername(username, skipLengthCheck)
+    
+    if (!error && username.trim()) {
+      onComplete({
+        username: username.trim(),
+        avatar: avatar
+      })
+    }
+  }
+
   const handleSkip = () => {
     // Use defaults if skipping
     const defaultUsername = username || 'Anonymous User 1'
@@ -148,7 +167,7 @@ function IdentityModal({
                   <button
                     key={index}
                     className={`avatar-option ${isSelected ? 'selected' : ''} ${isTaken ? 'taken' : ''}`}
-                    onClick={() => !isTaken && setSelectedAvatar(avatar)}
+                    onClick={() => handleAvatarClick(avatar)}
                     disabled={isTaken}
                     title={isTaken ? 'This avatar is already taken' : `Select ${avatar}`}
                   >
@@ -159,29 +178,36 @@ function IdentityModal({
               })}
             </div>
             <span className="input-help">
-              Selected: {selectedAvatar || '(none selected - random will be assigned)'}
+              {selectedAvatar 
+                ? `Selected: ${selectedAvatar}` 
+                : usernameError 
+                  ? 'Fix username error first, then click an avatar to continue'
+                  : 'Click an avatar to start collaborating!'}
             </span>
           </div>
         </div>
 
-        <div className="identity-modal-actions">
-          <button
-            className="identity-submit-btn"
-            onClick={handleSubmit}
-            disabled={!!usernameError}
-          >
-            {isFirstTime ? '🚀 Start Collaborating' : '💾 Save Changes'}
-          </button>
-          
-          {isFirstTime && (
+        {/* Only show buttons if there's an error or no avatar selected */}
+        {(usernameError || !selectedAvatar) && (
+          <div className="identity-modal-actions">
             <button
-              className="identity-skip-btn"
-              onClick={handleSkip}
+              className="identity-submit-btn"
+              onClick={handleSubmit}
+              disabled={!!usernameError}
             >
-              Skip (Use Defaults)
+              {isFirstTime ? '🚀 Start Collaborating' : '💾 Save Changes'}
             </button>
-          )}
-        </div>
+            
+            {isFirstTime && (
+              <button
+                className="identity-skip-btn"
+                onClick={handleSkip}
+              >
+                Skip (Use Defaults)
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

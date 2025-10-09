@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
+import config from '../config.js'
 
 function Editor({ 
   textareaRef,
@@ -22,6 +23,10 @@ function Editor({
   // Ask AI button state
   const [showAskAI, setShowAskAI] = useState(false)
   const [selectedText, setSelectedText] = useState('')
+  const [isWaitingForAI, setIsWaitingForAI] = useState(false)
+  
+  // Audio ref for AI waiting sound
+  const audioRef = useRef(null)
 
   // Handle text selection for Ask AI button
   const handleTextSelection = useCallback((e) => {
@@ -42,6 +47,15 @@ function Editor({
   // Handle Ask AI button click
   const handleAskAI = useCallback(() => {
     if (selectedText && socket && sessionId) {
+      // Start waiting state and audio
+      setIsWaitingForAI(true)
+      
+      // Start playing the timer audio in loop
+      if (audioRef.current) {
+        audioRef.current.loop = true
+        audioRef.current.play().catch(console.error)
+      }
+      
       // Send the selected text to the socket server for AI processing
       socket.emit('ask-ai', {
         sessionId: sessionId,
@@ -93,6 +107,23 @@ function Editor({
       }
     }
   }, [showAskAI])
+
+  // Stop audio when AI response is received
+  useEffect(() => {
+    if (isWaitingForAI && document) {
+      // Check if document contains an AI response (not just "waiting for response")
+      const hasAIResponse = document.includes('[AI Response:') || document.includes('[AI Error:')
+      
+      if (hasAIResponse) {
+        // Stop the audio and reset waiting state
+        if (audioRef.current) {
+          audioRef.current.pause()
+          audioRef.current.currentTime = 0
+        }
+        setIsWaitingForAI(false)
+      }
+    }
+  }, [document, isWaitingForAI])
 
   // Handle tab key in textareas
   const handleKeyDown = (e) => {
@@ -227,6 +258,16 @@ function Editor({
           />
         )}
       </div>
+      
+      {/* Audio element for AI waiting sound */}
+      <audio 
+        ref={audioRef}
+        preload="auto"
+        style={{ display: 'none' }}
+      >
+        <source src={`${config.baseUrl}/client/public/timer.mp3`} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
     </main>
   )
 }

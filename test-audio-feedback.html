@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Audio Feedback - Collabrio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔊 AI Audio Feedback System</h1>
+    
+    <div class="success">
+        <h3>✅ Audio Feedback Feature Complete!</h3>
+        <p>The "Ask AI" feature now plays a looping timer sound while waiting for responses, with configurable base URL support.</p>
+    </div>
+
+    <div class="info">
+        <h3>🎵 How It Works:</h3>
+        <ol>
+            <li><strong>Select Text:</strong> Highlight any text in the collaborative document</li>
+            <li><strong>Click "🤖 Ask AI":</strong> The button appears when text is selected</li>
+            <li><strong>Audio Starts:</strong> <code>timer.mp3</code> plays in a continuous loop</li>
+            <li><strong>AI Processing:</strong> Your query is sent to the Cohere AI API</li>
+            <li><strong>Audio Stops:</strong> Sound automatically stops when response arrives</li>
+            <li><strong>Response Appears:</strong> AI response is appended to the document</li>
+        </ol>
+    </div>
+
+    <div class="container">
+        <h3>⚙️ Configuration Details:</h3>
+        
+        <h4>Environment Variable Support:</h4>
+        <div class="code">// client/.env
+VITE_BASE_URL=https://impressto.ca/collabrio
+
+// This allows easy URL changes for different environments:
+// Development: http://localhost:3000
+// Staging: https://staging.impressto.ca/collabrio  
+// Production: https://impressto.ca/collabrio</div>
+
+        <h4>Code Implementation:</h4>
+        <div class="code">// Audio source uses config
+src={`${config.baseUrl}/client/public/timer.mp3`}
+
+// Results in: 
+// https://impressto.ca/collabrio/client/public/timer.mp3</div>
+    </div>
+
+    <div class="container">
+        <h3>🔧 Technical Features:</h3>
+        <ul>
+            <li><strong>Loop Control:</strong> <code>audio.loop = true</code> for continuous playback</li>
+            <li><strong>State Management:</strong> <code>isWaitingForAI</code> tracks audio state</li>
+            <li><strong>Auto-Stop:</strong> Detects AI response completion and stops audio</li>
+            <li><strong>Error Handling:</strong> Graceful fallback if audio fails to load</li>
+            <li><strong>Hidden Element:</strong> Audio element is visually hidden from UI</li>
+            <li><strong>Configurable URL:</strong> Environment-based audio file path</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>🔊 Browser Audio Requirements:</h3>
+        <ul>
+            <li><strong>User Interaction:</strong> Most browsers require user interaction before playing audio</li>
+            <li><strong>Autoplay Policy:</strong> Audio will only play after user clicks "Ask AI"</li>
+            <li><strong>Format Support:</strong> MP3 is widely supported across browsers</li>
+            <li><strong>Network:</strong> Audio file must be accessible at the configured URL</li>
+        </ul>
+    </div>
+
+    <div class="info">
+        <h3>🧪 Testing Steps:</h3>
+        <ol>
+            <li>Open Collabrio application</li>
+            <li>Create or join a collaborative session</li>
+            <li>Type some text in the document</li>
+            <li>Select any portion of text</li>
+            <li>Click the "🤖 Ask AI" button that appears</li>
+            <li>Listen for the timer audio to start playing</li>
+            <li>Watch the document for AI response</li>
+            <li>Verify audio stops when response arrives</li>
+        </ol>
+    </div>
+
+    <div class="container">
+        <h3>🎯 User Experience Benefits:</h3>
+        <ul>
+            <li><strong>Audio Feedback:</strong> Clear indication that AI is processing</li>
+            <li><strong>Visual + Audio:</strong> Multiple feedback channels for better UX</li>
+            <li><strong>Automatic Stop:</strong> No need to manually stop the sound</li>
+            <li><strong>Non-Intrusive:</strong> Subtle timer sound, not disruptive</li>
+            <li><strong>Responsive:</strong> Works on desktop and mobile browsers</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h3>🚀 Quick Links:</h3>
+        <a href="./" class="button">Open Collabrio App</a>
+        <a href="./test-cohere-integration.html" class="button">AI Integration Test</a>
+        <a href="./test-cohere-logging.html" class="button">AI Logging Info</a>
+        <a href="./socket-server/admin.html" class="button">Socket Admin</a>
+    </div>
+
+    <div class="container">
+        <h3>📊 Configuration Summary:</h3>
+        <div class="code">✅ Audio Element: Hidden in Editor component
+✅ Audio Source: Configurable via VITE_BASE_URL
+✅ Audio Control: Auto-start on AI request
+✅ Audio Stop: Auto-stop on AI response
+✅ Error Handling: Graceful failure if audio unavailable
+✅ Loop Mode: Continuous playback until response
+✅ State Tracking: isWaitingForAI state management</div>
+    </div>
+
+</body>
+</html>

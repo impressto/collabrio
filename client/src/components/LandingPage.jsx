@@ -3,7 +3,7 @@ import { config } from '../config.js'
 
 function LandingPage({ darkTheme, createNewSession, joinExistingSession }) {
   return (
-    <div className={`collabrio-app ${darkTheme ? 'dark-theme' : ''}`}>
+    <div className="collabrio-app dark-theme">
       <div className="collabrio-container">
         <div className="landing-page">
           <header className="landing-header">

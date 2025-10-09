@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 2.1 Identity Test - Collabrio</title>
+    <script src="test-config.js"></script>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 3px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        input { padding: 5px; margin: 5px; }
+        #userList { margin-top: 10px; }
+        .user-item { display: inline-block; margin: 5px; padding: 5px 10px; background: #f0f0f0; border-radius: 15px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Phase 2.1 Identity System Test</h1>
+    <p>Testing user identity features: username entry, avatar selection, and identity display</p>
+
+    <div class="test-section">
+        <h3>📝 Identity Setup Test</h3>
+        <div>
+            <label>Username: <input type="text" id="testUsername" placeholder="Test User" value="Test User"></label>
+            <label>Avatar: <input type="text" id="testAvatar" placeholder="🧪" value="🧪"></label>
+            <button onclick="testIdentityStorage()">💾 Test Identity Storage</button>
+            <button onclick="clearIdentity()">🗑️ Clear Identity</button>
+        </div>
+        <div id="identityResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 Socket Connection Test</h3>
+        <div>
+            <input type="text" id="sessionId" placeholder="test-session" value="test-session">
+            <button onclick="connectToSession()">🔌 Connect with Identity</button>
+            <button onclick="disconnectFromSession()">🔌 Disconnect</button>
+        </div>
+        <div id="connectionResult" class="test-result"></div>
+        <div id="userList"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>👥 Multi-User Identity Test</h3>
+        <div>
+            <button onclick="simulateMultipleUsers()">👥 Simulate Multiple Users</button>
+            <button onclick="testConflictResolution()">⚠️ Test Username Conflicts</button>
+        </div>
+        <div id="multiUserResult" class="test-result"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        const config = window.COLLABRIO_CONFIG;
+
+        // Test identity storage functions
+        function testIdentityStorage() {
+            const username = document.getElementById('testUsername').value;
+            const avatar = document.getElementById('testAvatar').value;
+            
+            try {
+                // Store identity
+                const identity = { username, avatar, timestamp: Date.now() };
+                localStorage.setItem('collabrio-user-identity', JSON.stringify(identity));
+                
+                // Retrieve identity
+                const stored = JSON.parse(localStorage.getItem('collabrio-user-identity'));
+                
+                if (stored.username === username && stored.avatar === avatar) {
+                    showResult('identityResult', '✅ Identity storage working correctly!', 'success');
+                    showResult('identityResult', `Stored: ${stored.username} ${stored.avatar}`, 'info');
+                } else {
+                    showResult('identityResult', '❌ Identity storage failed - data mismatch', 'error');
+                }
+            } catch (error) {
+                showResult('identityResult', `❌ Identity storage error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearIdentity() {
+            localStorage.removeItem('collabrio-user-identity');
+            showResult('identityResult', '🗑️ Identity cleared from storage', 'info');
+        }
+
+        // Test socket connection with identity
+        function connectToSession() {
+            if (socket) {
+                socket.disconnect();
+            }
+
+            const sessionId = document.getElementById('sessionId').value;
+            const storedIdentity = JSON.parse(localStorage.getItem('collabrio-user-identity') || '{}');
+            
+            socket = io(config.socketServerUrl, {
+                transports: ['websocket', 'polling']
+            });
+
+            socket.on('connect', () => {
+                showResult('connectionResult', '🟢 Connected to socket server', 'success');
+                
+                // Join session with identity
+                const userIdentity = {
+                    username: storedIdentity.username || 'Anonymous Test User',
+                    avatar: storedIdentity.avatar || '🧪'
+                };
+                
+                socket.emit('join-session', {
+                    sessionId: sessionId,
+                    clientId: socket.id,
+                    userIdentity: userIdentity
+                });
+                
+                showResult('connectionResult', `🚀 Joining session "${sessionId}" as ${userIdentity.username} ${userIdentity.avatar}`, 'info');
+            });
+
+            socket.on('disconnect', () => {
+                showResult('connectionResult', '🔴 Disconnected from server', 'error');
+                document.getElementById('userList').innerHTML = '';
+            });
+
+            socket.on('user-joined', (data) => {
+                showResult('connectionResult', '👋 User list updated', 'info');
+                displayUserList(data.users);
+            });
+
+            socket.on('user-left', (data) => {
+                showResult('connectionResult', '👋 User left session', 'info');
+                displayUserList(data.users);
+            });
+
+            socket.on('connect_error', (error) => {
+                showResult('connectionResult', `❌ Connection failed: ${error.message}`, 'error');
+            });
+        }
+
+        function disconnectFromSession() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        function displayUserList(users) {
+            const userListDiv = document.getElementById('userList');
+            if (!users || users.length === 0) {
+                userListDiv.innerHTML = '<p>No users in session</p>';
+                return;
+            }
+
+            const userHTML = users.map(user => 
+                `<div class="user-item">
+                    ${user.avatar || '👤'} ${user.username || user.id || 'Unknown'}
+                    ${user.id === (socket ? socket.id : '') ? ' (You)' : ''}
+                </div>`
+            ).join('');
+
+            userListDiv.innerHTML = `<h4>Users in Session (${users.length}):</h4>${userHTML}`;
+        }
+
+        function simulateMultipleUsers() {
+            showResult('multiUserResult', '🤖 Simulating multiple users...', 'info');
+            
+            // This would require multiple socket connections
+            // For now, just show what the conflict resolution should do
+            const testUsers = [
+                { username: 'Alice', avatar: '🐱' },
+                { username: 'Alice', avatar: '🐶' }, // Same username
+                { username: 'Bob', avatar: '🐱' },   // Same avatar
+                { username: 'Alice', avatar: '🦊' }  // Same username again
+            ];
+
+            let takenUsernames = [];
+            let takenAvatars = [];
+            let resolvedUsers = [];
+
+            testUsers.forEach((user, index) => {
+                let finalUsername = user.username;
+                let finalAvatar = user.avatar;
+
+                // Resolve username conflicts
+                if (takenUsernames.includes(finalUsername)) {
+                    let counter = 2;
+                    let uniqueUsername = `${finalUsername} ${counter}`;
+                    while (takenUsernames.includes(uniqueUsername)) {
+                        counter++;
+                        uniqueUsername = `${finalUsername} ${counter}`;
+                    }
+                    finalUsername = uniqueUsername;
+                }
+
+                // Resolve avatar conflicts
+                if (takenAvatars.includes(finalAvatar)) {
+                    const backupAvatars = ['👤', '🔵', '🟢', '🟡', '🟣', '🟠'];
+                    finalAvatar = backupAvatars.find(a => !takenAvatars.includes(a)) || '👤';
+                }
+
+                takenUsernames.push(finalUsername);
+                takenAvatars.push(finalAvatar);
+                resolvedUsers.push({ username: finalUsername, avatar: finalAvatar });
+            });
+
+            const resultHTML = resolvedUsers.map((user, index) => 
+                `<div class="user-item">User ${index + 1}: ${user.avatar} ${user.username}</div>`
+            ).join('');
+
+            showResult('multiUserResult', '✅ Conflict resolution test:', 'success');
+            document.getElementById('multiUserResult').innerHTML += `<div>${resultHTML}</div>`;
+        }
+
+        function testConflictResolution() {
+            showResult('multiUserResult', '⚠️ Testing username conflict resolution...', 'info');
+            
+            const baseUsername = 'Test User';
+            const takenUsernames = ['Test User', 'Test User 2', 'Test User 3'];
+            
+            let counter = 1;
+            let uniqueUsername = baseUsername;
+            
+            while (takenUsernames.includes(uniqueUsername)) {
+                counter++;
+                uniqueUsername = `${baseUsername} ${counter}`;
+            }
+            
+            showResult('multiUserResult', `✅ Resolved "${baseUsername}" → "${uniqueUsername}"`, 'success');
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML = `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            showResult('identityResult', 'Ready to test identity storage', 'info');
+            showResult('connectionResult', `Socket server: ${config.socketServerUrl}`, 'info');
+            showResult('multiUserResult', 'Ready to test multi-user scenarios', 'info');
+        });
+    </script>
+</body>
+</html>

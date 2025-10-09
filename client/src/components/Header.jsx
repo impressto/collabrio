@@ -1,7 +1,8 @@
 import React from 'react'
 import { config } from '../config.js'
+import UserList from './UserList'
 
-function Header({ isConnected, connectedUsers }) {
+function Header({ isConnected, connectedUsers, currentUserId }) {
   return (
     <header className="collabrio-header">
       <h1>
@@ -13,10 +14,11 @@ function Header({ isConnected, connectedUsers }) {
         Collabrio
       </h1>
       <div className="connection-info">
-        <span id="connection-status" className={`status ${isConnected ? 'connected' : 'disconnected'}`}>
-          {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
-        </span>
-        <span id="user-count-display" className="users">👥 {connectedUsers.length} user(s)</span>
+        <UserList 
+          users={connectedUsers} 
+          currentUserId={currentUserId}
+          isConnected={isConnected}
+        />
       </div>
     </header>
   )

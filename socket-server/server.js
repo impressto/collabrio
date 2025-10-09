@@ -409,20 +409,49 @@ io.on('connection', (socket) => {
   let clientId = null;
 
   // Handle client joining a session
-  socket.on('join-session', ({ sessionId: sid, clientId: cid }) => {
+  socket.on('join-session', ({ sessionId: sid, clientId: cid, userIdentity }) => {
     sessionId = sid;
     clientId = cid || socket.id; // Use socket ID as clientId if not provided
     
-    console.log(`Client ${clientId} joined session ${sessionId}`);
+    console.log(`Client ${clientId} (${userIdentity?.username || 'Anonymous'}) joined session ${sessionId}`);
     
     // Add client to session
     if (!activeSessions.has(sessionId)) {
       activeSessions.set(sessionId, new Map());
     }
     
-    // Store client information
+    // Resolve identity conflicts
+    const sessionUsers = Array.from(activeSessions.get(sessionId).values());
+    const takenUsernames = sessionUsers.map(user => user.username).filter(Boolean);
+    const takenAvatars = sessionUsers.map(user => user.avatar).filter(Boolean);
+    
+    let finalUsername = userIdentity?.username || 'Anonymous User';
+    let finalAvatar = userIdentity?.avatar || '👤';
+    
+    // Handle username conflicts
+    if (takenUsernames.includes(finalUsername)) {
+      let counter = 2;
+      let uniqueUsername = `${finalUsername} ${counter}`;
+      while (takenUsernames.includes(uniqueUsername)) {
+        counter++;
+        uniqueUsername = `${finalUsername} ${counter}`;
+      }
+      finalUsername = uniqueUsername;
+    }
+    
+    // Handle avatar conflicts
+    if (takenAvatars.includes(finalAvatar)) {
+      const avatarOptions = ['🐱', '🐶', '🐺', '🦊', '🐸', '🐢', '🦉', '🐧', '🐘', '🦁', '⚡', '🌟', '🎯', '🎨', '🚀', '🎸', '⚽', '🎭', '🎲', '⭐', '🌺', '🌲', '🍄', '🌙', '☀️', '🌊', '🔥', '❄️', '🌈', '🍀'];
+      const availableAvatars = avatarOptions.filter(avatar => !takenAvatars.includes(avatar));
+      finalAvatar = availableAvatars.length > 0 ? availableAvatars[0] : '👤';
+    }
+    
+    // Store client information with identity
     activeSessions.get(sessionId).set(clientId, {
+      id: clientId,
       socketId: socket.id,
+      username: finalUsername,
+      avatar: finalAvatar,
       lastSeen: Date.now()
     });
     
@@ -432,14 +461,21 @@ io.on('connection', (socket) => {
     // Notify everyone in the session about active users
     updateSessionStatus(sessionId);
     
+    // Get current user list with identities
+    const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar
+    }));
+    
     // Send user joined event to React app
     socket.to(sessionId).emit('user-joined', {
-      users: Array.from(activeSessions.get(sessionId).keys())
+      users: currentUsers
     });
     
     // Send current user list to the new client
     socket.emit('user-joined', {
-      users: Array.from(activeSessions.get(sessionId).keys())
+      users: currentUsers
     });
     
     // Send current document content to the new client
@@ -556,9 +592,16 @@ io.on('connection', (socket) => {
           sessionDocuments.delete(sessionId);
           console.log(`Cleaned up document storage for empty session ${sessionId}`);
         } else {
+          // Get current user list with identities
+          const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
+            id: user.id,
+            username: user.username,
+            avatar: user.avatar
+          }));
+          
           // Notify remaining clients about user leaving
           io.to(sessionId).emit('user-left', {
-            users: Array.from(activeSessions.get(sessionId).keys())
+            users: currentUsers
           });
           // Update session status for remaining clients
           updateSessionStatus(sessionId);

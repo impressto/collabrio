@@ -13,6 +13,23 @@ import Toast from './components/Toast'
 import FileNotification from './components/FileNotification'
 import UploadProgress from './components/UploadProgress'
 import Footer from './components/Footer'
+import IdentityModal from './components/IdentityModal'
+
+// Utilities
+import { 
+  getStoredIdentity, 
+  saveIdentity, 
+  hasValidStoredIdentity,
+  generateDefaultUsername,
+  prepareIdentityForSession
+} from './utils/identityUtils'
+
+// Avatar options (same as in IdentityModal)
+const AVATAR_OPTIONS = [
+  '🐱', '🐶', '🐺', '🦊', '🐸', '🐢', '🦉', '🐧', '🐘', '🦁',
+  '⚡', '🌟', '🎯', '🎨', '🚀', '🎸', '⚽', '🎭', '🎲', '⭐',
+  '🌺', '🌲', '🍄', '🌙', '☀️', '🌊', '🔥', '❄️', '🌈', '🍀'
+]
 
 function App() {
   // State management
@@ -42,6 +59,15 @@ function App() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentUploadFile, setCurrentUploadFile] = useState(null)
   
+  // Identity state
+  const [userIdentity, setUserIdentity] = useState(() => {
+    const stored = getStoredIdentity()
+    return stored || { username: '', avatar: '' }
+  })
+  const [showIdentityModal, setShowIdentityModal] = useState(false)
+  const [pendingSessionAction, setPendingSessionAction] = useState(null) // 'create' or 'join'
+  const [currentUserId, setCurrentUserId] = useState('')
+  
   // Refs
   const socketRef = useRef(null)
   const textareaRef = useRef(null)
@@ -66,12 +92,13 @@ function App() {
     }, 3000)
   }
 
-  // Initialize session from URL hash only (no auto-generation)
+  // Initialize session from URL hash - prompt for identity first
   useEffect(() => {
     const hash = window.location.hash.substring(1)
     if (hash) {
-      setSessionId(hash)
-      setIsInSession(true)
+      // Show identity modal for URL-based session joining
+      setPendingSessionAction({ action: 'join', sessionId: hash })
+      setShowIdentityModal(true)
     }
     // No auto-generation - user must explicitly create session
   }, [])
@@ -102,18 +129,44 @@ function App() {
   }
 
   const createNewSession = () => {
-    const newSessionId = generateSessionId()
-    setDocument('') // Clear document for new session
-    setSessionId(newSessionId)
-    setIsInSession(true)
-    window.location.hash = newSessionId
+    // Always show identity modal for session creation
+    setPendingSessionAction('create')
+    setShowIdentityModal(true)
   }
 
   const joinExistingSession = (sessionIdToJoin) => {
-    setDocument('') // Clear document when joining different session
-    setSessionId(sessionIdToJoin)
-    setIsInSession(true)
-    window.location.hash = sessionIdToJoin
+    // Always show identity modal for session joining
+    setPendingSessionAction({ action: 'join', sessionId: sessionIdToJoin })
+    setShowIdentityModal(true)
+  }
+
+  // Identity handling functions
+  const handleIdentityComplete = (identity) => {
+    // Save identity to localStorage
+    saveIdentity(identity.username, identity.avatar)
+    setUserIdentity(identity)
+    setShowIdentityModal(false)
+    
+    // Execute pending session action
+    if (pendingSessionAction === 'create') {
+      const newSessionId = generateSessionId()
+      setDocument('')
+      setSessionId(newSessionId)
+      setIsInSession(true)
+      window.location.hash = newSessionId
+    } else if (pendingSessionAction && pendingSessionAction.action === 'join') {
+      setDocument('')
+      setSessionId(pendingSessionAction.sessionId)
+      setIsInSession(true)
+      window.location.hash = pendingSessionAction.sessionId
+    }
+    
+    setPendingSessionAction(null)
+  }
+
+  const handleIdentitySkip = (identity) => {
+    // Save default identity
+    handleIdentityComplete(identity)
   }
 
   const connectToSocket = () => {
@@ -126,7 +179,18 @@ function App() {
       console.log(`Connected to socket server at ${config.socketServerUrl}`)
       console.log(`Joining session: ${sessionId}`)
       setIsConnected(true)
-      socket.emit('join-session', { sessionId, clientId: socket.id })
+      setCurrentUserId(socket.id)
+      
+      // Include user identity when joining session
+      const identity = userIdentity.username ? userIdentity : getStoredIdentity()
+      socket.emit('join-session', { 
+        sessionId, 
+        clientId: socket.id,
+        userIdentity: {
+          username: identity?.username || generateDefaultUsername([]),
+          avatar: identity?.avatar || AVATAR_OPTIONS[0]
+        }
+      })
     })
 
     socket.on('disconnect', () => {
@@ -428,11 +492,24 @@ function App() {
   // Render landing page or collaborative editor
   if (!isInSession) {
     return (
-      <LandingPage 
-        darkTheme={darkTheme}
-        createNewSession={createNewSession}
-        joinExistingSession={joinExistingSession}
-      />
+      <>
+        <LandingPage 
+          darkTheme={darkTheme}
+          createNewSession={createNewSession}
+          joinExistingSession={joinExistingSession}
+        />
+        
+        <IdentityModal
+          isVisible={showIdentityModal}
+          onComplete={handleIdentityComplete}
+          onSkip={handleIdentitySkip}
+          existingUsername={userIdentity.username}
+          existingAvatar={userIdentity.avatar}
+          takenAvatars={connectedUsers.map(user => user.avatar).filter(Boolean)}
+          takenUsernames={connectedUsers.map(user => user.username).filter(Boolean)}
+          isFirstTime={true}
+        />
+      </>
     )
   }
 
@@ -442,6 +519,7 @@ function App() {
         <Header 
           isConnected={isConnected}
           connectedUsers={connectedUsers}
+          currentUserId={currentUserId}
         />
 
         <Toolbar 
@@ -501,6 +579,17 @@ function App() {
         />
 
         <Toast toast={toast} />
+        
+        <IdentityModal
+          isVisible={showIdentityModal}
+          onComplete={handleIdentityComplete}
+          onSkip={handleIdentitySkip}
+          existingUsername={userIdentity.username}
+          existingAvatar={userIdentity.avatar}
+          takenAvatars={connectedUsers.map(user => user.avatar).filter(Boolean)}
+          takenUsernames={connectedUsers.map(user => user.username).filter(Boolean)}
+          isFirstTime={true}
+        />
         
         <Footer connectionType={connectionType} />
       </div>

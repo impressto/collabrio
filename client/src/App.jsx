@@ -552,6 +552,7 @@ function App() {
           copyDraftContent={copyDraftContent}
           clearDraft={clearDraft}
           showToast={showToast}
+          socket={socketRef.current}
         />
 
         <ShareModal 
@@ -598,7 +599,7 @@ function App() {
           isFirstTime={true}
         />
         
-        <Footer connectionType={connectionType} />
+        <Footer connectionType={connectionType} sessionId={sessionId} />
       </div>
     </div>
   )

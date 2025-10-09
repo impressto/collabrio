@@ -5,6 +5,7 @@ This is a Node.js WebSocket server that handles WebRTC signaling for the Collabr
 ## Features
 
 - **Real-time Collaboration**: WebSocket-based document synchronization
+- **AI Integration**: Cohere AI-powered text analysis and responses
 - **Session Management**: Anonymous sessions with URL hash-based access
 - **Client Presence Tracking**: Live user count and connection status
 - **Text Injection**: REST API and file-based message injection
@@ -31,12 +32,16 @@ npm install
 yarn install
 ```
 
-2. Configure environment variables (optional):
+2. Configure environment variables:
    - Create a `.env` file in this directory with:
    ```
-   PORT=3000
+   PORT=4244
+   COHERE_API_KEY=your_cohere_api_key_here
+   COHERE_MODEL=command-a-03-2025
    ```
-   - You can change the port as needed.
+   - **PORT**: Server port (default: 4244)
+   - **COHERE_API_KEY**: Required for AI functionality (get from https://cohere.com)
+   - **COHERE_MODEL**: Cohere AI model to use (default: command-a-03-2025)
 
 ## Running the Server
 
@@ -204,6 +209,104 @@ messages/
 ├── processed/          # Processed files (with timestamps)
 └── [session files]     # Files to be processed
 ```
+
+## Socket Events
+
+The server uses Socket.IO for real-time communication. While curl cannot directly interact with Socket.IO events, you can test these using a Socket.IO client or through the web interface.
+
+### Available Socket Events
+
+#### `ask-ai` - AI Query Processing
+**Description:** Send selected text to the Cohere AI API and get an intelligent response appended to the document.
+
+**Event Payload:**
+```javascript
+{
+  "sessionId": "abc123",
+  "selectedText": "What is machine learning?"
+}
+```
+
+**Testing with Socket.IO Client:**
+
+Since curl cannot directly connect to Socket.IO, here are alternative testing methods:
+
+**1. Using Node.js Socket.IO Client:**
+```javascript
+// test-ask-ai.js
+const io = require('socket.io-client');
+
+const socket = io('http://localhost:4244');
+
+socket.on('connect', () => {
+  console.log('Connected to server');
+  
+  // Join a session first
+  socket.emit('join-session', {
+    sessionId: 'test123',
+    clientId: 'test-client-1',
+    userIdentity: { username: 'TestUser' }
+  });
+  
+  // Send AI request
+  socket.emit('ask-ai', {
+    sessionId: 'test123',
+    selectedText: 'Explain quantum computing in simple terms'
+  });
+});
+
+socket.on('document-update', (data) => {
+  console.log('Document updated:', data);
+});
+```
+
+**Run the test:**
+```bash
+node test-ask-ai.js
+```
+
+**2. Using curl with Socket.IO REST fallback (if available):**
+```bash
+# Note: This is a theoretical REST endpoint - the actual implementation uses Socket.IO
+# For real testing, use the web interface or Socket.IO client above
+
+curl -X POST http://localhost:4244/socket.io/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "ask-ai",
+    "data": {
+      "sessionId": "qkdlfz", 
+      "selectedText": "What are the benefits of renewable energy?"
+    }
+  }'
+```
+
+**3. Testing through Web Interface (Recommended):**
+1. Open the Collabrio app in your browser
+2. Create or join a session
+3. Type some text in the document
+4. Select any text you want to ask AI about
+5. Click the "🤖 Ask AI" button that appears
+6. Watch the real-time AI response
+
+**Expected Response Flow:**
+1. Initial document update with waiting message:
+   ```
+   [AI Query: "your selected text"]
+   Asking AI ... waiting for response
+   ```
+
+2. Final document update with AI response:
+   ```
+   [AI Query: "your selected text"]
+   [AI Response: Detailed AI-generated response from Cohere API]
+   ```
+
+**AI Configuration:**
+- **Provider:** Cohere AI
+- **Model:** Configurable via `COHERE_MODEL` environment variable (default: command-a-03-2025)
+- **Temperature:** 0.3 (balanced creativity/consistency)
+- **API Key:** Configured via `COHERE_API_KEY` environment variable
 
 ## File Sharing API (Phase 1)
 

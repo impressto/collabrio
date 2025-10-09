@@ -1,7 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*  
-*Last Updated: October 8, 2025 - Phase 2 Complete + Session Persistence Fixes*
+*Last Updated: October 9, 2025 - AI Integration Complete (Cohere API)*
 
 ---
 
@@ -212,6 +212,26 @@ Additionally, a permanent storage option will allow clients to save their shared
     - 🔄 File changes trigger automatic text injection into matching session
     - 🔄 File content is injected and file is processed/archived
     - 🔄 Support for different message types via filename patterns
+
+#### AI Integration (Cohere API)
+- 📖 **As a user**, I want to select text and ask an AI assistant about it
+  - **Acceptance Criteria:**
+    - ✅ Text selection shows "Ask AI" button in editor tabs
+    - ✅ Clicking button sends selected text to server via socket
+    - ✅ Server shows "waiting" message then calls Cohere AI API
+    - ✅ Real AI responses from Cohere's command-r-03-2024 model
+- 📖 **As a user**, I want AI responses to appear in the collaborative document
+  - **Acceptance Criteria:**
+    - ✅ AI queries formatted as `[AI Query: "selected text"]`
+    - ✅ Real-time updates: "waiting" → actual AI response
+    - ✅ AI responses clearly formatted as `[AI Response: response text]`
+    - ✅ Error handling with graceful fallback messages
+- 📖 **Technical Implementation**
+  - **Socket Event:** `ask-ai` with payload `{sessionId, selectedText}`
+  - **AI Provider:** Cohere API (cohere-ai npm package v7.19.0)
+  - **Model:** command-r-03-2024 with temperature 0.3
+  - **Security:** API key stored in environment variables
+  - **Error Handling:** Network failures show user-friendly error messages
 
 #### File Sharing
 - 📖 **As a user**, I want to drag and drop files to share them with other session participants

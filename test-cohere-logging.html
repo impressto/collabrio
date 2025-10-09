@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cohere API Response Logging - Collabrio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Enhanced Cohere API Logging</h1>
+    
+    <div class="success">
+        <h3>✅ Logging Enhancement Added!</h3>
+        <p>The socket server now logs detailed Cohere API response metadata for debugging purposes.</p>
+    </div>
+
+    <div class="info">
+        <h3>📊 What Gets Logged:</h3>
+        <ul>
+            <li><strong>Usage Statistics:</strong> Token counts, billing information</li>
+            <li><strong>Model Information:</strong> Which model processed the request</li>
+            <li><strong>Response Metadata:</strong> Role, content type, message length</li>
+            <li><strong>Warnings/Notices:</strong> Safety flags, rate limiting info</li>
+            <li><strong>Performance Data:</strong> Response timing, processing info</li>
+        </ul>
+        <p><strong>🔒 Privacy:</strong> The actual message content is excluded from logs for privacy.</p>
+    </div>
+
+    <div class="container">
+        <h3>📝 Example Log Output:</h3>
+        <p>When you use the "Ask AI" feature, you'll see output like this in the server console:</p>
+        
+        <div class="code">Cohere API Response Metadata: {
+  "id": "abc123-def456-ghi789",
+  "finish_reason": "COMPLETE",
+  "usage": {
+    "billed_units": {
+      "input_tokens": 15,
+      "output_tokens": 42
+    },
+    "tokens": {
+      "input_tokens": 15,
+      "output_tokens": 42
+    }
+  },
+  "message": {
+    "role": "assistant",
+    "contentType": "text",
+    "contentLength": 267
+  },
+  "citations": [],
+  "documents": [],
+  "search_queries": [],
+  "search_results": [],
+  "safety_info": {
+    "safety_ratings": []
+  }
+}</div>
+    </div>
+
+    <div class="container">
+        <h3>🔧 What This Helps Debug:</h3>
+        <ul>
+            <li><strong>Token Usage:</strong> Track input/output tokens for cost monitoring</li>
+            <li><strong>Safety Flags:</strong> See if content triggered safety filters</li>
+            <li><strong>Finish Reason:</strong> Whether response completed normally or was truncated</li>
+            <li><strong>Citations/Sources:</strong> If the model used external sources</li>
+            <li><strong>Content Length:</strong> Size of response without showing actual content</li>
+            <li><strong>Model Performance:</strong> Response quality indicators</li>
+        </ul>
+    </div>
+
+    <div class="info">
+        <h3>🧪 How to Test:</h3>
+        <ol>
+            <li>Open Collabrio in another tab</li>
+            <li>Create or join a session</li>
+            <li>Select some text and click "🤖 Ask AI"</li>
+            <li>Check the socket server console/logs for the detailed metadata</li>
+            <li>Look for the "Cohere API Response Metadata:" log entry</li>
+        </ol>
+    </div>
+
+    <div class="container">
+        <h3>🚀 Quick Links:</h3>
+        <a href="./" class="button">Open Collabrio App</a>
+        <a href="./test-cohere-integration.html" class="button">AI Integration Test</a>
+        <a href="./socket-server/admin.html" class="button">Socket Admin</a>
+    </div>
+
+    <div class="container">
+        <h3>📊 Monitoring Benefits:</h3>
+        <ul>
+            <li><strong>Cost Tracking:</strong> Monitor API usage and billing</li>
+            <li><strong>Performance:</strong> Track response times and quality</li>
+            <li><strong>Safety:</strong> Monitor content filtering and safety ratings</li>
+            <li><strong>Debugging:</strong> Troubleshoot API issues without exposing content</li>
+            <li><strong>Optimization:</strong> Fine-tune requests based on usage patterns</li>
+        </ul>
+    </div>
+
+</body>
+</html>

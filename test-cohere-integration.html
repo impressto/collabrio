@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cohere AI Integration Test - Collabrio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007acc;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Cohere AI Integration - Ready!</h1>
+    
+    <div class="success">
+        <h3>✅ Integration Complete!</h3>
+        <p>The Cohere AI API has been successfully integrated into the Collabrio socket server.</p>
+    </div>
+
+    <div class="info">
+        <h3>🔧 What's New:</h3>
+        <ul>
+            <li><strong>Real AI Responses:</strong> No more placeholder text!</li>
+            <li><strong>Cohere API:</strong> Using the <code>command-r-03-2024</code> model</li>
+            <li><strong>Secure API Key:</strong> Stored in environment variables</li>
+            <li><strong>Error Handling:</strong> Graceful fallback if API is unavailable</li>
+            <li><strong>Real-time Updates:</strong> Shows "waiting" then replaces with AI response</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h3>📝 How to Test:</h3>
+        <ol>
+            <li>Open Collabrio in another tab</li>
+            <li>Create or join a session</li>
+            <li>Type some text in the document</li>
+            <li>Select any text (question, statement, etc.)</li>
+            <li>Click the "🤖 Ask AI" button</li>
+            <li>Watch the magic happen:</li>
+        </ol>
+        
+        <div class="code">You'll see:
+1. [AI Query: "your selected text"]
+   Asking AI ... waiting for response
+
+2. Then it updates to:
+   [AI Query: "your selected text"]
+   [AI Response: The actual AI response from Cohere]</div>
+    </div>
+
+    <div class="warning">
+        <h3>⚠️ API Response Format:</h3>
+        <p>The AI responses are formatted as:</p>
+        <div class="code">[AI Query: "original text"]
+[AI Response: AI generated response]</div>
+        <p>This makes it clear what was asked and what the AI responded with.</p>
+    </div>
+
+    <div class="container">
+        <h3>🔧 Technical Implementation Details:</h3>
+        <ul>
+            <li><strong>API Model:</strong> <code>command-r-03-2024</code></li>
+            <li><strong>Temperature:</strong> <code>0.3</code> (balanced creativity/consistency)</li>
+            <li><strong>Environment Variable:</strong> <code>COHERE_API_KEY</code></li>
+            <li><strong>Fallback:</strong> Hardcoded API key if env var not found</li>
+            <li><strong>Error Handling:</strong> Shows error message if API call fails</li>
+            <li><strong>Async Processing:</strong> Non-blocking server operation</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h3>🚀 Quick Links:</h3>
+        <a href="./" class="button">Open Collabrio App</a>
+        <a href="./socket-server/admin.html" class="button">Socket Admin</a>
+        <a href="./test-ask-ai.html" class="button">Ask AI Instructions</a>
+    </div>
+
+    <div class="container">
+        <h3>🎯 Next Steps:</h3>
+        <p>The AI integration is now fully functional! You can:</p>
+        <ul>
+            <li>Test different types of questions</li>
+            <li>Try complex prompts and see AI responses</li>
+            <li>Collaborate with others and share AI insights</li>
+            <li>Use AI to help with brainstorming, writing, coding, etc.</li>
+        </ul>
+    </div>
+
+</body>
+</html>

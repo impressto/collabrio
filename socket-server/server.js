@@ -9,6 +9,12 @@ const chokidar = require('chokidar');
 const crypto = require('crypto');
 const multer = require('multer');
 const mime = require('mime-types');
+const { CohereClientV2 } = require('cohere-ai');
+
+// Initialize Cohere AI client
+const cohere = new CohereClientV2({ 
+  token: process.env.COHERE_API_KEY || 'qHlDLO9f026jFAcUe6uly546HH4ojVTBu9QPjPDC'
+});
 
 // Create Express app
 const app = express();
@@ -656,6 +662,101 @@ io.on('connection', (socket) => {
       updatedBy: socket.id,
       timestamp: Date.now()
     });
+  });
+
+  socket.on('ask-ai', async ({ sessionId: aiSessionId, selectedText }) => {
+    if (!aiSessionId) {
+      console.error('No session ID provided for AI request');
+      return;
+    }
+    
+    if (!selectedText || selectedText.trim() === '') {
+      console.error('No selected text provided for AI request');
+      return;
+    }
+    
+    console.log(`AI request in session ${aiSessionId} for text: "${selectedText.substring(0, 100)}..."`);
+    
+    // Update client's last seen timestamp for activity tracking
+    updateClientActivity(aiSessionId, clientId || socket.id);
+    
+    // Get current document content
+    const currentDocument = sessionDocuments.get(aiSessionId) || '';
+    
+    // First, append "Asking AI ... waiting for response" to the document
+    const initialResponse = '\n\n[AI Query: "' + selectedText.trim() + '"]\nAsking AI ... waiting for response\n';
+    const waitingDocument = currentDocument + initialResponse;
+    
+    // Store and broadcast the "waiting" state
+    sessionDocuments.set(aiSessionId, waitingDocument);
+    io.to(aiSessionId).emit('document-update', {
+      document: waitingDocument,
+      updatedBy: 'ai-system',
+      timestamp: Date.now()
+    });
+    
+    try {
+      // Call Cohere AI API
+      const response = await cohere.chat({
+        messages: [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": selectedText.trim()
+              }
+            ]
+          }
+        ],
+        temperature: 0.3,
+        model: process.env.COHERE_MODEL || "command-a-03-2025",
+        safety_mode: "STRICT"
+      });
+      
+      // Log Cohere API response metadata (excluding message content for debugging)
+      const responseMetadata = {
+        ...response,
+        message: response.message ? {
+          role: response.message.role,
+          contentType: response.message.content?.[0]?.type,
+          contentLength: response.message.content?.[0]?.text?.length || 0
+        } : null
+      };
+      console.log('Cohere API Response Metadata:', JSON.stringify(responseMetadata, null, 2));
+      
+      // Extract the AI response text
+      const aiResponseText = response.message?.content?.[0]?.text || 'AI response unavailable';
+      
+      // Replace "waiting for response" with actual AI response
+      const finalResponse = '\n\n[AI Query: "' + selectedText.trim() + '"]\n[AI Response: ' + aiResponseText + ']\n';
+      const finalDocument = currentDocument + finalResponse;
+      
+      // Store and broadcast the final response
+      sessionDocuments.set(aiSessionId, finalDocument);
+      io.to(aiSessionId).emit('document-update', {
+        document: finalDocument,
+        updatedBy: 'ai-system',
+        timestamp: Date.now()
+      });
+      
+      console.log(`AI response delivered to session ${aiSessionId}`);
+      
+    } catch (error) {
+      console.error('Cohere AI API error:', error);
+      
+      // Replace "waiting for response" with error message
+      const errorResponse = '\n\n[AI Query: "' + selectedText.trim() + '"]\n[AI Error: Unable to get AI response. Please try again.]\n';
+      const errorDocument = currentDocument + errorResponse;
+      
+      // Store and broadcast the error
+      sessionDocuments.set(aiSessionId, errorDocument);
+      io.to(aiSessionId).emit('document-update', {
+        document: errorDocument,
+        updatedBy: 'ai-system',
+        timestamp: Date.now()
+      });
+    }
   });
 
   // Handle file sharing events

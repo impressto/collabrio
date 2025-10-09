@@ -4,7 +4,7 @@ function UserList({ users, currentUserId, isConnected }) {
   if (!isConnected || users.length === 0) {
     return (
       <div className="user-list">
-        <span className="users-label">No collaborators</span>
+        <span className="users-label">No users</span>
       </div>
     )
   }
@@ -12,7 +12,7 @@ function UserList({ users, currentUserId, isConnected }) {
   return (
     <div className="user-list">
       <div className="users-container">
-        <span className="users-label">Collaborators:</span>
+        <span className="users-label">Users:</span>
         <div className="users-list">
           {users.map((user, index) => (
             <div

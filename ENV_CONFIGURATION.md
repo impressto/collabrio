@@ -27,7 +27,7 @@ VITE_SESSION_KEEPALIVE_INTERVAL=30000
 
 | Variable | Description | Default | Example |
 |----------|-------------|---------|---------|
-| `VITE_SOCKET_SERVER_URL` | Socket.IO server URL | `http://localhost:3000` | `https://socket.impressto.ca` |
+| `VITE_SOCKET_SERVER_URL` | Socket.IO server URL | `http://localhost:3000` | `https://sync.mysite.com` |
 | `VITE_DEBUG` | Enable debug logging | `true` in dev, `false` in prod | `true` |
 | `VITE_RECONNECTION_ATTEMPTS` | Socket reconnection attempts | `5` | `10` |
 | `VITE_SESSION_KEEPALIVE_INTERVAL` | Session keepalive interval (ms) | `30000` | `60000` |

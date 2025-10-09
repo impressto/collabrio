@@ -14,6 +14,9 @@ export const config = {
   soundEffectsEnabled: import.meta.env.VITE_SOUND_EFFECTS !== 'false',
   soundEffectsVolume: parseFloat(import.meta.env.VITE_SOUND_EFFECTS_VOLUME) || 0.5,
   
+  // AI configuration
+  askAiMaxChars: parseInt(import.meta.env.VITE_ASK_AI_MAX_CHARS) || 500,
+  
   // Debug configuration
   debug: import.meta.env.VITE_DEBUG === 'true' || import.meta.env.DEV,
   

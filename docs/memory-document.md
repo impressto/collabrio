@@ -38,7 +38,7 @@
 ### WebRTC with WebSocket Fallback Architecture
 **Date:** 2025-10-04  
 **Description:** Implement WebRTC as primary connection method with WebSocket fallback for restricted networks  
-**Rationale:** WebRTC provides direct peer-to-peer communication with lower latency, but mobile networks often block it, requiring WebSocket fallback via socket.impressto.ca  
+**Rationale:** WebRTC provides direct peer-to-peer communication with lower latency, but mobile networks often block it, requiring WebSocket fallback via socket server
 **Status:** Decided  
 **Impact:** High - Core communication strategy affects all real-time features  
 **Stakeholders:** Development team, end users on mobile networks  
@@ -51,7 +51,7 @@
 **Follow-up Actions:**
 - [ ] Implement WebRTC connection establishment (Dev Team - TBD)
 - [ ] Create WebSocket fallback detection (Dev Team - TBD)
-- [ ] Set up socket.impressto.ca server (Dev Team - TBD)
+- [ ] Set up socket server (Dev Team - TBD)
 
 ---
 
@@ -1380,6 +1380,59 @@
 - [ ] Use Facebook Debugger tool to refresh cached metadata (Dev Team - TBD)
 - [ ] Consider adding social media sharing buttons within application (Dev Team - TBD)
 - [ ] Monitor social media engagement metrics (Marketing Team - TBD)
+
+---
+
+### AI Usage Safeguard Implementation
+**Date:** 2025-10-09  
+**Description:** Implemented character limit safeguard for Ask AI feature to prevent excessive API token consumption from users selecting large amounts of text  
+**Rationale:** Teenagers and other users might accidentally or intentionally select all document text (potentially thousands of characters) before clicking "Ask AI", which would consume excessive API tokens and potentially exceed rate limits. A 500-character limit provides reasonable AI functionality while protecting against misuse  
+**Status:** Implemented  
+**Impact:** High - Prevents potential API cost overruns and ensures sustainable usage of AI features  
+**Stakeholders:** Development team, system administrators, budget management, end users  
+**Implementation:** Added text length validation in Editor component with visual feedback for users when selection exceeds limits  
+
+**Safeguard Features Implemented:**
+- **Character Limit:** Ask AI button hidden when text selection exceeds 500 characters
+- **Visual Warning:** Red warning message appears when selection is too long: "⚠️ Text too long (500 char limit)"
+- **User Education:** Clear tooltip explains character limit to help users understand restrictions
+- **Graceful Degradation:** Users can still select and work with long text, just can't use AI on it
+- **Immediate Feedback:** Real-time validation as users select text, no need to click to discover limit
+
+**Technical Implementation:**
+- **Selection Handler:** Modified handleTextSelection to check character count before showing Ask AI button
+- **State Management:** Added textTooLong state to track when to show warning message
+- **CSS Styling:** Created .text-too-long-warning class with red gradient matching Ask AI button style
+- **Theme Integration:** Added dark theme support for warning message with appropriate colors
+- **Event Handling:** Updated click-outside and escape key handlers to manage warning state
+
+**Usage Protection Benefits:**
+- **Cost Control:** Prevents accidental high-cost API calls from large text selections
+- **User Guidance:** Educates users about appropriate AI usage patterns
+- **System Stability:** Protects against rate limiting from oversized requests
+- **Professional Usage:** Encourages thoughtful, focused AI queries instead of "select all" approaches
+- **Scalability:** Enables sustainable AI feature usage as user base grows
+
+**User Experience Considerations:**
+- **Non-punitive:** Users aren't blocked from selecting long text, just from using AI on it
+- **Clear Feedback:** Visual warning explains why Ask AI isn't available
+- **Reasonable Limit:** 500 characters allows for substantial queries while preventing abuse
+- **Consistent Styling:** Warning message matches existing UI patterns and themes
+
+**Follow-up Actions:**
+- [x] Add character count validation to text selection handler (Dev Team - 2025-10-09)
+- [x] Create visual warning message component (Dev Team - 2025-10-09)
+- [x] Add CSS styling for warning message in both light and dark themes (Dev Team - 2025-10-09)
+- [x] Update state management to handle warning display (Dev Team - 2025-10-09)
+- [x] Test safeguard with various text selection lengths (Dev Team - 2025-10-09)
+- [x] Build and deploy updated client (Dev Team - 2025-10-09)
+- [x] Make character limit configurable via VITE_ASK_AI_MAX_CHARS environment variable (Dev Team - 2025-10-09)
+- [x] Update warning message to dynamically display configured limit (Dev Team - 2025-10-09)
+- [x] Add new environment variable to .env and .env.example files (Dev Team - 2025-10-09)
+- [ ] Monitor usage patterns to validate default limit is appropriate (Dev Team - Ongoing)
+- [ ] Consider adding character counter display for user awareness (Dev Team - TBD)
+- [ ] Add server-side validation as additional safeguard (Dev Team - TBD)
+- [ ] Implement usage analytics to track AI request patterns (Dev Team - TBD)
 
 ---
 

@@ -236,6 +236,14 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ Real-time updates: "waiting" → actual AI response
     - ✅ AI responses clearly formatted as `[AI Response: response text]`
     - ✅ Error handling with graceful fallback messages
+- 📖 **As an administrator**, I want usage protection to prevent excessive API token consumption
+  - **Acceptance Criteria:**
+    - ✅ Ask AI button hidden when selection exceeds configurable character limit
+    - ✅ Warning message displayed for selections over character limit
+    - ✅ Character limit configurable via VITE_ASK_AI_MAX_CHARS environment variable
+    - ✅ Clear user feedback about character limits to prevent confusion
+    - ✅ Dynamic warning message shows actual configured limit
+    - ✅ Safeguards against accidental "select all" + Ask AI scenarios
 - 📖 **As a user**, I want audio feedback while waiting for AI responses
   - **Acceptance Criteria:**
     - ✅ Timer audio (timer.mp3) plays in loop when "Ask AI" is clicked
@@ -368,7 +376,7 @@ The clients will have a common url, using a hack in the url, to allow them to es
 
 #### fallback to the use of webSockets
 
-If webRTC is fully blocked by a mobile network, allow a fallback to using a websocket server at socket.impressto.ca. The source code for the socket server will be part of this project.
+If webRTC is fully blocked by a mobile network, allow a fallback to using a websocket server. The source code for the socket server will be part of this project.
 
 - **Priority:** High
 - **Status:** ✅ Completed (WebSocket connection working, tested multi-user collaboration)
@@ -467,6 +475,7 @@ Component-based React frontend with Node.js WebSocket backend. The application u
 - **VITE_AUDIO_VOLUME** - AI timer audio volume (default: 0.8, range: 0.0-1.0)
 - **VITE_SOUND_EFFECTS** - Enable/disable user join/leave sounds (default: true)
 - **VITE_SOUND_EFFECTS_VOLUME** - User sound effects volume (default: 0.6, range: 0.0-1.0)
+- **VITE_ASK_AI_MAX_CHARS** - Maximum characters allowed for Ask AI feature (default: 500)
 
 #### Backend Environment Variables  
 - **COHERE_API_KEY** - Cohere AI API key for AI integration

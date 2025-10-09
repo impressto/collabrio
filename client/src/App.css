@@ -489,6 +489,25 @@ body > #root > .collabrio-app {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+/* Warning message for text too long for Ask AI */
+.collabrio-app .text-too-long-warning {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  border: none;
+  border-radius: 16px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  white-space: nowrap;
+  margin-left: 1rem;
+  height: fit-content;
+  animation: slideIn 0.3s ease;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -872,6 +891,11 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .ask-ai-btn:hover {
   background: linear-gradient(135deg, #434190 0%, #4c1d95 100%) !important;
   box-shadow: 0 6px 16px rgba(76, 81, 191, 0.5) !important;
+}
+
+.collabrio-app.dark-theme .text-too-long-warning {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%) !important;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.4) !important;
 }
 
 .collabrio-app.dark-theme .draft-indicator {

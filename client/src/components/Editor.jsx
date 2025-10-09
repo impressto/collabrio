@@ -24,6 +24,7 @@ function Editor({
   // Ask AI button state
   const [showAskAI, setShowAskAI] = useState(false)
   const [selectedText, setSelectedText] = useState('')
+  const [textTooLong, setTextTooLong] = useState(false)
   const [isWaitingForAI, setIsWaitingForAI] = useState(false)
   const [aiResponseCountAtStart, setAiResponseCountAtStart] = useState(null)
   
@@ -37,11 +38,22 @@ function Editor({
     const selection = textarea.value.substring(start, end)
     
     if (selection.length > 0) {
-      setSelectedText(selection)
-      setShowAskAI(true)
+      if (selection.length <= config.askAiMaxChars) {
+        // Selection is within limit - show Ask AI button
+        setSelectedText(selection)
+        setShowAskAI(true)
+        setTextTooLong(false)
+      } else {
+        // Selection is too long - show warning message instead
+        setSelectedText('')
+        setShowAskAI(false)
+        setTextTooLong(true)
+      }
     } else {
+      // No selection - hide everything
       setShowAskAI(false)
       setSelectedText('')
+      setTextTooLong(false)
     }
   }, [])
 
@@ -84,13 +96,14 @@ function Editor({
   useEffect(() => {
     const handleClickOutside = (e) => {
       // Don't hide if clicking on the Ask AI button itself
-      if (e.target.closest('.ask-ai-btn')) return
+      if (e.target.closest('.ask-ai-btn') || e.target.closest('.text-too-long-warning')) return
       
       // Hide the button if clicking outside textarea or if no text is selected
       const activeTextarea = window.document.activeElement
       if (!activeTextarea || !activeTextarea.classList.contains('collaborative-editor')) {
         setShowAskAI(false)
         setSelectedText('')
+        setTextTooLong(false)
       }
     }
 
@@ -98,10 +111,11 @@ function Editor({
       if (e.key === 'Escape') {
         setShowAskAI(false)
         setSelectedText('')
+        setTextTooLong(false)
       }
     }
 
-    if (showAskAI && typeof window !== 'undefined' && window.document) {
+    if ((showAskAI || textTooLong) && typeof window !== 'undefined' && window.document) {
       window.document.addEventListener('click', handleClickOutside)
       window.document.addEventListener('keydown', handleKeyDown)
     }
@@ -112,7 +126,7 @@ function Editor({
         window.document.removeEventListener('keydown', handleKeyDown)
       }
     }
-  }, [showAskAI])
+  }, [showAskAI, textTooLong])
 
   // Stop audio when a new AI response is added
   useEffect(() => {
@@ -188,7 +202,7 @@ function Editor({
           </button>
         </div>
         
-        {/* Ask AI Button - appears when text is selected */}
+        {/* Ask AI Button - appears when text is selected and under 500 characters */}
         {showAskAI && (
           <button 
             className="ask-ai-btn"
@@ -197,6 +211,16 @@ function Editor({
           >
             🤖 Ask AI
           </button>
+        )}
+        
+        {/* Warning message when selected text is too long */}
+        {textTooLong && (
+          <div 
+            className="text-too-long-warning"
+            title={`Please select ${config.askAiMaxChars} characters or less to use Ask AI`}
+          >
+            ⚠️ Text too long ({config.askAiMaxChars} char limit)
+          </div>
         )}
       </div>
 

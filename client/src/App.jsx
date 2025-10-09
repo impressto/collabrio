@@ -20,8 +20,7 @@ import {
   getStoredIdentity, 
   saveIdentity, 
   hasValidStoredIdentity,
-  generateDefaultUsername,
-  prepareIdentityForSession
+  generateFunnyUsername
 } from './utils/identityUtils'
 
 // Avatar options (same as in IdentityModal)
@@ -187,7 +186,7 @@ function App() {
         sessionId, 
         clientId: socket.id,
         userIdentity: {
-          username: identity?.username || generateDefaultUsername([]),
+          username: identity?.username || generateFunnyUsername(),
           avatar: identity?.avatar || AVATAR_OPTIONS[0]
         }
       })
@@ -529,6 +528,7 @@ function App() {
           sessionId={sessionId}
           leaveSession={leaveSession}
           onFileShare={handleFileShare}
+          isConnected={isConnected}
         />
 
         <Editor 

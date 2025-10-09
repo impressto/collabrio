@@ -248,6 +248,12 @@ body > #root > .collabrio-app {
   border-bottom: 1px solid #e9ecef;
 }
 
+.collabrio-app .connection-status-right {
+  margin-left: auto;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .collabrio-app .share-button, .copy-button {
   background: #007bff;
   color: white;
@@ -668,6 +674,10 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .toolbar {
   background: #2d3748 !important;
   border-bottom: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .connection-status-right {
+  color: #e0e0e0 !important;
 }
 
 .collabrio-app.dark-theme .collaborative-editor {

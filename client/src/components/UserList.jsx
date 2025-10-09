@@ -4,18 +4,13 @@ function UserList({ users, currentUserId, isConnected }) {
   if (!isConnected || users.length === 0) {
     return (
       <div className="user-list">
-        <span className="connection-status disconnected">
-          🔴 Disconnected
-        </span>
+        <span className="users-label">No collaborators</span>
       </div>
     )
   }
 
   return (
     <div className="user-list">
-      <span className="connection-status connected">
-        🟢 Connected
-      </span>
       <div className="users-container">
         <span className="users-label">Collaborators:</span>
         <div className="users-list">
@@ -33,7 +28,6 @@ function UserList({ users, currentUserId, isConnected }) {
             </div>
           ))}
         </div>
-        <span className="user-count">{users.length} user{users.length !== 1 ? 's' : ''}</span>
       </div>
     </div>
   )

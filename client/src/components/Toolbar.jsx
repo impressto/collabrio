@@ -6,7 +6,8 @@ function Toolbar({
   setDarkTheme, 
   sessionId, 
   leaveSession,
-  onFileShare
+  onFileShare,
+  isConnected
 }) {
   const handleFileShare = () => {
     const input = document.createElement('input');
@@ -50,6 +51,9 @@ function Toolbar({
         {darkTheme ? '☀️' : '🌙'}
       </button>
       <span id="session-id-display" className="session-id">Session: {sessionId}</span>
+      <span className="connection-status connection-status-right">
+        {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+      </span>
     </div>
   )
 }

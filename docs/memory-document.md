@@ -881,6 +881,16 @@
 
 ---
 
+### Environment Configuration Simplification
+**Date:** 2025-10-09  
+**Category:** Project Management  
+**Situation:** Project had both .env and .env.production files with overlapping and sometimes conflicting configurations, making it unclear which values were actually being used in builds  
+**Lesson:** Having multiple environment files can create confusion and maintenance overhead. A single .env file with production-ready defaults is often simpler and more reliable than complex environment-specific configurations  
+**Application:** Removed .env.production file and updated .env with production-appropriate values (debug=false, higher reconnection attempts). All environment-specific configuration now handled through single .env file with clear documentation  
+**Impact:** Medium - Simplifies deployment, reduces configuration confusion, and makes environment management more predictable  
+
+---
+
 *Add more lessons using the same format above*
 
 ## 👥 Onboarding Notes
@@ -1429,6 +1439,8 @@
 - [x] Make character limit configurable via VITE_ASK_AI_MAX_CHARS environment variable (Dev Team - 2025-10-09)
 - [x] Update warning message to dynamically display configured limit (Dev Team - 2025-10-09)
 - [x] Add new environment variable to .env and .env.example files (Dev Team - 2025-10-09)
+- [x] Remove unused .env.production file to simplify configuration (Dev Team - 2025-10-09)
+- [x] Update .env file with production-ready defaults (debug=false, reconnectionAttempts=10) (Dev Team - 2025-10-09)
 - [ ] Monitor usage patterns to validate default limit is appropriate (Dev Team - Ongoing)
 - [ ] Consider adding character counter display for user awareness (Dev Team - TBD)
 - [ ] Add server-side validation as additional safeguard (Dev Team - TBD)

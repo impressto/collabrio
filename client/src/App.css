@@ -255,7 +255,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .share-button, .copy-button {
-  background: #007bff;
+  background: #1fa397;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -266,11 +266,11 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .share-button:hover, .copy-button:hover {
-  background: #0056b3;
+  background: #198b7f;
 }
 
 .collabrio-app .leave-session-button {
-  background: #dc3545;
+  background: #911f1f;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -281,7 +281,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .leave-session-button:hover {
-  background: #c82333;
+  background: #7a1a1a;
 }
 
 .collabrio-app .session-input {
@@ -979,7 +979,7 @@ body > #root > .collabrio-app {
 
 /* File Sharing Styles */
 .collabrio-app .share-file-button {
-  background: #28a745;
+  background: #cd8832;
   color: white;
   border: none;
   padding: 0.6rem 1rem;
@@ -992,7 +992,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .share-file-button:hover {
-  background: #218838;
+  background: #b5762b;
   transform: translateY(-1px);
 }
 

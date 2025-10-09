@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { generateFunnyUsername } from '../utils/identityUtils'
 
-// Predefined avatar set with diverse emojis
+// Predefined avatar set with magical creatures and animals
 const AVATAR_OPTIONS = [
-  // Animals
-  '🐱', '🐶', '🐺', '🦊', '🐸', '🐢', '🦉', '🐧', '🐘', '🦁',
-  // Objects & Symbols
-  '⚡', '🌟', '🎯', '🎨', '🚀', '🎸', '⚽', '🎭', '🎲', '⭐',
-  // Nature
-  '🌺', '🌲', '🍄', '🌙', '☀️', '🌊', '🔥', '❄️', '🌈', '🍀'
+  '🧙‍♀️', '🧝‍♂️', '🧝‍♀️', '🧛‍♂️', '🧛‍♀️', '🧞‍♀️', '🧚‍♀️', '🦁',
+  '🐸', '🐵', '🦊', '🐻', '🐼', '🐷', '🐮', '🐧',
+  '🐦', '🐢', '🐍', '🦕', '🦖', '🐉', '🦞', '🦀',
+  '🐠', '🐟', '🐬', '🦭', '🐊', '🪱', '🦉', '🕷️',
+  '👾', '🤖', '👻', '💀', '🧌', '🧟‍♂️', '🦄', '🐔',
+  '🦇', '🦉'
 ]
+
+
+
+
 
 function IdentityModal({ 
   isVisible, 
@@ -139,7 +143,6 @@ function IdentityModal({
         <div className="identity-modal-content">
           {/* Username Input */}
           <div className="username-section">
-            <label htmlFor="username-input">Username</label>
             <input
               id="username-input"
               type="text"

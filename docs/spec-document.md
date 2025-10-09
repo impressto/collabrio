@@ -1,7 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*  
-*Last Updated: October 8, 2025 - Phase 2 Complete with UI/UX Enhancements*
+*Last Updated: October 8, 2025 - Phase 2 Complete + Session Persistence Fixes*
 
 ---
 
@@ -368,7 +368,30 @@ Component-based React frontend with Node.js WebSocket backend. The application u
 - **Document Persistence:** Server-side document storage with automatic cleanup
 - **Text Injection:** REST API and file-based system for external message injection
 - **Session Management:** In-memory session tracking with user count monitoring
+- **Activity Tracking:** Heartbeat mechanism and comprehensive user interaction monitoring to prevent premature session cleanup
+- **Connection Resilience:** Robust client presence detection with automatic cleanup of truly disconnected clients
 
+#### Session Persistence & Reliability
+
+**Challenge:** Early implementations experienced premature session cleanup where active collaborative sessions were being terminated after 30 seconds of perceived "inactivity," even when users were actively collaborating. This caused the text injection API to fail and sessions to be lost unexpectedly.
+
+**Root Cause:** The session cleanup system was only tracking activity on specific events (`join-session` and `presence`) but not on core collaboration activities like document editing. Additionally, conflicting cleanup mechanisms created race conditions.
+
+**Solution Implemented (October 2025):**
+1. **Comprehensive Activity Tracking:** All user interactions now update client activity timestamps:
+   - Document changes (primary collaboration activity)
+   - WebRTC signaling
+   - Client list requests
+   - Direct messages
+   - File sharing operations
+
+2. **Automatic Heartbeat System:** Each connected client maintains a 15-second heartbeat that automatically updates their activity status, ensuring connected clients are never considered "inactive" regardless of interaction frequency.
+
+3. **Cleanup Race Condition Fix:** Separated client cleanup logic from client list retrieval to prevent premature session removal during status updates.
+
+4. **Enhanced Disconnect Handling:** Proper cleanup of heartbeat intervals and immediate client removal when clients actually disconnect.
+
+**Result:** Sessions now persist reliably during active collaboration, text injection API works consistently after extended periods, and cleanup only occurs when clients genuinely disconnect.
 
 ### 💻 Technologies
 

@@ -1,7 +1,7 @@
 # Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 8, 2025 - Phase 2 UI/UX Enhancements Complete*  
+*Last Updated: October 8, 2025 - Phase 2 Complete + Critical Session Persistence Fixes*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
@@ -10,7 +10,7 @@
 **Description:** A WebRTC-based collaborative text editor with file sharing capabilities, featuring fallback to WebSocket for restricted networks  
 **Team:** [To be updated as team members are identified]  
 **Start Date:** October 4, 2025  
-**Current Phase:** Development - Phase 2 Complete with UI/UX Improvements, Ready for Phase 3 Advanced Features  
+**Current Phase:** Development - Phase 2 Complete + Production Reliability Fixes, Ready for Phase 3 Advanced Features  
 **Repository:** /home/impressto/work/impressto/homeserver/www/homelab/collabrio  
 **Live Demo:** Local development at http://localhost:5174 (Socket server: localhost:3000)  
 
@@ -1198,6 +1198,48 @@
 - [x] Verify file sharing reliability across different browsers (Dev Team - 2025-10-08)
 - [ ] Add connection health monitoring (Dev Team - TBD)
 - [ ] Implement automatic reconnection with session recovery (Dev Team - TBD)
+
+---
+
+### Socket Server Session Persistence Fix
+**Date:** 2025-10-08  
+**Description:** Resolved critical session timeout issue where active collaborative sessions were being prematurely cleaned up after 30 seconds, causing text injection API failures and unexpected session loss  
+**Rationale:** Users experienced frequent session disconnections during active collaboration, particularly when using the text injection API. Sessions would be marked as "inactive" and cleaned up even when users were actively editing documents, severely impacting the reliability of collaborative workflows  
+**Status:** Implemented and Tested  
+**Impact:** Critical - Ensures session reliability and API consistency for production use  
+**Stakeholders:** End users, API consumers, development team  
+**Implementation:** Comprehensive activity tracking system with heartbeat mechanism and improved cleanup logic to accurately distinguish between active and truly disconnected sessions  
+
+**Root Cause Analysis:**
+- **Limited Activity Tracking:** Server only tracked activity on `join-session` and `presence` events, missing core collaboration activities like document changes
+- **Cleanup Race Condition:** Two separate cleanup mechanisms (`getSessionClients()` and main cleanup interval) were conflicting and prematurely removing active clients
+- **Timing Edge Cases:** 30-second cleanup threshold was too aggressive for real-world usage patterns where users might pause briefly during collaboration
+
+**Technical Solution:**
+- **Comprehensive Activity Tracking:** Added activity timestamp updates for all user interactions:
+  - Document changes (primary collaboration activity)
+  - WebRTC signaling events
+  - Client list requests and presence announcements
+  - Direct messages and file sharing operations
+- **Automatic Heartbeat System:** Each connected client maintains a 15-second heartbeat that automatically updates activity status, ensuring connected clients are never considered "inactive"
+- **Cleanup Logic Separation:** Removed client cleanup from `getSessionClients()` function to eliminate race conditions between status updates and cleanup intervals
+- **Enhanced Connection Management:** Proper heartbeat interval cleanup on disconnect and leave-session events to prevent memory leaks
+
+**Results:**
+- **Session Persistence:** Sessions now remain active throughout collaboration sessions, regardless of typing frequency
+- **API Reliability:** Text injection API works consistently even after extended periods of collaboration
+- **Improved User Experience:** No more unexpected session terminations during active use
+- **Proper Resource Cleanup:** Genuine disconnections are still cleaned up appropriately after 30 seconds of true inactivity
+
+**Follow-up Actions:**
+- [x] Implement comprehensive activity tracking for all user interactions (Dev Team - 2025-10-08)
+- [x] Add automatic heartbeat mechanism with 15-second intervals (Dev Team - 2025-10-08)
+- [x] Fix cleanup race condition by separating client list and cleanup logic (Dev Team - 2025-10-08)
+- [x] Test session persistence with extended collaboration periods (Dev Team - 2025-10-08)
+- [x] Validate text injection API reliability after timeout fixes (Dev Team - 2025-10-08)
+- [x] Verify proper cleanup of heartbeat intervals on disconnect (Dev Team - 2025-10-08)
+- [ ] Monitor session cleanup logs in production to ensure no false positives (Dev Team - Ongoing)
+- [ ] Consider implementing configurable timeout thresholds for different deployment environments (Dev Team - TBD)
 
 ---
 

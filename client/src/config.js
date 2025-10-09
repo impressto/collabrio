@@ -11,6 +11,8 @@ export const config = {
   
   // Audio configuration
   audioVolume: parseFloat(import.meta.env.VITE_AUDIO_VOLUME) || 0.8,
+  soundEffectsEnabled: import.meta.env.VITE_SOUND_EFFECTS !== 'false',
+  soundEffectsVolume: parseFloat(import.meta.env.VITE_SOUND_EFFECTS_VOLUME) || 0.5,
   
   // Debug configuration
   debug: import.meta.env.VITE_DEBUG === 'true' || import.meta.env.DEV,

@@ -1,7 +1,7 @@
 # Collabrio - Memory Document
 
 *Living documentation of project decisions, lessons learned, and organizational knowledge*  
-*Last Updated: October 9, 2025 - Audio Feedback System Complete*  
+*Last Updated: October 9, 2025 - Audio System & Social Sharing Integration Complete*  
 *References: [spec-document.md](./spec-document.md)*
 
 ## 🏢 Project Information
@@ -775,6 +775,13 @@
 **Theme Toggle:** UI control for switching between light and dark visual themes  
 **Component Props:** Data passed between React components to enable communication and customization  
 **State Management:** React hooks and localStorage for maintaining application state across sessions  
+**AudioManager:** Centralized JavaScript class for managing all application audio needs including preloading, playback control, and error handling  
+**User Sound Effects:** Audio feedback system that plays chime.mp3 when users join sessions and leave.mp3 when users depart  
+**Open Graph Protocol:** Social media meta tag standard for controlling how links appear when shared on Facebook, Twitter, and other platforms  
+**Promise Management:** JavaScript technique for handling asynchronous audio operations to prevent AbortError and ensure reliable playback  
+**Real-time Server Events:** WebSocket events like 'user-joined' and 'user-left' that provide immediate notification of collaborative session changes  
+**Environment Configuration:** System of VITE_* variables for configuring audio volume, server URLs, and feature enable/disable settings  
+**Social Media Optimization:** Implementation of meta tags and image assets to improve link sharing appearance on social platforms
 
 *Add all important terms, acronyms, and concepts that team members should understand*
 
@@ -851,6 +858,26 @@
 **Lesson:** Documenting features thoroughly during implementation (not after) leads to better API design, clearer error handling, and easier testing. Writing examples and use cases forces you to think through edge cases and user experience  
 **Application:** Created complete README documentation with curl examples, error scenarios, and integration guides while implementing the features. This led to better parameter validation, clearer error messages, and more robust functionality  
 **Impact:** Medium - Improves code quality, reduces support burden, and accelerates adoption by making features self-documenting  
+
+---
+
+### Centralized Audio Architecture Benefits
+**Date:** 2025-10-09  
+**Category:** Technical Architecture  
+**Situation:** Original HTML5 audio implementation became complex with multiple audio elements, promise management issues, and debugging difficulties when adding user sound effects  
+**Lesson:** Centralized audio management through a dedicated utility class significantly improves reliability, debugging capabilities, and maintainability compared to scattered HTML5 audio elements throughout components  
+**Application:** Created AudioManager class that handles all audio preloading, playback, and error management in one place. Added comprehensive logging for troubleshooting and integrated with environment configuration system for user control  
+**Impact:** High - Eliminated audio-related bugs, improved user experience reliability, and provided foundation for future audio features like user join/leave sounds  
+
+---
+
+### React State vs Server Events for Real-time Features
+**Date:** 2025-10-09  
+**Category:** Technical Implementation  
+**Situation:** User join/leave sound effects were inconsistent because they relied on React state updates which are asynchronous, causing timing issues with real-time server events  
+**Lesson:** For real-time collaborative features, always use server event data directly rather than relying on client-side state updates, which may lag behind actual server state changes  
+**Application:** Changed user sound effects to trigger on server 'user-joined' and 'user-left' events using server-provided user data instead of waiting for React state to update. This provides immediate, accurate triggering of sound effects  
+**Impact:** High - Ensures real-time features work reliably and responsively, eliminating timing-related bugs in collaborative functionality  
 
 ---
 
@@ -1201,7 +1228,7 @@
 
 ---
 
-### AI Audio Feedback System Implementation
+### AI Audio Feedback System Implementation  
 **Date:** 2025-10-09  
 **Description:** Comprehensive audio feedback system for AI "Ask AI" feature using timer.mp3 audio file with configurable volume and intelligent response detection  
 **Rationale:** Users needed audible feedback when waiting for AI responses to know the system is processing their request, especially during longer response times from Cohere API  
@@ -1251,6 +1278,108 @@
 - [ ] Add user-configurable volume controls in UI (Dev Team - Phase 3)
 - [ ] Implement alternative audio files for different feedback types (Dev Team - Phase 3)
 - [ ] Add accessibility features for hearing-impaired users (Dev Team - Phase 3)
+
+---
+
+### AudioManager Refactoring and User Sound Effects Implementation
+**Date:** 2025-10-09  
+**Description:** Complete refactoring of audio system to use centralized AudioManager class and implementation of user join/leave sound effects with real-time server synchronization  
+**Rationale:** Original HTML5 audio approach was complex to manage and debug. Centralized AudioManager provides better reliability, easier debugging, and foundation for multiple sound effects. User join/leave sounds improve collaborative awareness  
+**Status:** Implemented  
+**Impact:** High - Significantly improves audio system reliability and adds valuable user experience enhancement for collaborative sessions  
+**Stakeholders:** End users, development team  
+**Implementation:** Created AudioManager utility class, integrated user join/leave sounds with server events, added comprehensive debugging and configuration options  
+
+**AudioManager System Features:**
+- **Centralized Management:** Single AudioManager class handles all application audio needs
+- **Preloading System:** Audio files preloaded on app initialization for instant playback
+- **Enhanced Debugging:** Comprehensive console logging for troubleshooting audio issues
+- **Configuration Integration:** Full integration with config.js for volume and enable/disable settings
+- **Error Handling:** Robust error handling with graceful fallbacks for audio loading failures
+- **Multiple Audio Support:** Simultaneous management of timer audio, chime sounds, and leave sounds
+
+**User Sound Effects Implementation:**
+- **Join Sounds:** chime.mp3 plays when users join existing collaborative sessions
+- **Leave Sounds:** leave.mp3 plays when users depart from sessions
+- **Real-time Synchronization:** Sound triggers based on actual server 'user-joined' and 'user-left' events
+- **Configuration:** VITE_SOUND_EFFECTS boolean and VITE_SOUND_EFFECTS_VOLUME for user control
+- **Smart Timing:** Sounds only play when other users join/leave, not for current user's own actions
+
+**Technical Architecture:**
+- **AudioManager Class:** Centralized class in utils/audioUtils.js with preloadSound(), play(), stop() methods
+- **Server Event Integration:** Socket event listeners for 'user-joined' and 'user-left' with proper state handling
+- **Environment Configuration:** VITE_SOUND_EFFECTS (default: true) and VITE_SOUND_EFFECTS_VOLUME (default: 0.6)
+- **State Management:** Fixed React state timing issues by using server event data instead of client state
+- **Asset Management:** Audio files placed in client/public/ directory for reliable loading
+
+**User Experience Improvements:**
+- **Collaborative Awareness:** Immediate audio feedback when team members join or leave sessions
+- **Professional Polish:** Subtle sound design enhances perception of real-time collaboration
+- **Configurable Experience:** Users can enable/disable sounds and adjust volume via environment settings
+- **Seamless Integration:** Sound effects work alongside existing AI timer audio without conflicts
+
+**Technical Challenges Solved:**
+- **React State Timing:** Fixed issues with asynchronous state updates by using server event data for real-time accuracy
+- **Audio Path Resolution:** Corrected audio file paths from baseUrl/timer.mp3 to baseUrl/client/public/timer.mp3 for proper loading
+- **Promise Management:** Centralized promise handling prevents audio interruption and AbortError issues
+- **Configuration Management:** Integrated audio settings with existing config system for consistent user control
+
+**Follow-up Actions:**
+- [x] Create AudioManager class in utils/audioUtils.js (Dev Team - 2025-10-09)
+- [x] Refactor Editor.jsx to use audioManager instead of direct audio refs (Dev Team - 2025-10-09)
+- [x] Add chime.mp3 and leave.mp3 audio files to client/public/ (Dev Team - 2025-10-09)
+- [x] Implement user join/leave sound effects in App.jsx (Dev Team - 2025-10-09)
+- [x] Add VITE_SOUND_EFFECTS and VITE_SOUND_EFFECTS_VOLUME configuration (Dev Team - 2025-10-09)
+- [x] Fix React state timing issues with server event synchronization (Dev Team - 2025-10-09)
+- [x] Add comprehensive debugging logging to AudioManager (Dev Team - 2025-10-09)
+- [x] Test audio system reliability across multiple users and sessions (Dev Team - 2025-10-09)
+- [ ] Add user preference UI for sound effect controls (Dev Team - Phase 3)
+- [ ] Implement additional sound effects for file sharing and other events (Dev Team - Phase 3)
+- [ ] Add audio visualization or feedback indicators (Dev Team - Phase 3)
+
+---
+
+### Open Graph Social Media Optimization
+**Date:** 2025-10-09  
+**Description:** Enhanced social media sharing experience by implementing comprehensive Open Graph meta tags for Facebook, Twitter, and other social platforms  
+**Rationale:** Users sharing Collabrio links on social media were not getting proper preview images or descriptions, reducing click-through rates and professional appearance. Facebook requires specific meta tags and image dimensions for optimal sharing previews  
+**Status:** Implemented  
+**Impact:** Medium - Improves marketing reach and professional appearance when sharing application links on social platforms  
+**Stakeholders:** End users, marketing team, development team  
+**Implementation:** Added comprehensive Open Graph meta tags with proper image URLs, dimensions, and social media platform-specific optimizations  
+
+**Open Graph Features Implemented:**
+- **Facebook Integration:** og:image, og:title, og:description, og:url for Facebook sharing previews
+- **Image Optimization:** og:image:width (1200), og:image:height (630), og:image:alt for proper image display
+- **Twitter Cards:** twitter:card, twitter:title, twitter:description, twitter:image for Twitter sharing
+- **HTTPS URLs:** Proper HTTPS URLs for reliable social media platform access
+- **Professional Descriptions:** Clear, engaging descriptions of Collabrio's collaborative features
+- **Proper Image Assets:** Uses collaborio.png logo with appropriate dimensions for social media
+
+**Technical Implementation:**
+- **Meta Tag Structure:** Complete set of og: and twitter: meta tags in index.php header
+- **Image Specifications:** 1200x630 pixel image dimensions meeting Facebook's recommended standards
+- **URL Consistency:** Full HTTPS URLs (https://impressto.ca/collabrio/) for reliable social platform access
+- **Content Optimization:** Professional descriptions highlighting real-time collaboration and key features
+- **Cross-platform Support:** Meta tags optimized for Facebook, Twitter, LinkedIn, and other major platforms
+
+**Social Media Benefits:**
+- **Enhanced Previews:** Collabrio links now display professional preview cards with logo and description
+- **Improved Click-through:** Better preview appearance increases likelihood of users clicking shared links
+- **Brand Recognition:** Consistent logo and branding across all social media shares
+- **Professional Appearance:** Elevates perceived quality and trustworthiness of the application
+- **Marketing Support:** Enables effective social media marketing and organic sharing
+
+**Follow-up Actions:**
+- [x] Add comprehensive Open Graph meta tags to index.php (Dev Team - 2025-10-09)
+- [x] Implement proper image dimensions and HTTPS URLs (Dev Team - 2025-10-09)
+- [x] Add Twitter Card support with appropriate meta tags (Dev Team - 2025-10-09)
+- [x] Test Facebook sharing with updated meta tags (Dev Team - 2025-10-09)
+- [x] Verify image display and description accuracy (Dev Team - 2025-10-09)
+- [ ] Test sharing across multiple social media platforms (Dev Team - TBD)
+- [ ] Use Facebook Debugger tool to refresh cached metadata (Dev Team - TBD)
+- [ ] Consider adding social media sharing buttons within application (Dev Team - TBD)
+- [ ] Monitor social media engagement metrics (Marketing Team - TBD)
 
 ---
 

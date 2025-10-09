@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import config from '../config.js'
+import { audioManager } from '../utils/audioUtils.js'
 
 function Editor({ 
   textareaRef,
@@ -26,9 +27,7 @@ function Editor({
   const [isWaitingForAI, setIsWaitingForAI] = useState(false)
   const [aiResponseCountAtStart, setAiResponseCountAtStart] = useState(null)
   
-  // Audio ref for AI waiting sound
-  const audioRef = useRef(null)
-  const playPromiseRef = useRef(null)
+  // No need for audio refs when using audioManager
 
   // Handle text selection for Ask AI button
   const handleTextSelection = useCallback((e) => {
@@ -56,40 +55,12 @@ function Editor({
       setIsWaitingForAI(true)
       setAiResponseCountAtStart(currentResponseCount)
       
-      // Start playing the timer audio in loop
-      if (audioRef.current) {
-        // Stop any existing play promise first
-        if (playPromiseRef.current) {
-          playPromiseRef.current.then(() => {
-            if (audioRef.current) {
-              audioRef.current.pause()
-            }
-          }).catch(() => {
-            // Ignore errors from interrupting previous play
-          })
-        }
-        
-        // Reset audio to beginning and ensure it's ready to play
-        audioRef.current.currentTime = 0
-        audioRef.current.loop = true
-        audioRef.current.volume = config.audioVolume || 0.3 // Set volume (0.0 to 1.0)
-        
-        // Load and play the audio, storing the promise
-        console.log('Loading audio and attempting to play...')
-        audioRef.current.load() // Reload the audio source
-        playPromiseRef.current = audioRef.current.play()
-        
-        if (playPromiseRef.current) {
-          playPromiseRef.current.then(() => {
-            console.log('Audio started playing successfully')
-          }).catch((error) => {
-            console.log('Audio play error:', error.name, error.message)
-            if (error.name !== 'AbortError') {
-              console.error('Audio play error:', error)
-            }
-          })
-        }
-      }
+      // Start playing the timer audio in loop using audioManager
+      console.log('Starting timer audio...')
+      audioManager.play('timer', {
+        loop: true,
+        volume: config.audioVolume || 0.8
+      })
       
       // Send the selected text to the socket server for AI processing
       socket.emit('ask-ai', {
@@ -155,33 +126,8 @@ function Editor({
       if (hasNewResponse) {
         console.log('Stopping audio - new AI response detected')
         
-        // Stop the audio and reset waiting state
-        if (audioRef.current) {
-          // Handle the play promise properly before pausing
-          if (playPromiseRef.current) {
-            playPromiseRef.current.then(() => {
-              if (audioRef.current) {
-                audioRef.current.pause()
-                audioRef.current.currentTime = 0
-                audioRef.current.loop = false // Reset loop property
-              }
-            }).catch(() => {
-              // If play was interrupted, still try to pause
-              if (audioRef.current) {
-                audioRef.current.pause()
-                audioRef.current.currentTime = 0
-                audioRef.current.loop = false
-              }
-            }).finally(() => {
-              playPromiseRef.current = null
-            })
-          } else {
-            // No play promise, safe to pause immediately
-            audioRef.current.pause()
-            audioRef.current.currentTime = 0
-            audioRef.current.loop = false
-          }
-        }
+        // Stop the timer audio using audioManager
+        audioManager.stop('timer')
         
         setIsWaitingForAI(false)
         setAiResponseCountAtStart(null)
@@ -302,7 +248,7 @@ function Editor({
             onKeyDown={handleKeyDown}
             onMouseUp={handleTextSelection}
             onKeyUp={handleTextSelection}
-            placeholder="Start typing your collaborative document here..."
+            placeholder="Start typing your doc here. Highlight something to toss it into the AI blender..."
             className="collaborative-editor"
           />
         )}
@@ -322,17 +268,6 @@ function Editor({
           />
         )}
       </div>
-      
-      {/* Audio element for AI waiting sound */}
-      <audio 
-        ref={audioRef}
-        preload="auto"
-        volume={config.audioVolume || 0.8}
-        style={{ display: 'none' }}
-      >
-        <source src={`${config.baseUrl}/client/public/timer.mp3`} type="audio/mpeg" />
-        Your browser does not support the audio element.
-      </audio>
     </main>
   )
 }

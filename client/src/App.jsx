@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 import config from './config.js'
+import { audioManager } from './utils/audioUtils.js'
 import './App.css'
 
 // Components
@@ -206,11 +207,24 @@ function App() {
 
     socket.on('user-joined', (data) => {
       console.log('User joined:', data)
+      
+      // Play chime sound if there are already other users in the session
+      // (don't play on initial connection when joining alone)
+      if (data.users && data.users.length > 1) {
+        console.log('Playing chime sound for user join')
+        audioManager.play('userJoin')
+      }
+      
       setConnectedUsers(data.users)
     })
 
     socket.on('user-left', (data) => {
       console.log('User left:', data)
+      console.log('Playing leave sound for user departure')
+      
+      // Play leave sound when someone leaves
+      audioManager.play('userLeave')
+      
       setConnectedUsers(data.users)
     })
 
@@ -293,7 +307,6 @@ function App() {
     setDocument(newDocument)
     
     if (socketRef.current && isConnected) {
-      console.log('Sending document-change:', { sessionId, document: newDocument })
       socketRef.current.emit('document-change', {
         sessionId,
         document: newDocument

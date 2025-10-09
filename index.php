@@ -3,16 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collabrio - Real-time Collaborative Text Editor</title>
+    <title>Collabrio - Real-time Collaborative Clipboard</title>
     
     <!-- Meta tags -->
+    <meta name="description" content="Anonymous real-time collaborative text editing with WebRTC and file sharing capabilities">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://impressto.ca/collabrio/">
     <meta property="og:title" content="Collabrio - Real-time Collaborative Text Editor">
     <meta property="og:description" content="Anonymous real-time collaborative text editing with WebRTC and file sharing capabilities">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Collabrio - Real-time Collaborative Text Editor">
-    <meta name="twitter:description" content="Anonymous collaborative editing sessions with instant synchronization">
+    <meta property="og:image" content="https://impressto.ca/collabrio/client/public/collabrio-full.jpg">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="1080">
+    <meta property="og:image:alt" content="Collabrio - Real-time Collaborative Text Editor">
+    <meta property="og:site_name" content="Collabrio">
     
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://impressto.ca/collabrio/">
+    <meta property="twitter:title" content="Collabrio - Real-time Collaborative Text Editor">
+    <meta property="twitter:description" content="Anonymous real-time collaborative text editing with WebRTC and file sharing capabilities">
+    <meta property="twitter:image" content="https://impressto.ca/collabrio/client/public/collabrio-full.jpg">
+
+
+
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="./client/public/collaborio.png">
     <link rel="apple-touch-icon" href="./client/public/collaborio.png">

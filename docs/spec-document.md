@@ -1,7 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*  
-*Last Updated: October 9, 2025 - AI Integration Complete (Cohere API)*
+*Last Updated: October 9, 2025 - Audio System & Social Sharing Complete*
 
 ---
 
@@ -74,6 +74,16 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ Consistent styling and layout patterns
     - ✅ Responsive design for mobile and desktop
     - ✅ Professional logo and branding integration
+
+#### Social Media Integration
+- 📖 **As a user**, I want proper previews when sharing Collabrio links on social media
+  - **Acceptance Criteria:**
+    - ✅ Open Graph meta tags for Facebook sharing
+    - ✅ og:image displays Collabrio logo in social previews
+    - ✅ og:title and og:description provide clear app description
+    - ✅ Twitter Card support for enhanced Twitter sharing
+    - ✅ Proper image dimensions and HTTPS URLs for reliable preview display
+    - ✅ Comprehensive meta tags including og:image:width, og:image:height, og:image:alt
 
 #### File Sharing (Ephemeral)
 - 📖 **As a user**, I want to drag and drop a single file to share it with other session participants
@@ -234,15 +244,25 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ Audio works consistently on repeated AI requests
     - ✅ Proper promise handling prevents audio interruption errors
     - ✅ Audio detection based on `[AI Response:` occurrence count
+    - ✅ AudioManager class for centralized audio management
+- 📖 **As a user**, I want audio feedback when users join or leave collaborative sessions
+  - **Acceptance Criteria:**
+    - ✅ Chime sound (chime.mp3) plays when users join existing sessions
+    - ✅ Leave sound (leave.mp3) plays when users depart from sessions  
+    - ✅ Sound effects configurable via VITE_SOUND_EFFECTS environment variable
+    - ✅ Volume configurable via VITE_SOUND_EFFECTS_VOLUME environment variable
+    - ✅ Real-time server event handling for accurate user join/leave detection
+    - ✅ Enhanced debugging with comprehensive audio logging system
 - 📖 **Technical Implementation**
   - **Socket Event:** `ask-ai` with payload `{sessionId, selectedText}`
   - **AI Provider:** Cohere API (cohere-ai npm package v7.19.0)
   - **Model:** command-a-03-2025 with temperature 0.3 (configurable via COHERE_MODEL env var)
   - **Security:** API key stored in environment variables
   - **Error Handling:** Network failures show user-friendly error messages
-  - **Audio System:** HTML5 audio element with JavaScript promise management
-  - **Audio Configuration:** Volume and URL configurable via environment variables
+  - **Audio System:** AudioManager class with centralized audio management and preloading
+  - **Audio Configuration:** Volume, enable/disable, and URL configurable via environment variables
   - **Logging:** Enhanced server logging shows API metadata without exposing user content
+  - **Sound Effects:** User join/leave audio events with real-time server synchronization
 
 #### File Sharing
 - 📖 **As a user**, I want to drag and drop files to share them with other session participants
@@ -436,6 +456,23 @@ Component-based React frontend with Node.js WebSocket backend. The application u
 - Socket.IO (WebSocket communication)
 - Express (web server)
 
+### ⚙️ Environment Configuration
+
+#### Frontend Environment Variables
+- **VITE_SOCKET_SERVER_URL** - WebSocket server URL (default: http://localhost:3000)
+- **VITE_DEBUG** - Debug logging control (default: false)
+- **VITE_RECONNECTION_ATTEMPTS** - Socket reconnection settings (default: 5)
+- **VITE_SESSION_KEEPALIVE_INTERVAL** - Session maintenance interval (default: 30000ms)
+- **VITE_BASE_URL** - Base URL for asset loading (default: http://localhost:5174)
+- **VITE_AUDIO_VOLUME** - AI timer audio volume (default: 0.8, range: 0.0-1.0)
+- **VITE_SOUND_EFFECTS** - Enable/disable user join/leave sounds (default: true)
+- **VITE_SOUND_EFFECTS_VOLUME** - User sound effects volume (default: 0.6, range: 0.0-1.0)
+
+#### Backend Environment Variables  
+- **COHERE_API_KEY** - Cohere AI API key for AI integration
+- **COHERE_MODEL** - AI model selection (default: command-a-03-2025)
+- **PORT** - Server port (default: 3000)
+
 ### 🏗️ Infrastructure
 
 For now we will be deploying manually
@@ -486,6 +523,12 @@ For now we will be deploying manually
   - ✅ **PASSED** - Text appears in all clients' documents
   - ✅ **PASSED** - Different message types (system, bot, admin)
   - ✅ **PASSED** - Proper formatting with [TYPE] labels
+- [ ] **Test Case 8:** Audio feedback system
+  - ✅ **PASSED** - AI timer audio plays during processing
+  - ✅ **PASSED** - Audio stops when response received
+  - ✅ **PASSED** - User join/leave sound effects working
+  - ✅ **PASSED** - Volume controls via environment variables
+  - ✅ **PASSED** - AudioManager system reliability
 
 ## 🚀 File Sharing Implementation Plan (Ephemeral)
 

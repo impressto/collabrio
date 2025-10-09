@@ -13,7 +13,7 @@ const { CohereClientV2 } = require('cohere-ai');
 
 // Initialize Cohere AI client
 const cohere = new CohereClientV2({ 
-  token: process.env.COHERE_API_KEY || 'qHlDLO9f026jFAcUe6uly546HH4ojVTBu9QPjPDC'
+  token: process.env.COHERE_API_KEY || null
 });
 
 // Create Express app

@@ -24,9 +24,11 @@ function Editor({
   const [showAskAI, setShowAskAI] = useState(false)
   const [selectedText, setSelectedText] = useState('')
   const [isWaitingForAI, setIsWaitingForAI] = useState(false)
+  const [aiResponseCountAtStart, setAiResponseCountAtStart] = useState(null)
   
   // Audio ref for AI waiting sound
   const audioRef = useRef(null)
+  const playPromiseRef = useRef(null)
 
   // Handle text selection for Ask AI button
   const handleTextSelection = useCallback((e) => {
@@ -47,13 +49,46 @@ function Editor({
   // Handle Ask AI button click
   const handleAskAI = useCallback(() => {
     if (selectedText && socket && sessionId) {
+      // Count current number of AI responses in the document
+      const currentResponseCount = (document.match(/\[AI Response:/g) || []).length
+      
       // Start waiting state and audio
       setIsWaitingForAI(true)
+      setAiResponseCountAtStart(currentResponseCount)
       
       // Start playing the timer audio in loop
       if (audioRef.current) {
+        // Stop any existing play promise first
+        if (playPromiseRef.current) {
+          playPromiseRef.current.then(() => {
+            if (audioRef.current) {
+              audioRef.current.pause()
+            }
+          }).catch(() => {
+            // Ignore errors from interrupting previous play
+          })
+        }
+        
+        // Reset audio to beginning and ensure it's ready to play
+        audioRef.current.currentTime = 0
         audioRef.current.loop = true
-        audioRef.current.play().catch(console.error)
+        audioRef.current.volume = config.audioVolume || 0.3 // Set volume (0.0 to 1.0)
+        
+        // Load and play the audio, storing the promise
+        console.log('Loading audio and attempting to play...')
+        audioRef.current.load() // Reload the audio source
+        playPromiseRef.current = audioRef.current.play()
+        
+        if (playPromiseRef.current) {
+          playPromiseRef.current.then(() => {
+            console.log('Audio started playing successfully')
+          }).catch((error) => {
+            console.log('Audio play error:', error.name, error.message)
+            if (error.name !== 'AbortError') {
+              console.error('Audio play error:', error)
+            }
+          })
+        }
       }
       
       // Send the selected text to the socket server for AI processing
@@ -108,22 +143,51 @@ function Editor({
     }
   }, [showAskAI])
 
-  // Stop audio when AI response is received
+  // Stop audio when a new AI response is added
   useEffect(() => {
-    if (isWaitingForAI && document) {
-      // Check if document contains an AI response (not just "waiting for response")
-      const hasAIResponse = document.includes('[AI Response:') || document.includes('[AI Error:')
+    if (isWaitingForAI && document && aiResponseCountAtStart !== null) {
+      // Count current number of AI responses in the document
+      const currentResponseCount = (document.match(/\[AI Response:/g) || []).length
+      const hasNewResponse = currentResponseCount > aiResponseCountAtStart
       
-      if (hasAIResponse) {
+      console.log('Checking AI response count. Starting count:', aiResponseCountAtStart, 'Current count:', currentResponseCount, 'Has new response:', hasNewResponse)
+      
+      if (hasNewResponse) {
+        console.log('Stopping audio - new AI response detected')
+        
         // Stop the audio and reset waiting state
         if (audioRef.current) {
-          audioRef.current.pause()
-          audioRef.current.currentTime = 0
+          // Handle the play promise properly before pausing
+          if (playPromiseRef.current) {
+            playPromiseRef.current.then(() => {
+              if (audioRef.current) {
+                audioRef.current.pause()
+                audioRef.current.currentTime = 0
+                audioRef.current.loop = false // Reset loop property
+              }
+            }).catch(() => {
+              // If play was interrupted, still try to pause
+              if (audioRef.current) {
+                audioRef.current.pause()
+                audioRef.current.currentTime = 0
+                audioRef.current.loop = false
+              }
+            }).finally(() => {
+              playPromiseRef.current = null
+            })
+          } else {
+            // No play promise, safe to pause immediately
+            audioRef.current.pause()
+            audioRef.current.currentTime = 0
+            audioRef.current.loop = false
+          }
         }
+        
         setIsWaitingForAI(false)
+        setAiResponseCountAtStart(null)
       }
     }
-  }, [document, isWaitingForAI])
+  }, [document, isWaitingForAI, aiResponseCountAtStart])
 
   // Handle tab key in textareas
   const handleKeyDown = (e) => {
@@ -263,6 +327,7 @@ function Editor({
       <audio 
         ref={audioRef}
         preload="auto"
+        volume={config.audioVolume || 0.8}
         style={{ display: 'none' }}
       >
         <source src={`${config.baseUrl}/client/public/timer.mp3`} type="audio/mpeg" />

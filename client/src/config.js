@@ -9,6 +9,9 @@ export const config = {
   baseUrl: import.meta.env.VITE_BASE_URL || 'https://impressto.ca/collabrio',
   logoUrl: import.meta.env.VITE_LOGO_URL || 'https://impressto.ca/collabrio/client/public/collaborio.png',
   
+  // Audio configuration
+  audioVolume: parseFloat(import.meta.env.VITE_AUDIO_VOLUME) || 0.8,
+  
   // Debug configuration
   debug: import.meta.env.VITE_DEBUG === 'true' || import.meta.env.DEV,
   

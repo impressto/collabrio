@@ -226,12 +226,23 @@ Additionally, a permanent storage option will allow clients to save their shared
     - ✅ Real-time updates: "waiting" → actual AI response
     - ✅ AI responses clearly formatted as `[AI Response: response text]`
     - ✅ Error handling with graceful fallback messages
+- 📖 **As a user**, I want audio feedback while waiting for AI responses
+  - **Acceptance Criteria:**
+    - ✅ Timer audio (timer.mp3) plays in loop when "Ask AI" is clicked
+    - ✅ Audio automatically stops when AI response is received
+    - ✅ Volume configurable via VITE_AUDIO_VOLUME environment variable
+    - ✅ Audio works consistently on repeated AI requests
+    - ✅ Proper promise handling prevents audio interruption errors
+    - ✅ Audio detection based on `[AI Response:` occurrence count
 - 📖 **Technical Implementation**
   - **Socket Event:** `ask-ai` with payload `{sessionId, selectedText}`
   - **AI Provider:** Cohere API (cohere-ai npm package v7.19.0)
-  - **Model:** command-r-03-2024 with temperature 0.3
+  - **Model:** command-a-03-2025 with temperature 0.3 (configurable via COHERE_MODEL env var)
   - **Security:** API key stored in environment variables
   - **Error Handling:** Network failures show user-friendly error messages
+  - **Audio System:** HTML5 audio element with JavaScript promise management
+  - **Audio Configuration:** Volume and URL configurable via environment variables
+  - **Logging:** Enhanced server logging shows API metadata without exposing user content
 
 #### File Sharing
 - 📖 **As a user**, I want to drag and drop files to share them with other session participants

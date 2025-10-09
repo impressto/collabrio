@@ -195,6 +195,7 @@ function App() {
     socket.on('disconnect', () => {
       console.log('Disconnected from socket server')
       setIsConnected(false)
+      setConnectedUsers([]) // Clear user list on disconnect
     })
 
     socket.on('document-update', (data) => {
@@ -314,11 +315,17 @@ function App() {
   }
 
   const leaveSession = () => {
+    // Emit leave-session event before disconnecting for cleaner handling
+    if (socketRef.current && isConnected) {
+      socketRef.current.emit('leave-session')
+    }
+    
     setDocument('') // Clear document when leaving session
     // Note: Keep draft content in localStorage so user can continue later
     setEditorMode('live') // Reset to live mode
     setIsInSession(false)
     setSessionId('')
+    setConnectedUsers([]) // Clear user list when leaving
     window.location.hash = ''
     if (socketRef.current) {
       socketRef.current.disconnect()

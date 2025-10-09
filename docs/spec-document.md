@@ -1,7 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
 *Technical Specification Document*  
-*Last Updated: October 8, 2025 - Phase 2 User Identification Complete*
+*Last Updated: October 8, 2025 - Phase 2 Complete with UI/UX Enhancements*
 
 ---
 
@@ -472,7 +472,8 @@ Add user identity features to improve collaborative experience by allowing users
     - ✅ Username prompt appears when creating new session (before session creation)
     - ✅ Username prompt appears when joining existing session (before joining)
     - ✅ Username prompt appears when accessing session via URL hash
-    - ✅ Username is optional with sensible default behavior (skip option available)
+    - ✅ Funny random username generation using modern slang combinations (e.g., "Rizz Goblin", "Yeet Snacc")
+    - ✅ Smart validation that doesn't penalize auto-generated names
     - ✅ Username length limits and format validation implemented
     - ✅ Username uniqueness within session (conflict detection and prevention)
     - ✅ Username persists in localStorage for future sessions as starting point
@@ -494,8 +495,10 @@ Add user identity features to improve collaborative experience by allowing users
     - ✅ User list shows avatar and username for each connected user
     - ✅ File sharing notifications include uploader's identity (avatar + username)
     - ✅ User counter replaced with identity-aware user list display
+    - ✅ Redundant user count removed (individual users clearly visible)
     - ✅ Visual distinction for current user vs others (highlighting)
     - ✅ Responsive design for mobile and desktop viewing
+    - ✅ Connection status moved to toolbar for better space utilization
     - 🔄 Hover tooltips show full username for truncated names
     - 🔄 Cursor indicators with username labels (future enhancement)
 

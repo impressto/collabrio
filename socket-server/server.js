@@ -408,6 +408,16 @@ io.on('connection', (socket) => {
   let sessionId = null;
   let clientId = null;
 
+  // Helper function to update client activity timestamp
+  const updateClientActivity = (targetSessionId = null, targetClientId = null) => {
+    const activeSessionId = targetSessionId || sessionId;
+    const activeClientId = targetClientId || clientId;
+    
+    if (activeSessionId && activeClientId && activeSessions.has(activeSessionId) && activeSessions.get(activeSessionId).has(activeClientId)) {
+      activeSessions.get(activeSessionId).get(activeClientId).lastSeen = Date.now();
+    }
+  };
+
   // Handle client joining a session
   socket.on('join-session', ({ sessionId: sid, clientId: cid, userIdentity }) => {
     sessionId = sid;
@@ -458,6 +468,14 @@ io.on('connection', (socket) => {
     // Join room for this session
     socket.join(sessionId);
     
+    // Set up regular heartbeat for this client to ensure activity tracking
+    const heartbeatInterval = setInterval(() => {
+      updateClientActivity();
+    }, 15000); // Update every 15 seconds
+    
+    // Store the interval so we can clear it on disconnect
+    socket.heartbeatInterval = heartbeatInterval;
+    
     // Notify everyone in the session about active users
     updateSessionStatus(sessionId);
     
@@ -498,6 +516,7 @@ io.on('connection', (socket) => {
       return;
     }
 
+    updateClientActivity();
     console.log(`Signal from ${clientId} to ${target}`);
 
     if (target === 'all') {
@@ -528,9 +547,7 @@ io.on('connection', (socket) => {
     console.log(`Presence announcement from ${clientId}`);
     
     // Update client's last seen timestamp
-    if (activeSessions.has(sessionId) && activeSessions.get(sessionId).has(clientId)) {
-      activeSessions.get(sessionId).get(clientId).lastSeen = Date.now();
-    }
+    updateClientActivity();
     
     // Respond with client list for this session
     socket.emit('client-list', getSessionClients(sessionId));
@@ -543,6 +560,7 @@ io.on('connection', (socket) => {
       return;
     }
     
+    updateClientActivity();
     console.log(`Client list requested by ${clientId}`);
     
     // Respond with client list for this session
@@ -556,6 +574,7 @@ io.on('connection', (socket) => {
       return;
     }
     
+    updateClientActivity();
     console.log(`Direct message from ${clientId} to ${target}`);
     
     if (target === 'all') {
@@ -579,6 +598,11 @@ io.on('connection', (socket) => {
   // Handle client disconnect
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`);
+    
+    // Clear heartbeat interval
+    if (socket.heartbeatInterval) {
+      clearInterval(socket.heartbeatInterval);
+    }
     
     if (sessionId && clientId) {
       if (activeSessions.has(sessionId)) {
@@ -619,6 +643,10 @@ io.on('connection', (socket) => {
     
     console.log(`Document updated in session ${docSessionId}`);
     
+    // Update client's last seen timestamp for activity tracking
+    // Use the docSessionId from the event and the current socket's clientId
+    updateClientActivity(docSessionId, clientId || socket.id);
+    
     // Store the updated document content for this session
     sessionDocuments.set(docSessionId, document);
     
@@ -640,6 +668,8 @@ io.on('connection', (socket) => {
       socket.emit('file-share-error', { message: 'Must be in a session to share files' });
       return;
     }
+    
+    updateClientActivity();
     
     // Validate that the session actually exists and is active
     if (!activeSessions.has(activeSessionId)) {
@@ -809,6 +839,11 @@ io.on('connection', (socket) => {
 
   // Handle explicit leave session
   socket.on('leave-session', () => {
+    // Clear heartbeat interval
+    if (socket.heartbeatInterval) {
+      clearInterval(socket.heartbeatInterval);
+    }
+    
     if (sessionId && clientId && activeSessions.has(sessionId)) {
       // Remove client from session
       activeSessions.get(sessionId).delete(clientId);
@@ -830,7 +865,18 @@ io.on('connection', (socket) => {
           console.log(`Cleaned up ${fileIds.size} files for empty session ${sessionId}`);
         }
       } else {
-        // Otherwise update session status
+        // Get current user list with identities
+        const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
+          id: user.id,
+          username: user.username,
+          avatar: user.avatar
+        }));
+        
+        // Notify remaining clients about user leaving
+        io.to(sessionId).emit('user-left', {
+          users: currentUsers
+        });
+        // Update session status for remaining clients
         updateSessionStatus(sessionId);
       }
     }
@@ -854,23 +900,13 @@ function updateSessionStatus(sessionId) {
   });
 }
 
-// Function to get client list for a session
+// Function to get client list for a session (without cleanup)
 function getSessionClients(sessionId) {
   if (!activeSessions.has(sessionId)) return [];
   
-  // Clean up stale clients (inactive for more than 30 seconds)
-  const now = Date.now();
-  const sessionClients = activeSessions.get(sessionId);
-  
-  // Filter out stale clients
-  for (const [clientId, data] of sessionClients.entries()) {
-    if (now - data.lastSeen > 30000) {
-      sessionClients.delete(clientId);
-    }
-  }
-  
-  // Return list of client IDs
-  return Array.from(sessionClients.keys());
+  // Simply return list of current client IDs without modifying the session
+  // Cleanup is handled separately by the main cleanup interval
+  return Array.from(activeSessions.get(sessionId).keys());
 }
 
 // Periodically clean up inactive sessions and clients
@@ -880,13 +916,16 @@ setInterval(() => {
   // Check each session
   for (const [sessionId, clients] of activeSessions.entries()) {
     let hasActiveClients = false;
+    let removedClients = 0;
     
     // Check each client in this session
     for (const [clientId, data] of clients.entries()) {
-      if (now - data.lastSeen < 30000) {
+      const timeSinceLastSeen = now - data.lastSeen;
+      if (timeSinceLastSeen < 30000) {
         hasActiveClients = true;
       } else {
         clients.delete(clientId);
+        removedClients++;
       }
     }
     

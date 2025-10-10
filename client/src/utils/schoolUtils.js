@@ -2,18 +2,17 @@
 
 // Get school mappings from environment variables
 const getSchoolMappings = () => {
-  // Get valid school numbers
-  const envNumbers = import.meta.env.VITE_VALID_SCHOOL_NUMBERS || '906484,894362'
-  const numbers = envNumbers.split(',').map(num => num.trim())
-  
-  // Get school names (if provided)
-  const envNames = import.meta.env.VITE_SCHOOL_NAMES || 'Earl of March,Bell High School'
-  const names = envNames.split(',').map(name => name.trim())
+  // Get school names mapping (format: number1:Name 1,number2:Name 2)
+  const envNames = import.meta.env.VITE_SCHOOL_NAMES || '906484:Earl of March Secondary School,894362:Bell High School'
   
   // Create mapping object
   const mappings = {}
-  numbers.forEach((number, index) => {
-    mappings[number] = names[index] || `School ${number}`
+  
+  envNames.split(',').forEach(pair => {
+    const [number, name] = pair.split(':').map(s => s.trim())
+    if (number && name) {
+      mappings[number] = name
+    }
   })
   
   return mappings

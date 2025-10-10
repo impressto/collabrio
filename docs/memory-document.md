@@ -2,7 +2,7 @@
 ## Decision Log & Lessons Learned
 
 **Project Name:** Collabrio - Real-time Collaborative Text Editor  
-**Last Updated:** October 9, 2025  
+**Last Updated:** October 10, 2025  
 **Document Purpose:** Track decisions, lessons learned, and organizational knowledge  
 **Related Documents:** [spec-document-clean.md](./spec-document-clean.md)
 
@@ -12,7 +12,7 @@
 
 **Repository:** `/home/impressto/work/impressto/homeserver/www/homelab/collabrio`  
 **Start Date:** October 4, 2025  
-**Current Phase:** Production Ready (Phase 2 Complete)  
+**Current Phase:** Production Ready (Phase 3 Complete - School Authentication)  
 **Team:** Solo Development Project  
 **Demo URL:** `http://localhost:5174` (Development)
 
@@ -663,5 +663,207 @@ auth-error event - Disconnects unauthorized users
 - [ ] Monitor authentication logs for unauthorized access attempts (Admin Team - TBD)
 - [ ] Train teachers on helping students with authentication issues (School Admin - TBD)
 - [ ] Consider adding rate limiting for failed authentication attempts (Dev Team - TBD)
+
+### DEC-011: URL Hash Authentication Security Enhancement
+**Date:** January 3, 2025  
+**Context:** Users could bypass school authentication by directly accessing existing session URLs (e.g., #sessionid) which would show avatar selection before school validation
+
+**Problem Identified:**
+- URL hash navigation bypassed initial school authentication flow
+- Users could skip school validation by accessing shared session links
+- Authentication state not properly checked on URL hash-based session entry
+
+**Options Considered:**
+1. **Disable URL Hash Navigation** 
+   - Pros: Simple fix, prevents bypass completely
+   - Cons: Breaks session sharing functionality, degrades user experience
+2. **Enhanced URL Hash Authentication Check** (Selected)
+   - Pros: Maintains session sharing while ensuring security
+   - Cons: Requires careful authentication state management
+3. **Server-side Session Authentication**
+   - Pros: Bulletproof security
+   - Cons: Complex session state management, breaks offline caching
+
+**Decision:** Enhanced URL Hash Authentication Check  
+**Rationale:** Preserve session sharing functionality while ensuring all entry points require school authentication
+
+**Implementation Details:**
+```javascript
+// App.jsx URL hash useEffect enhancement
+useEffect(() => {
+  const handleHashChange = () => {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      const schoolAuth = localStorage.getItem('schoolAuth');
+      if (!schoolAuth) {
+        // Clear invalid hash and show school auth
+        window.location.hash = '';
+        setCurrentPage('schoolAuth');
+        return;
+      }
+      // Proceed with normal session joining
+      setSessionId(hash);
+      handleJoinSession(hash);
+    }
+  };
+  
+  window.addEventListener('hashchange', handleHashChange);
+  handleHashChange(); // Check initial hash
+  return () => window.removeEventListener('hashchange', handleHashChange);
+}, []);
+```
+
+**Outcome:** ✅ Successfully Implemented  
+- All URL hash navigation now requires valid school authentication
+- Session sharing functionality preserved for authorized users
+- Authentication bypass vulnerability eliminated
+
+**Lessons Learned:**
+- **Entry Point Security:** All application entry points must enforce same authentication
+- **URL State Management:** Hash-based navigation requires careful authentication state checking
+- **Security Testing:** Must test both manual flows and URL-based access patterns
+
+---
+
+### DEC-012: School Name Display System Implementation  
+**Date:** January 3, 2025  
+**Context:** Need to show which school users belong to for better session management and user awareness
+
+**Problem Identified:**
+- No visual indication of which school community users belong to
+- Difficult to identify school context in multi-school sessions
+- Users wanted clearer school identification in interface
+
+**Options Considered:**
+1. **Static School Display** 
+   - Pros: Simple implementation
+   - Cons: Doesn't scale to multi-school sessions
+2. **Dynamic School Name Resolution with Environment Mapping** (Selected)
+   - Pros: Flexible, scalable, clean display format
+   - Cons: Requires environment configuration management
+3. **Database-driven School Information**
+   - Pros: Full school metadata support
+   - Cons: Overkill for current needs, adds complexity
+
+**Decision:** Dynamic School Name Resolution with Environment Mapping  
+**Rationale:** Provides clean school identification while remaining flexible for configuration changes
+
+**Implementation Details:**
+```javascript
+// Environment Configuration
+VITE_SCHOOL_NAMES="906484:Earl of March Secondary School,894362:Bell High School"
+
+// schoolUtils.js - School name mapping utilities
+export function getSchoolMappings() {
+  const schoolNames = import.meta.env.VITE_SCHOOL_NAMES || '';
+  const mappings = {};
+  schoolNames.split(',').forEach(entry => {
+    const [number, name] = entry.split(':');
+    if (number && name) {
+      mappings[number.trim()] = name.trim();
+    }
+  });
+  return mappings;
+}
+
+export function getSchoolName(schoolNumber) {
+  const mappings = getSchoolMappings();
+  return mappings[schoolNumber] || `School ${schoolNumber}`;
+}
+
+// App.jsx - Multi-school session name display
+function getSessionSchoolNames() {
+  const schoolCounts = {};
+  users.forEach(user => {
+    if (user.schoolNumber) {
+      schoolCounts[user.schoolNumber] = (schoolCounts[user.schoolNumber] || 0) + 1;
+    }
+  });
+  
+  return Object.keys(schoolCounts)
+    .map(schoolNumber => getSchoolName(schoolNumber))
+    .join(' & ');
+}
+```
+
+**Technical Architecture:**
+- **Environment Variables:** VITE_SCHOOL_NAMES for "number:name" mappings
+- **Utility Functions:** Centralized school name resolution in schoolUtils.js
+- **Display Logic:** Clean name formatting without school numbers in UI
+- **Multi-school Support:** Automatic joining of school names with "&" separator
+
+**Outcome:** ✅ Successfully Implemented  
+- School names display cleanly in UserList header (e.g., "Earl of March Secondary School")
+- Multi-school sessions show combined names (e.g., "School A & School B")  
+- Environment-driven configuration enables easy school management
+- User objects include schoolNumber for proper identification
+
+**Lessons Learned:**
+- **Clean UI Display:** Remove technical identifiers (numbers) from user-facing text
+- **Environment Configuration:** Centralized mapping enables easy maintenance
+- **Multi-school Scaling:** Design for sessions with users from multiple schools
+- **Utility Functions:** Centralized school logic improves maintainability
+
+---
+
+### DEC-013: Security UI Hardening - Removal of School Hints
+**Date:** January 3, 2025  
+**Context:** School authentication modal was displaying "Available Schools" which defeated the security purpose by revealing valid school numbers
+
+**Security Issue:**
+- SchoolAuthModal displayed hints about available schools
+- Error messages revealed valid school numbers through autocomplete
+- UI elements provided attack vectors for unauthorized access attempts
+
+**Options Considered:**
+1. **Keep Hints with Obfuscation**
+   - Pros: Maintains some user guidance
+   - Cons: Still provides attack surface, harder to maintain
+2. **Complete Hint Removal** (Selected)
+   - Pros: Eliminates attack vectors, clean security model
+   - Cons: Less user guidance, may increase support requests
+3. **Dynamic Hint System Based on Authentication**
+   - Pros: Progressive disclosure of information
+   - Cons: Complex implementation, still provides some attack surface
+
+**Decision:** Complete Hint Removal from Authentication UI  
+**Rationale:** Security-first approach eliminates all client-side hints that could aid unauthorized access
+
+**Implementation Details:**
+```javascript
+// SchoolAuthModal.jsx - Removed security-defeating elements
+// REMOVED: Available Schools section
+// REMOVED: School number hints in error messages  
+// REMOVED: Autocomplete suggestions
+// KEPT: Generic error messaging
+// KEPT: Clear instructions for valid users
+
+// Error messaging changes
+- OLD: "Please enter a valid school number (906484 or 894362)"  
++ NEW: "Invalid school number. Please contact your teacher for assistance."
+
+// UI element removal
+- Removed entire "Available Schools" informational section
+- Removed specific school number examples in help text
+- Maintained clean, minimal authentication form
+```
+
+**Security Improvements:**
+- **No Client-side Hints:** All valid school information removed from client code
+- **Generic Error Messages:** Authentication failures provide no specific information
+- **Server-only Validation:** Client only submits, server determines validity
+- **Clean Attack Surface:** Minimal client-side logic reduces security review surface
+
+**Outcome:** ✅ Successfully Implemented  
+- Authentication UI provides no hints about valid school numbers
+- Generic error messages prevent information disclosure
+- Clean, security-focused authentication experience
+- Maintained usability for authorized users with proper credentials
+
+**Lessons Learned:**
+- **Security vs UX Trade-offs:** Sometimes security requires reducing user guidance
+- **Information Disclosure:** Any client-side hints can become attack vectors
+- **Server-side Validation:** Security decisions should never rely on client code
+- **Generic Error Messages:** Prevent information leakage while maintaining usability
 
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

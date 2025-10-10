@@ -3,7 +3,7 @@
 
 **Project Name:** Collabrio  
 **Version:** 2.0  
-**Last Updated:** October 9, 2025  
+**Last Updated:** October 10, 2025  
 **Status:** Production Ready  
 **Repository:** `/home/impressto/work/impressto/homeserver/www/homelab/collabrio`
 
@@ -44,32 +44,70 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 **Acceptance Criteria:**
 - [x] Users must enter valid school registration number before accessing any features
-- [x] Only two specific school numbers are accepted: 906484 and 894362
+- [x] Only two specific school numbers are accepted: 906484 (Earl of March) and 894362 (Bell High School)
 - [x] School number is validated with server-side endpoint `/validate-school`
 - [x] Valid school authentication is stored in localStorage to prevent re-entry
 - [x] Invalid school numbers show clear error message with teacher contact suggestion
 - [x] Socket connections require valid school authentication to join sessions
 - [x] Authentication failures disconnect users and clear stored credentials
-- [x] School authentication modal appears before identity setup for new users
+- [x] School authentication modal appears before identity setup for all entry points
+- [x] URL-based session joining properly validates school authentication first
+- [x] No school hints or valid numbers displayed in UI (security requirement)
 
 **Technical Notes:**
 - Server-side validation prevents client-side bypassing
-- School numbers are hardcoded in server configuration for security
+- School numbers and names configured via environment variables (VALID_SCHOOL_NUMBERS, SCHOOL_NAMES)
 - localStorage persistence improves user experience for returning students
 - Socket-level validation ensures no unauthorized session access
-- Clear error handling guides users to proper authentication channels
+- All entry points (create, join, URL hash) validate school authentication
+- schoolUtils.js provides centralized school number/name mapping functionality
+- Clear error handling guides users to proper authentication channels without revealing valid options
 
 **Security Considerations:**
 - School numbers treated as shared secrets for institution-level access
 - Server logs all authentication attempts for monitoring
 - Failed authentication attempts disconnect socket and clear credentials
 - No fallback or bypass mechanisms - authentication is mandatory
+- UI deliberately hides valid school numbers and names from unauthorized users
+- Error messages provide no hints about valid registration numbers
+- Authentication modal contains no "Available Schools" or number lists
 
 **Definition of Done:**
 - Only students with valid school registration numbers can create/join sessions
 - Invalid attempts are logged and blocked at multiple levels
 - User experience is smooth for authorized users (one-time authentication)
 - Clear error messages guide unauthorized users to proper channels
+
+---
+
+#### US-011: School Name Display in Session
+**As a user**, I want to see which schools are represented in my collaborative session so that I know who I'm collaborating with.
+
+**Acceptance Criteria:**
+- [x] Header displays school names instead of generic "Users:" label
+- [x] Single school sessions show: "Earl of March Secondary School: [user list]"
+- [x] Multi-school sessions show: "Bell High School and Earl of March Secondary School: [user list]"
+- [x] School names are displayed without registration numbers (clean display)
+- [x] School names update dynamically as users join/leave sessions
+- [x] Fallback to "Users:" when no school information available
+
+**Technical Notes:**
+- Server includes schoolNumber in user objects for school identification
+- Client aggregates unique school numbers from session participants
+- schoolUtils.js maps school numbers to friendly names via environment variables
+- Names sorted alphabetically and joined with "and" for multi-school display
+- Real-time updates via existing user join/leave socket events
+
+**Security Considerations:**
+- School names only displayed to authenticated users within sessions
+- No school information leaked to unauthorized users
+- School mapping data loaded from secure environment configuration
+
+**Definition of Done:**
+- School names display correctly for single and multi-school sessions
+- Dynamic updates verified as users join/leave
+- Clean, professional display without registration numbers
+- Fallback handling working for edge cases
 
 ---
 
@@ -347,29 +385,42 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ### 3.3 Component Architecture
 ```
-App.jsx (State Management)
+App.jsx (State Management & Authentication Flow)
 ├── LandingPage.jsx (Session Creation/Joining)
-├── Header.jsx (Branding & Status)  
+├── SchoolAuthModal.jsx (School Registration Authentication)
+├── IdentityModal.jsx (Username & Avatar Selection)
+├── Header.jsx (Branding & School Display)
+├── UserList.jsx (Multi-School User Display)
 ├── Toolbar.jsx (Actions & Controls)
 ├── Editor.jsx (Collaborative Text Area)
 ├── ShareModal.jsx (QR Code & Links)
+├── Footer.jsx (Educational Branding)
 └── Toast.jsx (User Notifications)
+
+Utils:
+├── schoolUtils.js (School Number/Name Mapping)
+├── identityUtils.js (User Identity Management)
+└── icebreakerUtils.js (AI Integration Support)
 ```
 
 ### 3.4 Communication Protocol
 
 #### WebSocket Events
-- `join-session`: User joins collaborative session
+- `join-session`: User joins collaborative session (with school authentication)
 - `leave-session`: User leaves session  
 - `document-change`: Text content updates
-- `user-count-update`: Participant count changes
+- `user-joined`: New user notification with identity and school information
+- `user-left`: User departure notification with updated user list
+- `auth-error`: Authentication failure notifications
 - `server-text-injection`: Automated message insertion
 
 #### Session Management
 - Sessions identified by 6-character alphanumeric codes
 - Server maintains active session list with participant tracking
-- Document state persisted for active sessions
+- Document state persisted in SQLite database for session continuity
+- User objects include identity (username, avatar) and school authentication
 - Automatic cleanup when sessions become empty
+- Multi-layer authentication (client, API endpoint, socket validation)
 
 ---
 
@@ -380,7 +431,11 @@ App.jsx (State Management)
 #### Frontend Configuration
 ```bash
 # Socket server connection
-VITE_SOCKET_SERVER_URL=http://localhost:3000
+VITE_SOCKET_SERVER_URL=http://localhost:4244
+
+# School Authentication
+VITE_VALID_SCHOOL_NUMBERS=9064334,855362
+VITE_SCHOOL_NAMES=906484:Earl of March Secondary School,894362:Bell High School
 
 # Application behavior  
 VITE_DEBUG=false
@@ -395,12 +450,16 @@ VITE_AUDIO_VOLUME=0.8
 #### Backend Configuration
 ```bash
 # Server settings
-PORT=3000
+PORT=4244
 NODE_ENV=production
+
+# School Authentication (Security Critical)
+VALID_SCHOOL_NUMBERS=906484,894362
+SCHOOL_NAMES=906484:Earl of March Secondary School,894362:Bell High School
 
 # AI Integration (Optional)
 COHERE_API_KEY=your_api_key_here
-COHERE_MODEL=command-r-03-2024
+COHERE_MODEL=command-r-plus
 ```
 
 ### 4.2 Deployment Architecture
@@ -414,19 +473,25 @@ COHERE_MODEL=command-r-03-2024
 ## 5. Testing Strategy
 
 ### 5.1 Functional Testing
-- [ ] Multi-user collaboration (2-5 concurrent users)
-- [ ] Session creation and joining workflows  
-- [ ] Real-time text synchronization accuracy
-- [ ] QR code generation and mobile scanning
-- [ ] Theme switching and persistence
-- [ ] Toast notification system
+- [x] School authentication workflow (valid/invalid numbers)
+- [x] Multi-user collaboration (2-5 concurrent users)
+- [x] Session creation and joining workflows with authentication
+- [x] URL-based session joining with school validation
+- [x] Real-time text synchronization accuracy
+- [x] School name display in user interface
+- [x] QR code generation and mobile scanning
+- [x] Theme switching and persistence
+- [x] Toast notification system
 
 ### 5.2 Technical Testing  
-- [ ] WebSocket connection stability
-- [ ] Document state persistence
-- [ ] Session cleanup on disconnect
-- [ ] Environment variable configuration
-- [ ] CSS isolation for embedding
+- [x] School authentication server-side validation
+- [x] SQLite database session persistence
+- [x] WebSocket connection stability with authentication
+- [x] Document state persistence across user sessions
+- [x] Session cleanup on disconnect
+- [x] Multi-layer security validation (client, API, socket)
+- [x] Environment variable configuration for school mapping
+- [x] CSS isolation for embedding
 - [ ] Performance with large documents
 
 ### 5.3 Browser Compatibility

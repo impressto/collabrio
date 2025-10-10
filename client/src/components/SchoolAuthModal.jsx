@@ -26,7 +26,7 @@ function SchoolAuthModal({ onAuthComplete, onCancel }) {
 
     try {
       // Validate with server
-      const response = await fetch(`${process.env.VITE_SOCKET_SERVER_URL || 'http://localhost:4244'}/validate-school`, {
+      const response = await fetch(`${import.meta.env.VITE_SOCKET_SERVER_URL || 'http://localhost:4244'}/validate-school`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

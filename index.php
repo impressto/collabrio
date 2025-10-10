@@ -1,3 +1,9 @@
+<?php
+// Read version from package.json for cache busting
+$packageJson = file_get_contents(__DIR__ . '/package.json');
+$packageData = json_decode($packageJson, true);
+$version = $packageData['version'] ?? '1.0.0';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,7 +38,7 @@
     <link rel="apple-touch-icon" href="./client/public/collaborio.png">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="./client/dist/assets/index.css" type="text/css" />
+    <link rel="stylesheet" href="./client/dist/assets/index.css?v=<?php echo $version; ?>" type="text/css" />
     
     <!-- Full page layout -->
     <style>
@@ -58,6 +64,6 @@
     <div id="root"></div>
     
     <!-- Scripts -->
-    <script type="module" src="./client/dist/assets/index.js"></script>
+    <script type="module" src="./client/dist/assets/index.js?v=<?php echo $version; ?>"></script>
 </body>
 </html>

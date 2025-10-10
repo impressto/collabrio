@@ -1,5 +1,7 @@
 # Collabrio - Real-time Collaborative Text Editor
 
+![collabrio_screen](https://github.com/user-attachments/assets/2688b452-1a9e-4f4e-ae43-a0064cc209a2)
+
 > **An Educational Example of Specification-Driven Development**
 
 Collabrio is a fully functional web-based collaborative text editor that demonstrates best practices for specification-driven development and project documentation. While built for educational purposes, it's production-ready and can handle real collaborative workloads.

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { generateFunnyUsername } from '../utils/identityUtils'
+import { config } from '../config'
 
 // Predefined avatar set with magical creatures and animals
 const AVATAR_OPTIONS = [
@@ -131,7 +132,20 @@ function IdentityModal({
     <div className="identity-modal-overlay">
       <div className="identity-modal">
         <div className="identity-modal-header">
-          <h2>{isFirstTime ? '👋 Welcome to Collabrio!' : '✏️ Edit Your Identity'}</h2>
+          <h2>
+            {isFirstTime ? (
+              <>
+                <img 
+                  src={config.logoUrl} 
+                  alt="Collabrio Logo" 
+                  style={{ width: '24px', height: '24px', marginRight: '8px', verticalAlign: 'middle' }}
+                />
+                Welcome to Collabrio!
+              </>
+            ) : (
+              '✏️ Edit Your Identity'
+            )}
+          </h2>
           <p>
             {isFirstTime 
               ? 'Pick a name, dammit!'

@@ -25,7 +25,7 @@ function Toolbar({
   return (
     <div className="toolbar">
       <button id="share-session-btn" onClick={shareSession} className="share-button">
-        📱 Share Session
+        📱 Invite
       </button>
       <button 
         id="share-file-btn" 
@@ -33,14 +33,14 @@ function Toolbar({
         className="share-file-button"
         title="Share a file with session participants"
       >
-        📎 Share File
+        📎 Attach
       </button>
       <button 
         id="leave-session-btn"
         onClick={leaveSession}
         className="leave-session-button"
       >
-        🚪 Leave Session
+        🚪 Leave
       </button>
       <button 
         id="theme-toggle-btn" 

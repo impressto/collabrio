@@ -1,4 +1,4 @@
-# Collabrio - Real-time Collaborative Text Editor
+# Collabrio - Real-time Collaborative Clipboard
 
 ![collabrio_screen](https://github.com/user-attachments/assets/2688b452-1a9e-4f4e-ae43-a0064cc209a2)
 

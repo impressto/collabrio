@@ -269,6 +269,10 @@ Please maintain the documentation standards demonstrated in the existing spec an
 
 This project is designed for educational use. Feel free to use it in academic settings, training programs, or as a reference for your own projects.
 
+## 🛠️ Development Tools
+
+This project's initial specification and memory document templates were generated using **[Arcana](https://impressto.ca/arcana.php#/)** - an AI-powered tool for creating structured technical documentation. The templates were then refined and populated through the actual development process to demonstrate real-world spec-driven development.
+
 ---
 
 **Built with ❤️ for education and real-world application**

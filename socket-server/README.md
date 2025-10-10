@@ -38,10 +38,12 @@ yarn install
    PORT=4244
    COHERE_API_KEY=your_cohere_api_key_here
    COHERE_MODEL=command-a-03-2025
+   VALID_SCHOOL_NUMBERS=906484,894362
    ```
    - **PORT**: Server port (default: 4244)
    - **COHERE_API_KEY**: Required for AI functionality (get from https://cohere.com)
    - **COHERE_MODEL**: Cohere AI model to use (default: command-a-03-2025)
+   - **VALID_SCHOOL_NUMBERS**: Comma-separated list of authorized 6-digit school registration numbers (required for access control)
 
 ## Running the Server
 

@@ -15,6 +15,7 @@ import FileNotification from './components/FileNotification'
 import UploadProgress from './components/UploadProgress'
 import Footer from './components/Footer'
 import IdentityModal from './components/IdentityModal'
+import SchoolAuthModal from './components/SchoolAuthModal'
 
 // Utilities
 import { 
@@ -24,6 +25,7 @@ import {
   generateFunnyUsername
 } from './utils/identityUtils'
 import { getRandomTopic, createIcebreakerPrompt } from './utils/icebreakerUtils'
+import { isValidSchoolNumber, getAllSchools } from './utils/schoolUtils'
 
 // Avatar options (same as in IdentityModal)
 const AVATAR_OPTIONS = [
@@ -65,6 +67,14 @@ function App() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentUploadFile, setCurrentUploadFile] = useState(null)
   
+  // School authentication state
+  const [isSchoolAuthenticated, setIsSchoolAuthenticated] = useState(() => {
+    // Check if user has valid school auth in localStorage
+    const stored = localStorage.getItem('collabrio-school-auth')
+    return stored && isValidSchoolNumber(stored)
+  })
+  const [showSchoolAuthModal, setShowSchoolAuthModal] = useState(false)
+
   // Identity state
   const [userIdentity, setUserIdentity] = useState(() => {
     const stored = getStoredIdentity()
@@ -135,15 +145,50 @@ function App() {
   }
 
   const createNewSession = () => {
-    // Always show identity modal for session creation
+    // Check school authentication first
+    if (!isSchoolAuthenticated) {
+      setPendingSessionAction('create')
+      setShowSchoolAuthModal(true)
+      return
+    }
+    
+    // Show identity modal for session creation
     setPendingSessionAction('create')
     setShowIdentityModal(true)
   }
 
   const joinExistingSession = (sessionIdToJoin) => {
-    // Always show identity modal for session joining
+    // Check school authentication first
+    if (!isSchoolAuthenticated) {
+      setPendingSessionAction({ action: 'join', sessionId: sessionIdToJoin })
+      setShowSchoolAuthModal(true)
+      return
+    }
+    
+    // Show identity modal for session joining
     setPendingSessionAction({ action: 'join', sessionId: sessionIdToJoin })
     setShowIdentityModal(true)
+  }
+
+  // School authentication handlers
+  const handleSchoolAuthComplete = (schoolNumber) => {
+    console.log('School authentication successful:', schoolNumber)
+    setIsSchoolAuthenticated(true)
+    setShowSchoolAuthModal(false)
+    
+    // Continue with pending session action
+    if (pendingSessionAction === 'create') {
+      setPendingSessionAction('create')
+      setShowIdentityModal(true)
+    } else if (pendingSessionAction && pendingSessionAction.action === 'join') {
+      setPendingSessionAction(pendingSessionAction)
+      setShowIdentityModal(true)
+    }
+  }
+
+  const handleSchoolAuthCancel = () => {
+    setShowSchoolAuthModal(false)
+    setPendingSessionAction(null)
   }
 
   // Identity handling functions
@@ -187,11 +232,13 @@ function App() {
       setIsConnected(true)
       setCurrentUserId(socket.id)
       
-      // Include user identity when joining session
+      // Include user identity and school auth when joining session
       const identity = userIdentity.username ? userIdentity : getStoredIdentity()
+      const schoolAuth = localStorage.getItem('collabrio-school-auth')
       socket.emit('join-session', { 
         sessionId, 
         clientId: socket.id,
+        schoolAuth: schoolAuth,
         userIdentity: {
           username: identity?.username || generateFunnyUsername(),
           avatar: identity?.avatar || AVATAR_OPTIONS[0]
@@ -203,6 +250,25 @@ function App() {
       console.log('Disconnected from socket server')
       setIsConnected(false)
       setConnectedUsers([]) // Clear user list on disconnect
+    })
+
+    socket.on('auth-error', (data) => {
+      console.error('Authentication error:', data.message)
+      
+      // Clear stored school auth and force re-authentication
+      localStorage.removeItem('collabrio-school-auth')
+      setIsSchoolAuthenticated(false)
+      
+      // Show error and redirect back to landing
+      showToast(`Authentication failed: ${data.message}`, 'error')
+      setSessionId('')
+      setIsInSession(false)
+      setConnectedUsers([])
+      
+      // Disconnect from socket
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+      }
     })
 
     socket.on('document-update', (data) => {
@@ -572,6 +638,13 @@ function App() {
           joinExistingSession={joinExistingSession}
         />
         
+        {showSchoolAuthModal && (
+          <SchoolAuthModal 
+            onAuthComplete={handleSchoolAuthComplete}
+            onCancel={handleSchoolAuthCancel}
+          />
+        )}
+
         <IdentityModal
           isVisible={showIdentityModal}
           onComplete={handleIdentityComplete}

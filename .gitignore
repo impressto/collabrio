@@ -63,3 +63,4 @@ ehthumbs.db
 # Project specific
 socket-server/.env
 socket-server/messages/*
+socket-server/sessions.db

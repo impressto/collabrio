@@ -586,4 +586,82 @@ disconnect: Save to DB when last user leaves
 - [ ] Monitor database file size growth in production (Dev Team - TBD)
 - [ ] Backup strategy for sessions.db file (Dev Team - TBD)
 
+---
+
+### DEC-010: School Registration Access Control Implementation
+**Date:** October 10, 2025  
+**Context:** Need to restrict platform access to students from only two specific high schools (registration numbers 906484 and 894362)
+
+**Options Considered:**
+1. **Modal-based School Authentication with Server Validation** (Selected)
+   - Pros: Clear UX flow, server-side security, localStorage persistence, socket-level protection
+   - Cons: Additional authentication step, requires both client and server changes
+2. **URL-based Access Tokens**
+   - Pros: Simple implementation, shareable links
+   - Cons: Tokens can be shared outside schools, harder to revoke access
+3. **IP-based Restrictions**
+   - Pros: Transparent to users, network-level security
+   - Cons: Students use home internet, complex school network setup required
+
+**Decision:** Modal-based authentication with multi-level validation  
+**Rationale:** Provides clear access control while maintaining good user experience and preventing bypass attempts
+
+**Implementation Details:**
+- **Client Flow:** School auth modal → Identity modal → Session access
+- **Validation Levels:** Client-side check → Server API validation → Socket-level verification
+- **Persistence:** localStorage stores validated school number to prevent re-entry
+- **Security:** Hardcoded valid numbers (906484, 894362) in server configuration
+- **Error Handling:** Clear error messages, automatic credential clearing on failure
+
+**Technical Architecture:**
+```javascript
+// Environment configuration
+Client: VITE_VALID_SCHOOL_NUMBERS=906484,894362 (in .env)
+Server: VALID_SCHOOL_NUMBERS=906484,894362 (in .env)
+Both support comma-separated lists for easy configuration
+
+// Client-side components  
+SchoolAuthModal.jsx - Modal form with 6-digit school number input
+App.jsx - Authentication state management and flow control
+CSS - Styled modal with error states and dark theme support
+
+// Server-side endpoints
+POST /validate-school - Validates school number against environment config
+join-session handler - Requires valid schoolAuth parameter
+auth-error event - Disconnects unauthorized users
+
+// Security layers
+1. Client localStorage check (UX optimization)
+2. Server API validation (prevents form bypass)  
+3. Socket connection validation (prevents direct socket access)
+4. Authentication failure handling (clears credentials, disconnects)
+```
+
+**Outcome:** ✅ Successfully Implemented  
+- Multi-layer security prevents unauthorized access at client and server levels
+- User experience optimized with localStorage persistence for authorized users
+- Clear error messaging guides unauthorized users to proper channels
+- Logging enables monitoring of authentication attempts
+
+**Lessons Learned:**
+- **Defense in Depth:** Multiple validation layers better than single point of failure
+- **User Experience Balance:** Security shouldn't create friction for authorized users
+- **Clear Error Messages:** Important to guide users to resolution (contact teacher)
+- **Logging Critical:** Authentication attempts should be monitored for security
+- **localStorage Persistence:** Significantly improves UX for returning authorized users
+
+**Follow-up Actions:**
+- [x] Create SchoolAuthModal component with form validation (Dev Team - 2025-10-10)
+- [x] Add server-side /validate-school endpoint with hardcoded school numbers (Dev Team - 2025-10-10)
+- [x] Modify App.jsx authentication flow to check school auth first (Dev Team - 2025-10-10)  
+- [x] Add socket-level validation in join-session handler (Dev Team - 2025-10-10)
+- [x] Implement auth-error handling and credential clearing (Dev Team - 2025-10-10)
+- [x] Add CSS styles for school authentication modal (Dev Team - 2025-10-10)
+- [x] Test build and server startup with authentication (Dev Team - 2025-10-10)
+- [x] Move school numbers to environment variables for configurability (Dev Team - 2025-10-10)
+- [x] Update .env.example files with school configuration documentation (Dev Team - 2025-10-10)
+- [ ] Monitor authentication logs for unauthorized access attempts (Admin Team - TBD)
+- [ ] Train teachers on helping students with authentication issues (School Admin - TBD)
+- [ ] Consider adding rate limiting for failed authentication attempts (Dev Team - TBD)
+
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

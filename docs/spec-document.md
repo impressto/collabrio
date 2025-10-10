@@ -36,7 +36,44 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ## 2. Core User Stories
 
-### Epic 1: Session Management
+### Epic 1: Security & Access Control
+**Goal:** Restrict access to authorized school users only
+
+#### US-010: School Registration Authentication
+**As an administrator**, I want to restrict access to students from authorized schools only so that the platform remains secure and compliant.
+
+**Acceptance Criteria:**
+- [x] Users must enter valid school registration number before accessing any features
+- [x] Only two specific school numbers are accepted: 906484 and 894362
+- [x] School number is validated with server-side endpoint `/validate-school`
+- [x] Valid school authentication is stored in localStorage to prevent re-entry
+- [x] Invalid school numbers show clear error message with teacher contact suggestion
+- [x] Socket connections require valid school authentication to join sessions
+- [x] Authentication failures disconnect users and clear stored credentials
+- [x] School authentication modal appears before identity setup for new users
+
+**Technical Notes:**
+- Server-side validation prevents client-side bypassing
+- School numbers are hardcoded in server configuration for security
+- localStorage persistence improves user experience for returning students
+- Socket-level validation ensures no unauthorized session access
+- Clear error handling guides users to proper authentication channels
+
+**Security Considerations:**
+- School numbers treated as shared secrets for institution-level access
+- Server logs all authentication attempts for monitoring
+- Failed authentication attempts disconnect socket and clear credentials
+- No fallback or bypass mechanisms - authentication is mandatory
+
+**Definition of Done:**
+- Only students with valid school registration numbers can create/join sessions
+- Invalid attempts are logged and blocked at multiple levels
+- User experience is smooth for authorized users (one-time authentication)
+- Clear error messages guide unauthorized users to proper channels
+
+---
+
+### Epic 2: Session Management
 **Goal:** Users can create, join, and manage collaborative sessions
 
 #### US-001: Create New Session
@@ -131,7 +168,7 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ---
 
-### Epic 2: Real-time Collaboration  
+### Epic 3: Real-time Collaboration  
 **Goal:** Multiple users can edit documents simultaneously
 
 #### US-004: Real-time Text Editing
@@ -179,7 +216,7 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ---
 
-### Epic 3: User Experience
+### Epic 4: User Experience
 **Goal:** Provide intuitive, accessible interface for collaboration
 
 #### US-006: Visual Feedback System

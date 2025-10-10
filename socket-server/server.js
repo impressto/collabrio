@@ -53,6 +53,39 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// Get valid school registration numbers from environment
+const getValidSchoolNumbers = () => {
+  const envNumbers = process.env.VALID_SCHOOL_NUMBERS || '906484,894362';
+  return envNumbers.split(',').map(num => num.trim());
+};
+
+// Valid school registration numbers for authentication
+const VALID_SCHOOL_NUMBERS = getValidSchoolNumbers();
+
+// School validation endpoint
+app.post('/validate-school', (req, res) => {
+  const { schoolNumber } = req.body;
+  
+  if (!schoolNumber) {
+    return res.status(400).json({ valid: false, error: 'School number required' });
+  }
+  
+  // Validate format (6 digits)
+  if (!/^\d{6}$/.test(schoolNumber)) {
+    return res.status(400).json({ valid: false, error: 'Invalid format' });
+  }
+  
+  // Check if school number is in valid list
+  const isValid = VALID_SCHOOL_NUMBERS.includes(schoolNumber);
+  
+  console.log(`School validation attempt: ${schoolNumber} - ${isValid ? 'VALID' : 'INVALID'}`);
+  
+  res.json({ 
+    valid: isValid,
+    message: isValid ? 'School registration valid' : 'Invalid school registration number'
+  });
+});
+
 // Create HTTP server
 const server = http.createServer(app);
 
@@ -535,11 +568,21 @@ io.on('connection', (socket) => {
   };
 
   // Handle client joining a session
-  socket.on('join-session', ({ sessionId: sid, clientId: cid, userIdentity }) => {
+  socket.on('join-session', ({ sessionId: sid, clientId: cid, userIdentity, schoolAuth }) => {
+    // Validate school authentication first
+    if (!schoolAuth || !VALID_SCHOOL_NUMBERS.includes(schoolAuth)) {
+      console.log(`Unauthorized join attempt - invalid school auth: ${schoolAuth}`);
+      socket.emit('auth-error', { 
+        message: 'Invalid school authentication. Please verify your school registration number.',
+        code: 'INVALID_SCHOOL_AUTH'
+      });
+      return;
+    }
+
     sessionId = sid;
     clientId = cid || socket.id; // Use socket ID as clientId if not provided
     
-    console.log(`Client ${clientId} (${userIdentity?.username || 'Anonymous'}) joined session ${sessionId}`);
+    console.log(`Client ${clientId} (${userIdentity?.username || 'Anonymous'}) from school ${schoolAuth} joined session ${sessionId}`);
     
     // Add client to session
     if (!activeSessions.has(sessionId)) {

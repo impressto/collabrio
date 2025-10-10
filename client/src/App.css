@@ -1367,6 +1367,270 @@ body > #root > .collabrio-app {
   color: #90cdf4;
 }
 
+/* School Authentication Modal Styles */
+.school-auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.school-auth-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+.school-auth-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.school-auth-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #2d3748;
+  font-size: 1.5rem;
+}
+
+.school-auth-header p {
+  margin: 0;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.available-schools {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.available-schools details {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.available-schools summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.9rem;
+  padding: 0.25rem;
+}
+
+.available-schools summary:hover {
+  color: #2d3748;
+}
+
+.available-schools ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
+  list-style: none;
+}
+
+.available-schools li {
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.available-schools li strong {
+  color: #2d3748;
+  font-family: 'Courier New', monospace;
+}
+
+.school-auth-form {
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2d3748;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  letter-spacing: 0.1em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.form-group input:disabled {
+  background: #f7fafc;
+  color: #a0aec0;
+}
+
+.error-message {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  border: 1px solid #feb2b2;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancel-button, .submit-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.cancel-button {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #cbd5e0;
+}
+
+.submit-button {
+  background: #3182ce;
+  color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #2c5aa0;
+}
+
+.submit-button:disabled, .cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.school-auth-footer {
+  background: #f7fafc;
+  margin: -2rem -2rem -2rem -2rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem 2rem;
+  border-radius: 0 0 12px 12px;
+}
+
+.school-auth-footer p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #4a5568;
+  line-height: 1.4;
+}
+
+/* Dark theme for school auth modal */
+.collabrio-app.dark-theme .school-auth-modal {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .school-auth-header h2 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .school-auth-header p {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .available-schools details {
+  background: #4a5568;
+  border-color: #718096;
+}
+
+.collabrio-app.dark-theme .available-schools summary {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .available-schools summary:hover {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .available-schools li {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .available-schools li strong {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .form-group label {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .form-group input {
+  background: #4a5568;
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .form-group input:focus {
+  border-color: #63b3ed;
+  box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+}
+
+.collabrio-app.dark-theme .form-group input:disabled {
+  background: #2d3748;
+  color: #718096;
+}
+
+.collabrio-app.dark-theme .error-message {
+  background: #742a2a;
+  color: #feb2b2;
+  border-color: #c53030;
+}
+
+.collabrio-app.dark-theme .cancel-button {
+  background: #4a5568;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .cancel-button:hover:not(:disabled) {
+  background: #718096;
+}
+
+.collabrio-app.dark-theme .school-auth-footer {
+  background: #1a202c;
+}
+
+.collabrio-app.dark-theme .school-auth-footer p {
+  color: #a0aec0;
+}
+
 /* Identity Modal Styles */
 .identity-modal-overlay {
   position: fixed;

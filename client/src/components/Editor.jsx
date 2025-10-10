@@ -21,12 +21,99 @@ function Editor({
   const isLiveMode = editorMode === 'live'
   const isDraftMode = editorMode === 'draft'
   
+  // Character limit helpers
+  const getCharacterCount = (text) => text.length
+  const isNearLimit = (text) => text.length > config.maxDocumentChars * 0.9 // 90% warning
+  const isAtLimit = (text) => text.length >= config.maxDocumentChars
+  const getRemainingChars = (text) => Math.max(0, config.maxDocumentChars - text.length)
+
+  // Handle paste events to prevent exceeding character limit
+  const handlePaste = useCallback((e) => {
+    const pastedText = e.clipboardData.getData('text/plain')
+    const currentContent = isLiveMode ? document : draftContent
+    const textarea = e.target
+    const selectionStart = textarea.selectionStart
+    const selectionEnd = textarea.selectionEnd
+    
+    // Calculate what the content would be after pasting
+    const beforePaste = currentContent.substring(0, selectionStart)
+    const afterPaste = currentContent.substring(selectionEnd)
+    const newContent = beforePaste + pastedText + afterPaste
+    
+    // Check if the new content would exceed the limit
+    if (newContent.length > config.maxDocumentChars) {
+      e.preventDefault() // Prevent the paste
+      
+      // Calculate how much can still be pasted
+      const remainingSpace = config.maxDocumentChars - (beforePaste.length + afterPaste.length)
+      const truncatedPaste = pastedText.substring(0, remainingSpace)
+      
+      if (remainingSpace > 0) {
+        // Paste only what fits
+        const newTruncatedContent = beforePaste + truncatedPaste + afterPaste
+        if (isLiveMode) {
+          handleDocumentChange({ target: { value: newTruncatedContent } })
+        } else {
+          handleDraftChange({ target: { value: newTruncatedContent } })
+        }
+        
+        // Position cursor after the truncated paste
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = selectionStart + truncatedPaste.length
+        }, 0)
+        
+        showToast(`Paste truncated: Document limit is ${config.maxDocumentChars.toLocaleString()} characters`, 'warning')
+      } else {
+        showToast(`Cannot paste: Document limit of ${config.maxDocumentChars.toLocaleString()} characters reached`, 'error')
+      }
+      
+      setShowCharacterLimit(true)
+      setTimeout(() => setShowCharacterLimit(false), 3000)
+    }
+  }, [document, draftContent, isLiveMode, handleDocumentChange, handleDraftChange, showToast])
+
+  // Handle key presses to prevent typing when at character limit
+  const handleKeyPress = useCallback((e) => {
+    const currentContent = isLiveMode ? document : draftContent
+    const textarea = e.target
+    const selectionStart = textarea.selectionStart
+    const selectionEnd = textarea.selectionEnd
+    const hasSelection = selectionStart !== selectionEnd
+    
+    // Allow if we have selected text (typing will replace it)
+    // Allow backspace, delete, arrow keys, etc.
+    if (hasSelection || 
+        e.key === 'Backspace' || 
+        e.key === 'Delete' || 
+        e.key === 'ArrowLeft' || 
+        e.key === 'ArrowRight' || 
+        e.key === 'ArrowUp' || 
+        e.key === 'ArrowDown' ||
+        e.ctrlKey || 
+        e.metaKey) {
+      return
+    }
+    
+    // Prevent typing if at character limit
+    if (isAtLimit(currentContent)) {
+      e.preventDefault()
+      showToast(`Character limit of ${config.maxDocumentChars.toLocaleString()} reached`, 'warning')
+      setShowCharacterLimit(true)
+      setTimeout(() => setShowCharacterLimit(false), 2000)
+    }
+  }, [document, draftContent, isLiveMode, showToast])
+
   // Ask AI button state
   const [showAskAI, setShowAskAI] = useState(false)
   const [selectedText, setSelectedText] = useState('')
   const [textTooLong, setTextTooLong] = useState(false)
   const [isWaitingForAI, setIsWaitingForAI] = useState(false)
   const [aiResponseCountAtStart, setAiResponseCountAtStart] = useState(null)
+  const [askAiCooldown, setAskAiCooldown] = useState(0)
+  const [askAiCooldownTimer, setAskAiCooldownTimer] = useState(null)
+
+  // Character limit state
+  const [showCharacterLimit, setShowCharacterLimit] = useState(false)
   
   // No need for audio refs when using audioManager
 
@@ -59,7 +146,34 @@ function Editor({
 
   // Handle Ask AI button click
   const handleAskAI = useCallback(() => {
+    // Check if button is on cooldown
+    if (askAiCooldown > 0) {
+      return
+    }
+    
     if (selectedText && socket && sessionId) {
+      // Start 15-second cooldown
+      setAskAiCooldown(15)
+      
+      // Clear any existing timer
+      if (askAiCooldownTimer) {
+        clearInterval(askAiCooldownTimer)
+      }
+      
+      // Start countdown timer
+      const timer = setInterval(() => {
+        setAskAiCooldown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            setAskAiCooldownTimer(null)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      
+      setAskAiCooldownTimer(timer)
+      
       // Count current number of AI responses in the document
       const currentResponseCount = (document.match(/\[AI Response:/g) || []).length
       
@@ -90,7 +204,7 @@ function Editor({
       // Show error if socket is not connected
       showToast('Cannot connect to AI service. Please try again.')
     }
-  }, [selectedText, socket, sessionId, showToast])
+  }, [selectedText, socket, sessionId, showToast, askAiCooldown, askAiCooldownTimer, document])
 
   // Hide Ask AI button when clicking outside or pressing Escape
   useEffect(() => {
@@ -149,6 +263,15 @@ function Editor({
     }
   }, [document, isWaitingForAI, aiResponseCountAtStart])
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (askAiCooldownTimer) {
+        clearInterval(askAiCooldownTimer)
+      }
+    }
+  }, [])
+
   // Handle tab key in textareas
   const handleKeyDown = (e) => {
     if (e.key === 'Tab') {
@@ -205,11 +328,12 @@ function Editor({
         {/* Ask AI Button - appears when text is selected and under 500 characters */}
         {showAskAI && (
           <button 
-            className="ask-ai-btn"
+            className={`ask-ai-btn ${askAiCooldown > 0 ? 'disabled' : ''}`}
             onClick={handleAskAI}
-            title="Ask AI about the selected text"
+            disabled={askAiCooldown > 0}
+            title={askAiCooldown > 0 ? `Please wait ${askAiCooldown} seconds` : "Ask AI about the selected text"}
           >
-            🤖 Ask AI
+            🤖 {askAiCooldown > 0 ? `Ask AI (${askAiCooldown}s)` : 'Ask AI'}
           </button>
         )}
         
@@ -269,7 +393,11 @@ function Editor({
             key={`textarea-${sessionId}`}
             value={document}
             onChange={handleDocumentChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              handleKeyDown(e)
+              handleKeyPress(e)
+            }}
+            onPaste={handlePaste}
             onMouseUp={handleTextSelection}
             onKeyUp={handleTextSelection}
             placeholder="Start typing your doc here. Highlight something to toss it into the AI blender..."
@@ -284,13 +412,30 @@ function Editor({
             ref={draftRef}
             value={draftContent}
             onChange={handleDraftChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              handleKeyDown(e)
+              handleKeyPress(e)
+            }}
+            onPaste={handlePaste}
             onMouseUp={handleTextSelection}
             onKeyUp={handleTextSelection}
             placeholder="Compose your draft here privately before adding to the shared document..."
             className="collaborative-editor draft-editor"
           />
         )}
+
+        {/* Character Counter */}
+        <div className={`character-counter ${isNearLimit(isLiveMode ? document : draftContent) ? 'warning' : ''} ${isAtLimit(isLiveMode ? document : draftContent) ? 'error' : ''} ${showCharacterLimit ? 'highlighted' : ''}`}>
+          <span className="counter-text">
+            {getCharacterCount(isLiveMode ? document : draftContent).toLocaleString()} / {config.maxDocumentChars.toLocaleString()} characters
+            {isNearLimit(isLiveMode ? document : draftContent) && !isAtLimit(isLiveMode ? document : draftContent) && (
+              <span className="warning-text"> ({getRemainingChars(isLiveMode ? document : draftContent)} remaining)</span>
+            )}
+            {isAtLimit(isLiveMode ? document : draftContent) && (
+              <span className="limit-text"> (LIMIT REACHED)</span>
+            )}
+          </span>
+        </div>
       </div>
     </main>
   )

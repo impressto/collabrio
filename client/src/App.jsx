@@ -75,6 +75,10 @@ function App() {
   })
   const [showSchoolAuthModal, setShowSchoolAuthModal] = useState(false)
 
+  // Button cooldown state
+  const [randomCooldown, setRandomCooldown] = useState(0)
+  const [randomCooldownTimer, setRandomCooldownTimer] = useState(null)
+
   // Identity state
   const [userIdentity, setUserIdentity] = useState(() => {
     const stored = getStoredIdentity()
@@ -143,6 +147,15 @@ function App() {
   useEffect(() => {
     console.log('Document state changed to:', document)
   }, [document])
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (randomCooldownTimer) {
+        clearInterval(randomCooldownTimer)
+      }
+    }
+  }, [])
 
   const generateSessionId = () => {
     // Generate a simple 6-character session ID
@@ -446,6 +459,15 @@ function App() {
       }
     })
 
+    // Handle document limit exceeded from server
+    socket.on('document-limit-exceeded', (data) => {
+      console.warn('Document limit exceeded:', data)
+      showToast(`Document limit exceeded: ${data.limit.toLocaleString()} characters maximum`, 'error')
+      
+      // Revert document to previous state or truncate
+      setDocument(prev => prev.substring(0, data.limit))
+    })
+
     socketRef.current = socket
   }
 
@@ -463,7 +485,34 @@ function App() {
 
   // Random Icebreaker Handler
   const handleRandomIcebreaker = () => {
+    // Check if button is on cooldown
+    if (randomCooldown > 0) {
+      return
+    }
+    
     if (socketRef.current && isConnected && sessionId) {
+      // Start 15-second cooldown
+      setRandomCooldown(15)
+      
+      // Clear any existing timer
+      if (randomCooldownTimer) {
+        clearInterval(randomCooldownTimer)
+      }
+      
+      // Start countdown timer
+      const timer = setInterval(() => {
+        setRandomCooldown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            setRandomCooldownTimer(null)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      
+      setRandomCooldownTimer(timer)
+      
       // Get a random topic from our predefined array
       const randomTopic = getRandomTopic()
       
@@ -727,6 +776,7 @@ function App() {
           onFileShare={handleFileShare}
           onRandomIcebreaker={handleRandomIcebreaker}
           isConnected={isConnected}
+          randomCooldown={randomCooldown}
         />
 
         <Editor 

@@ -2,7 +2,7 @@
 ## Decision Log & Lessons Learned
 
 **Project Name:** Collabrio - Real-time Collaborative Text Editor  
-**Last Updated:** October 10, 2025  
+**Last Updated:** January 3, 2025  
 **Document Purpose:** Track decisions, lessons learned, and organizational knowledge  
 **Related Documents:** [spec-document-clean.md](./spec-document-clean.md)
 
@@ -865,5 +865,132 @@ function getSessionSchoolNames() {
 - **Information Disclosure:** Any client-side hints can become attack vectors
 - **Server-side Validation:** Security decisions should never rely on client code
 - **Generic Error Messages:** Prevent information leakage while maintaining usability
+
+---
+
+### DEC-014: Button Cooldown System for Server Protection
+**Date:** January 3, 2025  
+**Context:** Students were rapidly clicking "Ask AI" and "Random" buttons, potentially overloading the server and exceeding API rate limits
+
+**Problem Identified:**
+- Rapid clicking of AI-powered buttons created server performance issues
+- Potential for API costs to escalate from excessive requests
+- Need to educate users about appropriate usage patterns
+
+**Options Considered:**
+1. **Server-side Rate Limiting Only**
+   - Pros: Bulletproof protection, works regardless of client behavior
+   - Cons: Poor user experience with sudden request rejections
+2. **Client-side Cooldown with Visual Feedback** (Selected)
+   - Pros: Clear user education, prevents issues before they occur, good UX
+   - Cons: Can be bypassed by determined users (but server has backup protection)
+3. **User Session Limits**
+   - Pros: Simple implementation
+   - Cons: Difficult to track across anonymous sessions, poor granularity
+
+**Decision:** Client-side 15-second cooldown with visual countdown feedback  
+**Rationale:** Educates users about appropriate usage while preventing accidental server overload
+
+**Implementation Details:**
+```javascript
+// State management for each button
+const [randomCooldown, setRandomCooldown] = useState(0)
+const [askAiCooldown, setAskAiCooldown] = useState(0)
+
+// Timer management with cleanup
+const timer = setInterval(() => {
+  setRandomCooldown(prev => prev > 0 ? prev - 1 : 0)
+}, 1000)
+
+// Visual feedback in button text
+🎲 {randomCooldown > 0 ? `Random (${randomCooldown}s)` : 'Random'}
+🤖 {askAiCooldown > 0 ? `Ask AI (${askAiCooldown}s)` : 'Ask AI'}
+```
+
+**Visual Design:**
+- **Normal State:** Standard button appearance
+- **Cooldown State:** Grayed out with disabled cursor, countdown in button text
+- **Tooltip Feedback:** "Please wait X seconds" during cooldown
+- **Theme Support:** Works in both light and dark modes
+
+**Outcome:** ✅ Successfully Implemented  
+- Server load from rapid clicking eliminated
+- Clear user education about appropriate usage patterns
+- Smooth user experience with countdown feedback
+- Memory leak prevention through proper timer cleanup
+
+**Lessons Learned:**
+- **User Education:** Visual feedback is more effective than just blocking actions
+- **Graduated Response:** Client-side prevention + server-side backup provides best UX
+- **Timer Management:** Always clean up intervals to prevent memory leaks
+- **Accessibility:** Disabled state needs clear visual and textual indicators
+
+---
+
+### DEC-015: Document Character Limit System Implementation
+**Date:** January 3, 2025  
+**Context:** Need to prevent server crashes and performance degradation from extremely large documents while maintaining good collaborative experience
+
+**Problem Identified:**
+- Students could paste massive amounts of text, potentially crashing server
+- Large documents caused poor performance for all session participants  
+- Real-time synchronization became slow with large content
+- Need to balance usability with system stability
+
+**Options Considered:**
+1. **No Limits** 
+   - Pros: Maximum flexibility for users
+   - Cons: Server instability, poor performance, potential crashes
+2. **10,000+ Character Limit**
+   - Pros: Generous limit for most use cases
+   - Cons: Still allows problematically large documents
+3. **5,000 Character Limit with Smart UX** (Selected)
+   - Pros: Balances usability with stability, appropriate for academic work
+   - Cons: May feel restrictive for some advanced use cases
+
+**Decision:** 5,000 character limit with comprehensive user experience  
+**Rationale:** 5,000 chars ≈ 2-3 pages of text, sufficient for collaborative academic work while ensuring system stability
+
+**Implementation Architecture:**
+```javascript
+// Multi-layer protection
+1. Client-side prevention (onKeyPress, onPaste)
+2. Server-side validation (MAX_DOCUMENT_CHARS env var)
+3. Visual feedback (real-time character counter)
+4. Smart truncation (preserve as much content as possible)
+
+// Real-time character counter
+const getCharacterCount = (text) => text.length
+const isNearLimit = (text) => text.length > config.maxDocumentChars * 0.9
+const isAtLimit = (text) => text.length >= config.maxDocumentChars
+```
+
+**User Experience Design:**
+- **Character Counter:** Bottom-right corner of text area, real-time updates
+- **Visual States:**
+  - Normal: `1,234 / 5,000 characters` (dark background)
+  - Warning: `4,500 / 5,000 characters (500 remaining)` (yellow background)
+  - Limit: `5,000 / 5,000 characters (LIMIT REACHED)` (red, pulsing)
+- **Smart Paste:** Truncates large pastes to fit available space
+- **Toast Notifications:** Clear feedback when limits are enforced
+
+**Technical Implementation:**
+- **Environment Configuration:** VITE_MAX_DOCUMENT_CHARS=5000 / MAX_DOCUMENT_CHARS=5000
+- **Positioning:** Absolute within editor container (not viewport-fixed)
+- **Prevention Logic:** Allows deletions and replacements even at limit
+- **Server Validation:** Rejects documents exceeding limit with clear error message
+
+**Outcome:** ✅ Successfully Implemented  
+- Server stability ensured with reasonable document size limits
+- Clear user feedback prevents confusion about limitations
+- Smart paste truncation preserves user content when possible
+- Both client and server enforcement provides reliable protection
+
+**Lessons Learned:**
+- **Layered Protection:** Client UX + server validation provides best experience and security
+- **Smart Truncation:** Better to preserve partial content than reject entirely
+- **Visual Integration:** Counter feels natural positioned within editor vs. floating
+- **Progressive Feedback:** Warning states help users manage content proactively
+- **Academic Context:** 5,000 characters perfect for collaborative school work
 
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

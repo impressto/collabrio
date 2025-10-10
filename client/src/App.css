@@ -269,6 +269,18 @@ body > #root > .collabrio-app {
   background: #198b7f;
 }
 
+/* Disabled button states for cooldown */
+.collabrio-app .share-button.disabled, .collabrio-app .ask-ai-btn.disabled {
+  background: #666;
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.collabrio-app .share-button.disabled:hover, .collabrio-app .ask-ai-btn.disabled:hover {
+  background: #666;
+}
+
 .collabrio-app .leave-session-button {
   background: #911f1f;
   color: white;
@@ -315,6 +327,7 @@ body > #root > .collabrio-app {
   padding: 2rem;
   background: #ffffff;
   min-height: 0; /* Important: allows flex child to shrink */
+  position: relative; /* For absolute positioned character counter */
 }
 
 .collabrio-app .editor-tabs {
@@ -891,6 +904,20 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .ask-ai-btn:hover {
   background: linear-gradient(135deg, #434190 0%, #4c1d95 100%) !important;
   box-shadow: 0 6px 16px rgba(76, 81, 191, 0.5) !important;
+}
+
+/* Dark theme disabled button states */
+.collabrio-app.dark-theme .share-button.disabled, .collabrio-app.dark-theme .ask-ai-btn.disabled {
+  background: #4a5568 !important;
+  color: #a0aec0 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+.collabrio-app.dark-theme .share-button.disabled:hover, .collabrio-app.dark-theme .ask-ai-btn.disabled:hover {
+  background: #4a5568 !important;
+  box-shadow: none !important;
 }
 
 .collabrio-app.dark-theme .text-too-long-warning {
@@ -2056,4 +2083,80 @@ body > #root > .collabrio-app {
   .user-name {
     max-width: 80px;
   }
+}
+
+/* Character Counter Styles */
+.collabrio-app .character-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  pointer-events: none; /* Don't interfere with text area interaction */
+}
+
+.collabrio-app .character-counter.warning {
+  background: rgba(255, 193, 7, 0.9);
+  color: #000;
+}
+
+.collabrio-app .character-counter.error {
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+.collabrio-app .character-counter.highlighted {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.collabrio-app .counter-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.collabrio-app .warning-text {
+  color: #ff6b35;
+  font-weight: bold;
+}
+
+.collabrio-app .limit-text {
+  color: #ff1744;
+  font-weight: bold;
+  animation: blink 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Dark Theme Character Counter */
+.collabrio-app.dark-theme .character-counter {
+  background: rgba(45, 55, 72, 0.9);
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .character-counter.warning {
+  background: rgba(237, 137, 54, 0.9);
+  color: #000;
+}
+
+.collabrio-app.dark-theme .character-counter.error {
+  background: rgba(245, 101, 101, 0.9);
+  color: white;
 }

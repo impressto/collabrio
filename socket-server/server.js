@@ -853,6 +853,18 @@ io.on('connection', (socket) => {
       return;
     }
     
+    // Server-side character limit validation
+    const MAX_DOCUMENT_CHARS = parseInt(process.env.MAX_DOCUMENT_CHARS) || 5000;
+    if (document && document.length > MAX_DOCUMENT_CHARS) {
+      console.warn(`Document too large: ${document.length} characters (limit: ${MAX_DOCUMENT_CHARS})`);
+      socket.emit('document-limit-exceeded', { 
+        limit: MAX_DOCUMENT_CHARS, 
+        currentLength: document.length,
+        message: `Document exceeds ${MAX_DOCUMENT_CHARS} character limit`
+      });
+      return;
+    }
+    
     console.log(`Document updated in session ${docSessionId}`);
     
     // Update client's last seen timestamp for activity tracking

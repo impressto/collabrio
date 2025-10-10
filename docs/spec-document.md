@@ -2,8 +2,8 @@
 ## Technical Specification Document
 
 **Project Name:** Collabrio  
-**Version:** 2.0  
-**Last Updated:** October 10, 2025  
+**Version:** 2.1  
+**Last Updated:** January 3, 2025  
 **Status:** Production Ready  
 **Repository:** `/home/impressto/work/impressto/homeserver/www/homelab/collabrio`
 
@@ -108,6 +108,78 @@ Create a web-based collaborative text editor that enables multiple users to edit
 - Dynamic updates verified as users join/leave
 - Clean, professional display without registration numbers
 - Fallback handling working for edge cases
+
+---
+
+#### US-012: Button Cooldown System
+**As a system administrator**, I want to prevent users from overwhelming the server by rapidly clicking AI and Random buttons so that the platform remains stable and performant.
+
+**Acceptance Criteria:**
+- [x] "Ask AI" button has 15-second cooldown after each click
+- [x] "Random" icebreaker button has 15-second cooldown after each click  
+- [x] Buttons show countdown timer during cooldown: "Ask AI (14s)", "Random (13s)", etc.
+- [x] Buttons become visually disabled (grayed out) during cooldown
+- [x] Tooltip shows "Please wait X seconds" during cooldown period
+- [x] Users cannot trigger actions during cooldown period
+- [x] Cooldown timers are independent for each button
+- [x] Visual feedback works in both light and dark themes
+
+**Technical Notes:**
+- Client-side state management with useState for cooldown tracking
+- Individual setInterval timers for each button's countdown
+- CSS disabled states with opacity and cursor changes
+- Proper cleanup of timers on component unmount to prevent memory leaks
+- Button text dynamically updates to show remaining cooldown seconds
+
+**Security Considerations:**
+- Prevents abuse of AI API endpoints that have usage costs
+- Reduces server load from rapid-fire requests
+- Client-side enforcement sufficient as server has its own rate limiting
+
+**Definition of Done:**
+- Cooldown system prevents rapid button clicking
+- Visual feedback clearly indicates when buttons will be available again
+- No memory leaks from timer management
+- Consistent behavior across light and dark themes
+
+---
+
+#### US-013: Document Character Limit System
+**As a system administrator**, I want to limit document size to prevent server crashes and ensure performance so that all users have a stable experience.
+
+**Acceptance Criteria:**
+- [x] Document content limited to 5,000 characters maximum
+- [x] Real-time character counter displays current usage: "1,234 / 5,000 characters"
+- [x] Character counter appears in bottom-right corner of text area
+- [x] Counter shows warning state at 90% of limit (yellow background)
+- [x] Counter shows error state at 100% of limit (red background with pulsing)
+- [x] Users cannot type new characters when at the limit
+- [x] Large paste operations are intelligently truncated to fit available space
+- [x] Users get toast notifications when paste is truncated or limit reached
+- [x] Server-side validation rejects documents exceeding the limit
+- [x] Limit applies to both Live editor and Draft editor modes
+- [x] Character count includes all characters (spaces, newlines, punctuation)
+
+**Technical Notes:**
+- Client-side prevention using onKeyPress and onPaste handlers
+- Server-side validation with MAX_DOCUMENT_CHARS environment variable
+- Smart paste truncation preserves as much content as possible within limits
+- Character counter uses absolute positioning relative to editor container
+- Real-time updates on every keystroke and content change
+- Toast notifications provide clear feedback about limit enforcement
+
+**Performance Considerations:**
+- 5,000 character limit chosen to balance usability with server stability
+- Prevents memory exhaustion from extremely large documents
+- Reduces network traffic for document synchronization
+- Improves rendering performance for all users
+
+**Definition of Done:**
+- Character limits enforced on both client and server
+- Visual feedback clearly shows usage and remaining capacity
+- Paste truncation works smoothly without breaking user workflow
+- Counter positioned cleanly within editor interface
+- Both Live and Draft modes respect the character limits
 
 ---
 
@@ -445,6 +517,9 @@ VITE_SESSION_KEEPALIVE_INTERVAL=30000
 # AI Integration (Optional)
 VITE_ASK_AI_MAX_CHARS=500
 VITE_AUDIO_VOLUME=0.8
+
+# Document Limits
+VITE_MAX_DOCUMENT_CHARS=5000
 ```
 
 #### Backend Configuration
@@ -460,6 +535,9 @@ SCHOOL_NAMES=906484:Earl of March Secondary School,894362:Bell High School
 # AI Integration (Optional)
 COHERE_API_KEY=your_api_key_here
 COHERE_MODEL=command-r-plus
+
+# Document Limits
+MAX_DOCUMENT_CHARS=5000
 ```
 
 ### 4.2 Deployment Architecture

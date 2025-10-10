@@ -8,7 +8,8 @@ function Toolbar({
   leaveSession,
   onFileShare,
   onRandomIcebreaker,
-  isConnected
+  isConnected,
+  randomCooldown
 }) {
   const handleFileShare = () => {
     const input = document.createElement('input');
@@ -39,10 +40,11 @@ function Toolbar({
       <button 
         id="random-icebreaker-btn"
         onClick={onRandomIcebreaker}
-        className="share-button"
-        title="Generate a random icebreaker for the meeting"
+        className={`share-button ${randomCooldown > 0 ? 'disabled' : ''}`}
+        disabled={randomCooldown > 0}
+        title={randomCooldown > 0 ? `Please wait ${randomCooldown} seconds` : "Generate a random icebreaker for the meeting"}
       >
-        🎲 Random
+        🎲 {randomCooldown > 0 ? `Random (${randomCooldown}s)` : 'Random'}
       </button>
       <button 
         id="leave-session-btn"

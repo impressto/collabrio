@@ -1,769 +1,374 @@
 # Collabrio - Real-time Collaborative Text Editor
+## Technical Specification Document
 
-*Technical Specification Document*  
-*Last Updated: October 9, 2025 - Audio System & Social Sharing Complete*
-
----
-
-## 📋 Project Overview
-
-This project enables two or more clients to connect directly using WebRTC and collaborate on a shared text document. When one client edits the text, the changes are instantly reflected in all other clients' interfaces. Similarly, when a client shares a file, it becomes accessible to all participants in the session.
-
-Additionally, a permanent storage option will allow clients to save their shared text to a server. When users return to the same session, the system can restore the document from the server, reinitializing it with the previously saved content.
-
-### Key Details
-
-**🎯 Purpose:** To allow one or more people to collaborate on a single body of text. 
-
-## ⚙️ Functional Requirements
-
-### User Stories
-
-#### Core Collaboration
-- 📖 **As a user**, I want to explicitly create a new session so that I control when collaboration begins
-  - **Acceptance Criteria:** 
-    - ✅ "Create New Session" button on landing page
-    - ✅ Button generates unique session ID and redirects to session
-    - ✅ Session ID visible in interface after creation
-    - 🔄 Multiple users can join same session via shared URL (needs testing)
-- 📖 **As a user**, I want to be unable to access collaborative features without a valid session
-  - **Acceptance Criteria:**
-    - ✅ Landing page shows session creation interface
-    - ✅ No auto-generated sessions on page load
-    - ✅ Clear messaging about needing to create or join session
-- 📖 **As a user**, I want to leave a session and return to the landing page
-  - **Acceptance Criteria:**
-    - ✅ "Leave Session" button in collaborative interface
-    - ✅ Button disconnects from session and returns to landing page
-    - ✅ Session state is cleared when leaving
-- 📖 **As a user**, I want to click a "share" button and get a QR code in a modal that I can scan with a phone
-  - **Acceptance Criteria:**
-    - ✅ Share button opens modal with QR code
-    - ✅ QR code contains full session URL
-    - ✅ Link is copyable to clipboard
-- 📖 **As a user**, I want to type text and see it appear instantly on other users' screens
-  - **Acceptance Criteria:**
-    - ✅ Real-time text synchronization works
-    - ✅ No significant delay between typing and appearing
-    - ✅ Cursor position preserved during updates
-    - ✅ New users joining sessions see existing document content immediately
-
-#### User Experience Enhancements
-- 📖 **As a user**, I want visual feedback when I copy links or document content
-  - **Acceptance Criteria:**
-    - ✅ Toast notifications appear for copy operations
-    - ✅ Toasts automatically disappear after 3 seconds
-    - ✅ Toast styling matches app theme (light/dark)
-    - ✅ No more intrusive browser alert() dialogs
-- 📖 **As a user**, I want to easily copy the document content to my clipboard
-  - **Acceptance Criteria:**
-    - ✅ Copy icon (⧉) appears in top-right corner of editor
-    - ✅ Clicking icon copies all document text
-    - ✅ Toast confirmation appears after copying
-    - ✅ Icon styling matches app theme
-- 📖 **As a user**, I want to switch between light and dark themes for better visual comfort
-  - **Acceptance Criteria:**
-    - ✅ Theme toggle icon in toolbar (🌙/☀️)
-    - ✅ Complete dark theme covering all UI components
-    - ✅ Theme preference saved in localStorage
-    - ✅ Theme persists across browser sessions
-    - ✅ Smooth visual transitions between themes
-- 📖 **As a user**, I want a clean, simple interface with organized components
-  - **Acceptance Criteria:**
-    - ✅ Modular component architecture (LandingPage, Header, Toolbar, Editor, etc.)
-    - ✅ Consistent styling and layout patterns
-    - ✅ Responsive design for mobile and desktop
-    - ✅ Professional logo and branding integration
-
-#### Social Media Integration
-- 📖 **As a user**, I want proper previews when sharing Collabrio links on social media
-  - **Acceptance Criteria:**
-    - ✅ Open Graph meta tags for Facebook sharing
-    - ✅ og:image displays Collabrio logo in social previews
-    - ✅ og:title and og:description provide clear app description
-    - ✅ Twitter Card support for enhanced Twitter sharing
-    - ✅ Proper image dimensions and HTTPS URLs for reliable preview display
-    - ✅ Comprehensive meta tags including og:image:width, og:image:height, og:image:alt
-
-#### File Sharing (Ephemeral)
-- 📖 **As a user**, I want to drag and drop a single file to share it with other session participants
-  - **Acceptance Criteria:**
-    - 🔄 Drag-and-drop interface for single files in collaborative editor area
-    - 🔄 Visual feedback during drag operations (highlight drop zone)
-    - 🔄 File upload progress indicator for large files
-    - 🔄 Single file selection only (no batch uploads)
-    - 🔄 File size limits with clear error messages (e.g., 10MB per file)
-    - 🔄 File type restrictions with whitelist/blacklist capability
-- 📖 **As a user**, I want to click a "Share File" button to select and upload a single file
-  - **Acceptance Criteria:**
-    - 🔄 File picker button accessible in session toolbar
-    - 🔄 Standard file selection dialog (single file only)
-    - 🔄 Preview of selected file before upload
-    - 🔄 Cancel upload option during file selectionuser**, I want to click a "Share File" button to select and upload a single file
-  - **Acceptance Criteria:**
-    - 🔄 File picker button accessible in session toolbar
-    - 🔄 Standard file selection dialog (single file only)
-    - 🔄 Preview of selected file before upload
-    - 🔄 Cancel upload option during file selectioneral)
-- 📖 **As a user**, I want to drag and drop a single file to share it with other session participants
-  - **Acceptance Criteria:**
-    - 🔄 Drag-and-drop interface for single files in collaborative editor area
-    - 🔄 Visual feedback during drag operations (highlight drop zone)
-    - 🔄 File upload progress indicator for large files
-    - 🔄 File size limits with clear error messages (e.g., 10MB per file)
-    - 🔄 File type restrictions with whitelist/blacklist capability
-- 📖 **As a user**, I want to click a "Share File" button to select and upload a single filee Sharing Specification Complete*
+**Project Name:** Collabrio  
+**Version:** 2.0  
+**Last Updated:** October 9, 2025  
+**Status:** Production Ready  
+**Repository:** `/home/impressto/work/impressto/homeserver/www/homelab/collabrio`
 
 ---
 
-## 📋 Project Overview
+## 1. Project Overview
 
-This project enables two or more clients to connect directly using WebRTC and collaborate on a shared text document. When one client edits the text, the changes are instantly reflected in all other clients’ interfaces. Similarly, when a client shares a file, it becomes accessible to all participants in the session.
+### 1.1 Purpose Statement
+Create a web-based collaborative text editor that enables multiple users to edit a shared document in real-time through browser communication, with fallback server support for restricted networks.
 
-Additionally, a permanent storage option will allow clients to save their shared text to a server. When users return to the same session, the system can restore the document from the server, reinitializing it with the previously saved content.
+### 1.2 Success Criteria
+- ✅ Multiple users can collaborate on text in real-time
+- ✅ No user authentication required - anonymous collaboration  
+- ✅ Sessions are shareable via URL with QR code support
+- ✅ Works on desktop and mobile browsers
+- ✅ Falls back gracefully when peer-to-peer communication is blocked
 
-### Key Details
+### 1.3 Key Stakeholders
+- **Primary Users:** Remote teams, students, writers needing quick collaboration
+- **Secondary Users:** Developers integrating collaborative features  
+- **Technical Users:** System administrators deploying the solution
 
-**🎯 Purpose:** To allow one or more people to collaborate on a single body of text. 
+### 1.4 Success Metrics
+- Session creation time < 3 seconds
+- Real-time sync latency < 100ms
+- Support for 5+ concurrent users per session
+- 99%+ uptime for WebSocket fallback server
 
-## ⚙️ Functional Requirements
+---
 
-### User Stories
+## 2. Core User Stories
 
-#### Core Collaboration
-- 📖 **As a user**, I want to explicitly create a new session so that I control when collaboration begins
-  - **Acceptance Criteria:** 
-    - ✅ "Create New Session" button on landing page
-    - ✅ Button generates unique session ID and redirects to session
-    - ✅ Session ID visible in interface after creation
-    - 🔄 Multiple users can join same session via shared URL (needs testing)
-- 📖 **As a user**, I want to be unable to access collaborative features without a valid session
-  - **Acceptance Criteria:**
-    - ✅ Landing page shows session creation interface
-    - ✅ No auto-generated sessions on page load
-    - ✅ Clear messaging about needing to create or join session
-- 📖 **As a user**, I want to leave a session and return to the landing page
-  - **Acceptance Criteria:**
-    - ✅ "Leave Session" button in collaborative interface
-    - ✅ Button disconnects from session and returns to landing page
-    - ✅ Session state is cleared when leaving
-- 📖 **As a user**, I want to click a "share" button and get a QR code in a modal that I can scan with a phone
-  - **Acceptance Criteria:**
-    - ✅ Share button opens modal with QR code
-    - ✅ QR code contains full session URL
-    - ✅ Link is copyable to clipboard
-- 📖 **As a user**, I want to type text and see it appear instantly on other users' screens
-  - **Acceptance Criteria:**
-    - ✅ Real-time text synchronization works
-    - ✅ No significant delay between typing and appearing
-    - ✅ Cursor position preserved during updates
-    - ✅ New users joining sessions see existing document content immediately
+### Epic 1: Session Management
+**Goal:** Users can create, join, and manage collaborative sessions
 
-#### User Experience Enhancements
-- 📖 **As a user**, I want visual feedback when I copy links or document content
-  - **Acceptance Criteria:**
-    - ✅ Toast notifications appear for copy operations
-    - ✅ Toasts automatically disappear after 3 seconds
-    - ✅ Toast styling matches app theme (light/dark)
-    - ✅ No more intrusive browser alert() dialogs
-- 📖 **As a user**, I want to easily copy the document content to my clipboard
-  - **Acceptance Criteria:**
-    - ✅ Copy icon (⧉) appears in top-right corner of editor
-    - ✅ Clicking icon copies all document text
-    - ✅ Toast confirmation appears after copying
-    - ✅ Icon styling matches app theme
-- 📖 **As a user**, I want to switch between light and dark themes for better visual comfort
-  - **Acceptance Criteria:**
-    - ✅ Theme toggle icon in toolbar (🌙/☀️)
-    - ✅ Complete dark theme covering all UI components
-    - ✅ Theme preference saved in localStorage
-    - ✅ Theme persists across browser sessions
-    - ✅ Smooth visual transitions between themes
-- 📖 **As a user**, I want a clean, simple interface with organized components
-  - **Acceptance Criteria:**
-    - ✅ Modular component architecture (LandingPage, Header, Toolbar, Editor, etc.)
-    - ✅ Simplified hosting with direct CSS/JS imports
-    - ✅ App fills entire viewport with no margins
-    - ✅ Consistent branding with logo integration
-    - ✅ Reduced toolbar clutter (removed redundant copy button)
-- 📖 **As a user**, I want to draft messages offline before sharing them live
-  - **Acceptance Criteria:**
-    - ✅ Draft mode accessible via tab interface (Live/Draft)
-    - ✅ Draft content persists in localStorage across sessions
-    - ✅ Visual tabs that look like authentic browser tabs
-    - ✅ Floating action buttons for copy and add-to-live operations
-    - ✅ Draft content copyable with toast notification
-    - ✅ Clear draft button for content reset
-    - ✅ Floating icons instead of traditional buttons for modern UI
+#### US-001: Create New Session
+**As a user**, I want to create a new collaborative session so that I can start collaborating with others.
 
-#### Network Resilience  
-- 📖 **As a user**, when WebRTC is blocked (e.g., on mobile networks), I want to fallback to WebSocket communication
-  - **Acceptance Criteria:**
-    - ✅ WebSocket connection established as primary method
-    - 🔄 WebRTC P2P connection (planned enhancement)
-    - 🔄 Automatic fallback detection (planned)
+**Acceptance Criteria:**
+- [ ] Landing page displays "Create New Session" button prominently
+- [ ] Clicking button generates unique 6-character session ID (format: abc123)
+- [ ] User is redirected to collaborative editor interface  
+- [ ] Session ID is visible and copyable in the interface
+- [ ] Session supports multiple concurrent users (tested with 2+ users)
 
-#### Server Text Injection (Experimental)
-- 📖 **As a system**, I want to inject text messages into collaborative sessions for notifications or bot interactions
-  - **Acceptance Criteria:**
-    - ✅ Server can send text to be inserted into document
-    - ✅ Injected text appears for all clients in session
-    - ✅ Clear distinction between user and system text with [TYPE] formatting
-    - ✅ REST endpoint `/inject-text` for programmatic injection
-- 📖 **As an external system**, I want to inject messages by creating/modifying files that are automatically detected
-  - **Acceptance Criteria:**
-    - 🔄 Server watches for files named `{sessionId}_{type}.txt`
-    - 🔄 File changes trigger automatic text injection
-    - 🔄 File content becomes the injected message
-    - 🔄 Files are processed and cleaned up after injection
-- 📖 **As an admin**, I want to drop text files that automatically inject into sessions based on filename
-  - **Acceptance Criteria:**
-    - 🔄 Server watches for files named `<sessionId>.txt` or `<sessionId>_<type>.txt`
-    - 🔄 File changes trigger automatic text injection into matching session
-    - 🔄 File content is injected and file is processed/archived
-    - 🔄 Support for different message types via filename patterns
+**Technical Notes:**
+- Session IDs use base36 encoding (0-9, a-z) for URL safety
+- Total possible combinations: 36^6 = 2.1 billion
+- Collision probability negligible for expected usage
 
-#### AI Integration (Cohere API)
-- 📖 **As a user**, I want to select text and ask an AI assistant about it
-  - **Acceptance Criteria:**
-    - ✅ Text selection shows "Ask AI" button in editor tabs
-    - ✅ Clicking button sends selected text to server via socket
-    - ✅ Server shows "waiting" message then calls Cohere AI API
-    - ✅ Real AI responses from Cohere's command-r-03-2024 model
-- 📖 **As a user**, I want AI responses to appear in the collaborative document
-  - **Acceptance Criteria:**
-    - ✅ AI queries formatted as `[AI Query: "selected text"]`
-    - ✅ Real-time updates: "waiting" → actual AI response
-    - ✅ AI responses clearly formatted as `[AI Response: response text]`
-    - ✅ Error handling with graceful fallback messages
-- 📖 **As an administrator**, I want usage protection to prevent excessive API token consumption
-  - **Acceptance Criteria:**
-    - ✅ Ask AI button hidden when selection exceeds configurable character limit
-    - ✅ Warning message displayed for selections over character limit
-    - ✅ Character limit configurable via VITE_ASK_AI_MAX_CHARS environment variable
-    - ✅ Clear user feedback about character limits to prevent confusion
-    - ✅ Dynamic warning message shows actual configured limit
-    - ✅ Safeguards against accidental "select all" + Ask AI scenarios
-- 📖 **As a user**, I want audio feedback while waiting for AI responses
-  - **Acceptance Criteria:**
-    - ✅ Timer audio (timer.mp3) plays in loop when "Ask AI" is clicked
-    - ✅ Audio automatically stops when AI response is received
-    - ✅ Volume configurable via VITE_AUDIO_VOLUME environment variable
-    - ✅ Audio works consistently on repeated AI requests
-    - ✅ Proper promise handling prevents audio interruption errors
-    - ✅ Audio detection based on `[AI Response:` occurrence count
-    - ✅ AudioManager class for centralized audio management
-- 📖 **As a user**, I want audio feedback when users join or leave collaborative sessions
-  - **Acceptance Criteria:**
-    - ✅ Chime sound (chime.mp3) plays when users join existing sessions
-    - ✅ Leave sound (leave.mp3) plays when users depart from sessions  
-    - ✅ Sound effects configurable via VITE_SOUND_EFFECTS environment variable
-    - ✅ Volume configurable via VITE_SOUND_EFFECTS_VOLUME environment variable
-    - ✅ Real-time server event handling for accurate user join/leave detection
-    - ✅ Enhanced debugging with comprehensive audio logging system
-- 📖 **Technical Implementation**
-  - **Socket Event:** `ask-ai` with payload `{sessionId, selectedText}`
-  - **AI Provider:** Cohere API (cohere-ai npm package v7.19.0)
-  - **Model:** command-a-03-2025 with temperature 0.3 (configurable via COHERE_MODEL env var)
-  - **Security:** API key stored in environment variables
-  - **Error Handling:** Network failures show user-friendly error messages
-  - **Audio System:** AudioManager class with centralized audio management and preloading
-  - **Audio Configuration:** Volume, enable/disable, and URL configurable via environment variables
-  - **Logging:** Enhanced server logging shows API metadata without exposing user content
-  - **Sound Effects:** User join/leave audio events with real-time server synchronization
+**Definition of Done:** 
+- Session creation tested with multiple browsers
+- Session ID validation working  
+- Multi-user collaboration verified
 
-#### File Sharing
-- 📖 **As a user**, I want to drag and drop files to share them with other session participants
-  - **Acceptance Criteria:**
-    - 🔄 Drag-and-drop interface for files in collaborative editor area
-    - 🔄 Visual feedback during drag operations (highlight drop zone)
-    - � File upload progress indicator for large files
-    - 🔄 Support for multiple file selection and batch upload
-    - 🔄 File size limits with clear error messages (e.g., 10MB per file)
-    - 🔄 File type restrictions with whitelist/blacklist capability
-- �📖 **As a user**, I want to click a "Share File" button to select and upload files
-  - **Acceptance Criteria:**
-    - 🔄 File picker button accessible in session toolbar
-    - 🔄 Standard file selection dialog
-    - 🔄 Multiple file selection support
-    - 🔄 Preview of selected files before upload
-    - 🔄 Cancel upload option during file selection
-- 📖 **As a user**, I want to receive immediate notifications when someone shares a file
-  - **Acceptance Criteria:**
-    - 🔄 Toast notification appears when another user shares a file
-    - 🔄 Notification shows filename, file size, and sender (if applicable)
-    - 🔄 Download and dismiss buttons available in notification
-    - 🔄 Notification auto-dismisses after 30 seconds if ignored
-    - 🔄 Visual/audio notification options for file sharing events
-- 📖 **As a user**, I want to download files shared by other participants immediately
-  - **Acceptance Criteria:**
-    - 🔄 One-click download directly from notification
-    - 🔄 Download progress indicator for large files
-    - 🔄 Original filename preservation
-    - 🔄 File integrity verification (checksums)
-    - 🔄 Automatic file cleanup after download or timeout
-- 📖 **As a user**, I understand that file sharing is ephemeral and real-time only
-  - **Acceptance Criteria:**
-    - 🔄 Clear messaging that files are only available when shared (no persistent storage)
-    - 🔄 No file history or list of previously shared files
-    - 🔄 Files automatically expire if not downloaded within reasonable time (5 minutes)
-    - 🔄 New session joiners do not see previously shared files
-    - 🔄 Simple, lightweight file sharing focused on immediate collaboration needs
+---
 
-## 🔧 Technical Requirements for File Sharing (Ephemeral)
+#### US-002: Join Existing Session  
+**As a user**, I want to join an existing session so that I can collaborate with others.
 
-### File Upload & Storage
-- **File Size Limits:** Maximum 10MB per file (single file only, no batch uploads)
-- **File Types:** Support common file types with configurable whitelist/blacklist
-  - **Allowed:** Documents (pdf, doc, docx, txt, md), Images (jpg, jpeg, png, gif, svg), Archives (zip, tar, gz), Code (js, py, css, html, json)
-  - **Blocked:** Executables (exe, bat, sh, app), System files (dll, sys), Potentially dangerous (scr, vbs, jar)
-- **Storage Method:** Minimal temporary server-side storage for active transfers only
-- **File Persistence:** Files available only during active transfer (5-minute timeout)
-- **Cleanup Policy:** Immediate deletion after download completion or 5-minute timeout
+**Acceptance Criteria:**
+- [ ] Landing page provides session ID input field
+- [ ] Valid session IDs redirect user to collaborative editor
+- [ ] Invalid session IDs display helpful error message
+- [ ] Users joining sessions see current document content immediately
+- [ ] Session participant count updates in real-time
 
-### Upload/Download Protocol
-- **Primary Method:** WebSocket-based chunked transfer for broad compatibility
-- **Future Enhancement:** WebRTC peer-to-peer for direct file transfer
-- **Chunk Size:** 64KB chunks for optimal memory usage and progress tracking
-- **Progress Tracking:** Real-time upload/download progress for files >1MB
-- **Error Handling:** Simple retry mechanism, no resumable uploads needed
-- **Concurrency:** Single file transfer per user (no simultaneous transfers)
+**Technical Notes:**
+- Server maintains document state for active sessions
+- New joiners receive full document sync on connection
+- Session cleanup occurs when all users disconnect
 
-### File Metadata Management
-- **File Information:** Original filename, size, MIME type, upload timestamp
-- **Unique Identifiers:** Simple server-generated file IDs for active transfers
-- **Integrity Verification:** Basic checksum validation for transfer accuracy
-- **Session Association:** Files tied to specific session IDs for security
-- **No Persistence:** No file history, lists, or permanent storage
+**Definition of Done:** 
+- Session joining tested with multiple browsers
+- Error handling verified for invalid session IDs
+- Document sync confirmed for late joiners
 
-### Security & Validation
-- **File Scanning:** MIME type verification, extension validation
-- **Size Validation:** Client and server-side file size limits
-- **Rate Limiting:** Maximum 3 file uploads per 5 minutes per user
-- **Authentication:** Files accessible only to active session participants
-- **Privacy:** No file storage, immediate cleanup ensures complete privacy
+---
 
-### UI/UX Integration
-- **No File Panel:** No dedicated files tab or persistent file list
-- **Drag & Drop:** Drop zone overlay with visual feedback for immediate sharing
-- **Progress Indicators:** Upload/download progress bars with percentage and ETA
-- **Notification System:** Enhanced toast notifications with download/dismiss actions
-- **Responsive Design:** File notifications work on mobile and desktop
-- **Theme Integration:** File notifications support light/dark themes
+#### US-003: Share Session Access
+**As a user**, I want to share my session with others so they can join easily.
 
-### WebSocket Events (New)
-- **file-share:** Client initiates file sharing with metadata and transfer initiation
-- **file-chunk:** Binary chunk transfer events for real-time delivery
-- **file-available:** Notification to all session users that a file is ready for download
-- **file-download:** Download request from notification recipient
-- **file-expired:** Automatic cleanup notification when file times out
+**Acceptance Criteria:** 
+- [ ] Share button opens modal with session link
+- [ ] Modal displays QR code for mobile access
+- [ ] Session link is copyable to clipboard with toast confirmation
+- [ ] QR code contains complete session URL (protocol + domain + hash)
+- [ ] Links work across different devices and browsers
 
-### Server-Side Requirements
-- **Minimal Storage:** In-memory temporary storage for active transfers only
-- **Immediate Cleanup:** Files deleted immediately after download or 5-minute timeout
-- **Memory Management:** Streaming transfers to prevent memory buildup
-- **Error Logging:** Basic logging for transfer operations and errors
-- **Configuration:** Environment variables for file size limits, allowed types, timeout duration
+**Technical Notes:**
+- QR codes generated client-side using qrcode.js library
+- Full URLs include protocol and domain for universal compatibility
+- Toast notifications replace browser alerts for better UX
 
-### Features
+**Definition of Done:** 
+- QR codes tested on mobile devices
+- Link sharing verified across platforms
+- Toast notifications working consistently
 
-#### webRTC connection by default
+---
 
-The clients will have a common url, using a hack in the url, to allow them to establish a common connection via WebRTC
+### Epic 2: Real-time Collaboration  
+**Goal:** Multiple users can edit documents simultaneously
 
-- **Priority:** High
-- **Status:** Planned (WebSocket foundation complete, ready for WebRTC layer)
+#### US-004: Real-time Text Editing
+**As a user**, I want to see other users' changes instantly so we can collaborate effectively.
 
-#### fallback to the use of webSockets
+**Acceptance Criteria:**
+- [ ] Text changes appear in real-time (< 100ms local network delay)
+- [ ] Cursor position is preserved during updates  
+- [ ] No conflicts when multiple users type simultaneously
+- [ ] Document state persists when users join/leave session
+- [ ] Large documents (1000+ words) maintain performance
 
-If webRTC is fully blocked by a mobile network, allow a fallback to using a websocket server. The source code for the socket server will be part of this project.
+**Technical Notes:**
+- Primary: WebRTC peer-to-peer communication for low latency
+- Fallback: WebSocket server communication for restricted networks
+- Document changes broadcast to all session participants
+- Server-side document storage for session persistence
 
-- **Priority:** High
-- **Status:** ✅ Completed (WebSocket connection working, tested multi-user collaboration)
+**Definition of Done:** 
+- Multi-user editing tested under various network conditions
+- Performance verified with large documents
+- Conflict resolution working correctly
 
-#### Anonymous usage
+---
 
-All usage will be anonymous. Users will need the specific url and hash to share a session, but otherwise there will be no authentication
+#### US-005: Network Resilience
+**As a user**, I want the system to work even when peer-to-peer connections are blocked.
 
-- **Priority:** Medium
-- **Status:** ✅ Completed (URL hash-based sessions working)
+**Acceptance Criteria:**
+- [ ] WebSocket connection established as fallback method
+- [ ] Automatic detection and fallback when WebRTC fails
+- [ ] Consistent functionality regardless of connection method
+- [ ] Connection status clearly indicated to users
+- [ ] Reconnection attempts on network interruption
 
-#### QR Code sharing
+**Technical Notes:**
+- Node.js + Socket.IO server for WebSocket communication
+- Graceful degradation from P2P to server-mediated
+- Connection health monitoring and status display
 
-Users can share sessions via QR code for easy mobile access
+**Definition of Done:**
+- WebSocket fallback tested on mobile networks
+- Connection switching verified
+- Reconnection logic working
 
-- **Priority:** Medium
-- **Status:** ✅ Completed (QR modal with shareable links)
+---
 
-#### Real-time collaborative editing
+### Epic 3: User Experience
+**Goal:** Provide intuitive, accessible interface for collaboration
 
-Multiple users can edit the same document simultaneously with live updates
+#### US-006: Visual Feedback System
+**As a user**, I want clear feedback for my actions so I know when things work.
 
-- **Priority:** High
-- **Status:** ✅ Completed (Multi-user real-time text synchronization working)
+**Acceptance Criteria:**
+- [ ] Toast notifications for copy operations (no browser alerts)
+- [ ] Connection status clearly visible (connected/disconnected)
+- [ ] User count displays number of active participants  
+- [ ] Loading states for actions that take time
+- [ ] Error messages are helpful and actionable
 
-#### Session joining functionality
+**Technical Notes:**
+- Toast notification system with auto-dismissal (3 second timeout)
+- Real-time connection status monitoring
+- Progressive enhancement for user feedback
 
-Users can manually join specific sessions by entering session IDs
+**Definition of Done:** 
+- All user actions provide appropriate feedback
+- Tested across major browsers (Chrome, Firefox, Safari, Edge)
+- Accessibility compliance verified
 
-- **Priority:** Medium
-- **Status:** ✅ Completed (Session input field added for easy collaboration setup)
+---
 
-## 🔧 Technical Requirements
+#### US-007: Theme Support
+**As a user**, I want to choose between light and dark themes for visual comfort.
 
-### Architecture Overview
+**Acceptance Criteria:**
+- [ ] Theme toggle button accessible in toolbar (🌙/☀️ icons)
+- [ ] Complete dark theme covering all UI components
+- [ ] Theme preference saved in localStorage
+- [ ] Theme persists across browser sessions
+- [ ] Smooth visual transitions between themes
 
-Component-based React frontend with Node.js WebSocket backend. The application uses a modular architecture with isolated components for maintainability and a simplified hosting approach with direct asset imports.
+**Technical Notes:**
+- CSS custom properties for consistent theming
+- localStorage persistence for user preferences
+- Scoped CSS under `.collabrio-app` for embedding safety
 
-#### Frontend Architecture
-- **Component Structure:** Modular React components (LandingPage, Header, Toolbar, Editor, ShareModal, Toast)
-- **State Management:** React hooks with localStorage persistence for theme preferences
-- **Styling:** CSS isolation with `.collabrio-app` namespace for safe embedding
-- **Build System:** Vite with environment variable configuration
-- **Hosting:** Simplified PHP wrapper with direct CSS/JS imports
+**Definition of Done:**
+- Dark theme tested across all components
+- Theme persistence working
+- Visual transitions smooth and consistent
 
-#### Backend Architecture  
-- **WebSocket Server:** Node.js with Socket.IO for real-time communication
-- **Document Persistence:** Server-side document storage with automatic cleanup
-- **Text Injection:** REST API and file-based system for external message injection
-- **Session Management:** In-memory session tracking with user count monitoring
-- **Activity Tracking:** Heartbeat mechanism and comprehensive user interaction monitoring to prevent premature session cleanup
-- **Connection Resilience:** Robust client presence detection with automatic cleanup of truly disconnected clients
+---
 
-#### Session Persistence & Reliability
+## 3. Technical Architecture
 
-**Challenge:** Early implementations experienced premature session cleanup where active collaborative sessions were being terminated after 30 seconds of perceived "inactivity," even when users were actively collaborating. This caused the text injection API to fail and sessions to be lost unexpectedly.
+### 3.1 System Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Client A      │    │   Client B      │    │   Client C      │
+│   (React App)   │    │   (React App)   │    │   (React App)   │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │  WebSocket      │
+                        │  Server         │
+                        │  (Node.js)      │
+                        └─────────────────┘
+```
 
-**Root Cause:** The session cleanup system was only tracking activity on specific events (`join-session` and `presence`) but not on core collaboration activities like document editing. Additionally, conflicting cleanup mechanisms created race conditions.
-
-**Solution Implemented (October 2025):**
-1. **Comprehensive Activity Tracking:** All user interactions now update client activity timestamps:
-   - Document changes (primary collaboration activity)
-   - WebRTC signaling
-   - Client list requests
-   - Direct messages
-   - File sharing operations
-
-2. **Automatic Heartbeat System:** Each connected client maintains a 15-second heartbeat that automatically updates their activity status, ensuring connected clients are never considered "inactive" regardless of interaction frequency.
-
-3. **Cleanup Race Condition Fix:** Separated client cleanup logic from client list retrieval to prevent premature session removal during status updates.
-
-4. **Enhanced Disconnect Handling:** Proper cleanup of heartbeat intervals and immediate client removal when clients actually disconnect.
-
-**Result:** Sessions now persist reliably during active collaboration, text injection API works consistently after extended periods, and cleanup only occurs when clients genuinely disconnect.
-
-### 💻 Technologies
+### 3.2 Technology Stack
 
 #### Frontend
-- React (UI framework)
-- Vite (build tool and dev server)
-- Yarn (package manager)
+- **Framework:** React 18 with hooks
+- **Build Tool:** Vite for fast development and optimized builds
+- **Package Manager:** Yarn for reliable dependency management
+- **Styling:** CSS with scoped classes for embedding safety
 
-#### Backend
-- Node.js (runtime)
-- Socket.IO (WebSocket communication)
-- Express (web server)
+#### Backend  
+- **Runtime:** Node.js 18+
+- **WebSocket Library:** Socket.IO for reliable real-time communication
+- **Process Management:** PM2 for production deployment
+- **File Watching:** Chokidar for message injection system
 
-### ⚙️ Environment Configuration
+#### Development Tools
+- **Environment Management:** Vite environment variables
+- **Code Organization:** Component-based architecture
+- **Documentation:** Markdown with decision tracking
 
-#### Frontend Environment Variables
-- **VITE_SOCKET_SERVER_URL** - WebSocket server URL (default: http://localhost:3000)
-- **VITE_DEBUG** - Debug logging control (default: false)
-- **VITE_RECONNECTION_ATTEMPTS** - Socket reconnection settings (default: 5)
-- **VITE_SESSION_KEEPALIVE_INTERVAL** - Session maintenance interval (default: 30000ms)
-- **VITE_BASE_URL** - Base URL for asset loading (default: http://localhost:5174)
-- **VITE_AUDIO_VOLUME** - AI timer audio volume (default: 0.8, range: 0.0-1.0)
-- **VITE_SOUND_EFFECTS** - Enable/disable user join/leave sounds (default: true)
-- **VITE_SOUND_EFFECTS_VOLUME** - User sound effects volume (default: 0.6, range: 0.0-1.0)
-- **VITE_ASK_AI_MAX_CHARS** - Maximum characters allowed for Ask AI feature (default: 500)
+### 3.3 Component Architecture
+```
+App.jsx (State Management)
+├── LandingPage.jsx (Session Creation/Joining)
+├── Header.jsx (Branding & Status)  
+├── Toolbar.jsx (Actions & Controls)
+├── Editor.jsx (Collaborative Text Area)
+├── ShareModal.jsx (QR Code & Links)
+└── Toast.jsx (User Notifications)
+```
 
-#### Backend Environment Variables  
-- **COHERE_API_KEY** - Cohere AI API key for AI integration
-- **COHERE_MODEL** - AI model selection (default: command-a-03-2025)
-- **PORT** - Server port (default: 3000)
+### 3.4 Communication Protocol
 
-### 🏗️ Infrastructure
+#### WebSocket Events
+- `join-session`: User joins collaborative session
+- `leave-session`: User leaves session  
+- `document-change`: Text content updates
+- `user-count-update`: Participant count changes
+- `server-text-injection`: Automated message insertion
 
-For now we will be deploying manually
-
-## 🧪 Testing & Validation
-
-### Acceptance Tests
-
-#### Multi-User Collaboration
-- [ ] **Test Case 1:** Session creation workflow
-  - 🔄 **PENDING** - Landing page shows session creation interface
-  - 🔄 **PENDING** - "Create New Session" button generates valid session
-  - 🔄 **PENDING** - Users can join session via shared URL
-- [ ] **Test Case 2:** Multi-user collaboration
-  - 🔄 **PENDING** - Two users in same session can collaborate
-  - 🔄 **PENDING** - Real-time text synchronization works
-  - 🔄 **PENDING** - User count updates correctly
-- [ ] **Test Case 2:** Session isolation
-  - ✅ **PASSED** - Different sessions remain separate
-  - ✅ **PASSED** - Users cannot see other sessions' content
-
-#### User Interface
-- [ ] **Test Case 3:** QR Code sharing
-  - ✅ **PASSED** - QR modal opens and displays code
-  - ✅ **PASSED** - Link copying works with toast notifications
-  - 🔄 **PENDING** - Mobile device QR scanning test
-- [ ] **Test Case 4:** Responsive design & Components
-  - ✅ **PASSED** - Desktop browser compatibility
-  - ✅ **PASSED** - Component-based architecture implemented
-  - ✅ **PASSED** - Dark theme toggle with persistence
-  - ✅ **PASSED** - Toast notification system
-  - ✅ **PASSED** - Document content copy functionality
-  - ✅ **PASSED** - Simplified index.php for direct CSS/JS imports
-  - 🔄 **PENDING** - Mobile browser testing
-  - 🔄 **PENDING** - Tablet testing
-
-#### Network & Performance
-- [ ] **Test Case 5:** Connection handling
-  - ✅ **PASSED** - WebSocket connection establishment
-  - ✅ **PASSED** - Connection status indicators
-  - 🔄 **PENDING** - Reconnection on network interruption
-- [ ] **Test Case 6:** Performance under load
-  - 🔄 **PENDING** - Multiple concurrent users (>5)
-  - 🔄 **PENDING** - Large document handling
-  - 🔄 **PENDING** - Network latency testing
-- [ ] **Test Case 7:** Server text injection
-  - ✅ **PASSED** - REST endpoint accepts injection requests
-  - ✅ **PASSED** - Text appears in all clients' documents
-  - ✅ **PASSED** - Different message types (system, bot, admin)
-  - ✅ **PASSED** - Proper formatting with [TYPE] labels
-- [ ] **Test Case 8:** Audio feedback system
-  - ✅ **PASSED** - AI timer audio plays during processing
-  - ✅ **PASSED** - Audio stops when response received
-  - ✅ **PASSED** - User join/leave sound effects working
-  - ✅ **PASSED** - Volume controls via environment variables
-  - ✅ **PASSED** - AudioManager system reliability
-
-## 🚀 File Sharing Implementation Plan (Ephemeral)
-
-### Phase 1: Basic File Transfer (Week 1)
-**Goal:** Single file sharing with immediate notification system
-- [ ] **Server-side file handling:** Create temporary upload/download endpoint with 5-minute timeout
-- [ ] **Client-side upload UI:** File picker button and drag-and-drop zone (single file only)
-- [ ] **WebSocket events:** Implement file-share, file-chunk, file-available events
-- [ ] **File validation:** Size limits, type checking, basic security validation
-- [ ] **Notification system:** Enhanced toast with download/dismiss buttons
-
-### Phase 2: Real-time Delivery (Week 2)  
-**Goal:** Complete the ephemeral sharing workflow
-- [ ] **Download system:** Direct download from notification, progress tracking
-- [ ] **Real-time notifications:** File available notifications to all active session users
-- [ ] **Automatic cleanup:** File deletion after download or 5-minute timeout
-- [ ] **Error handling:** Upload/download failure recovery with user feedback
-- [ ] **Progress indicators:** Upload and download progress for better UX
-
-### Phase 3: Polish & Integration (Week 3)
-**Goal:** Integrate seamlessly with existing UI and ensure reliability
-- [ ] **Theme integration:** File notifications work with light/dark themes
-- [ ] **Responsive design:** Mobile-friendly file sharing interface
-- [ ] **Performance optimization:** Memory management for file transfers
-- [ ] **Rate limiting:** Prevent abuse with upload frequency limits
-- [ ] **Visual feedback:** Clear drag-and-drop zones and upload states
-
-## 👤 Phase 2: User Identification Implementation Plan
-
-### Overview
-Add user identity features to improve collaborative experience by allowing users to identify themselves and choose visual representation. This builds on the anonymous model while adding optional personalization that enhances collaboration without requiring authentication.
-
-### User Stories
-
-#### Username Entry
-- 📖 **As a user**, I want to enter a username when creating or joining a session for the first time
-  - **Acceptance Criteria:**
-    - ✅ Username prompt appears when creating new session (before session creation)
-    - ✅ Username prompt appears when joining existing session (before joining)
-    - ✅ Username prompt appears when accessing session via URL hash
-    - ✅ Funny random username generation using modern slang combinations (e.g., "Rizz Goblin", "Yeet Snacc")
-    - ✅ Smart validation that doesn't penalize auto-generated names
-    - ✅ Username length limits and format validation implemented
-    - ✅ Username uniqueness within session (conflict detection and prevention)
-    - ✅ Username persists in localStorage for future sessions as starting point
-    - 🔄 Username can be changed during session via profile/settings menu
-
-#### Avatar Selection
-- 📖 **As a user**, I want to select an avatar when setting up my identity
-  - **Acceptance Criteria:**
-    - ✅ Avatar selection modal with predefined emoji options
-    - ✅ Grid of 30 diverse avatars (animals, objects, nature emojis)
-    - ✅ Avatar uniqueness within session (taken avatars disabled and marked)
-    - ✅ Automatic avatar assignment for first-time users from available options
-    - ✅ Avatar persists in localStorage for future sessions as starting point
-    - 🔄 Avatar can be changed during session via profile/settings menu
-
-#### Identity Display
-- 📖 **As a user**, I want to see other users' identities in the collaborative interface
-  - **Acceptance Criteria:**
-    - ✅ User list shows avatar and username for each connected user
-    - ✅ File sharing notifications include uploader's identity (avatar + username)
-    - ✅ User counter replaced with identity-aware user list display
-    - ✅ Redundant user count removed (individual users clearly visible)
-    - ✅ Visual distinction for current user vs others (highlighting)
-    - ✅ Responsive design for mobile and desktop viewing
-    - ✅ Connection status moved to toolbar for better space utilization
-    - 🔄 Hover tooltips show full username for truncated names
-    - 🔄 Cursor indicators with username labels (future enhancement)
-
-#### Session Identity Management
-- 📖 **As a user**, I want my identity to be managed seamlessly across session lifecycle
-  - **Acceptance Criteria:**
-    - ✅ Identity prompt appears for every session creation/join (allows session-specific identities)
-    - ✅ Previous identity used as starting point but always editable for each session
-    - 🔄 Clear identity reset option in settings
-    - ✅ Identity conflicts resolved automatically (username numbering, avatar fallbacks)
-    - ✅ Identity lost when browser data cleared (expected privacy behavior)
-    - ✅ No server-side identity storage (maintains privacy model)
-
-### Implementation Phases
-
-#### Phase 2.1: Identity Setup (Week 1) ✅ COMPLETE
-**Goal:** Add username and avatar selection to session creation/joining flow
-- [x] **Identity Modal Component:** Create username input + avatar grid modal
-- [x] **Avatar Assets:** Define emoji/icon set for avatar selection (30 options)
-- [x] **LocalStorage Integration:** Persist username and avatar selection
-- [x] **Session Flow Integration:** Add identity setup to create/join/URL session workflows
-- [x] **Validation Logic:** Username formatting, uniqueness checking, avatar availability
-
-#### Phase 2.2: Identity Display (Week 1-2) ✅ COMPLETE
-**Goal:** Show user identities throughout the application interface
-- [x] **User List Component:** Replace user count with identity list (avatar + username)
-- [x] **File Sharing Integration:** Include uploader identity in file notifications
-- [x] **Identity Conflicts:** Handle duplicate usernames and avatar collisions
-- [x] **Visual Polish:** Consistent identity display styling with theme support
-- [ ] **Header Updates:** Show current user identity in header/profile area
-
-#### Phase 2.3: Identity Management (Week 2) 🔄 PENDING
-**Goal:** Allow users to modify their identity during sessions
-- [ ] **Settings Menu:** Add profile settings accessible from toolbar
-- [ ] **Identity Editor:** Modal to change username and avatar during session
-- [ ] **Real-time Updates:** Broadcast identity changes to other session participants
-- [ ] **Reset Functionality:** Clear stored identity and prompt for new setup
-- [x] **Mobile Optimization:** Touch-friendly identity selection and management
-
-### Technical Requirements
-
-#### Client-Side Identity Storage
-- **Storage Method:** LocalStorage for username and avatar selection
-- **Data Structure:** `{"username": "John", "avatar": "🐱", "timestamp": 1699123456789}`
-- **Persistence:** Survives browser sessions, lost on storage clear
-- **Uniqueness:** Client-side validation with server-side conflict resolution
-- **Default Values:** Auto-generated username ("Anonymous User 1") and random avatar
-
-#### Server-Side Identity Management  
-- **Session Identity Tracking:** Map of sessionId → {userId: {username, avatar}}
-- **Conflict Resolution:** Automatic username numbering, avatar fallback selection
-- **Real-time Sync:** WebSocket events for identity changes and user list updates
-- **No Persistence:** Identity data only exists during active session
-- **Privacy:** No server-side storage, no cross-session identity tracking
-
-#### Avatar System
-- **Avatar Set:** 20-30 predefined emojis/icons representing diverse options
-  - **Animals:** 🐱 🐶 🐺 🦊 🐸 🐢 🦉 🐧 🐘 🦁
-  - **Objects:** ⚡ 🌟 🎯 🎨 🚀 🎸 ⚽ 🎭 🎲 ⭐
-  - **Nature:** 🌺 🌲 🍄 🌙 ☀️ 🌊 🔥 ❄️ 🌈 🍀
-- **Availability Logic:** Show taken avatars as disabled in selection grid
-- **Fallback System:** Auto-assign available avatar if preferred one is taken
-- **Visual Design:** Large, clear avatars optimized for small displays
-
-#### WebSocket Events (New)
-- **user-identity-update:** Broadcast when user changes username or avatar
-- **session-user-list:** Enhanced user list with identity information
-- **identity-conflict:** Server notifies client of identity conflicts requiring resolution
-- **file-share-with-identity:** File sharing events include uploader identity
-
-#### UI/UX Integration
-- **Identity Modal:** Clean, mobile-friendly modal for username input and avatar selection
-- **User List Design:** Compact list showing avatar + username for each connected user
-- **Profile Settings:** Accessible gear icon in toolbar for identity management
-- **File Notifications:** Enhanced notifications showing "📎 document.pdf shared by 🐱 John"
-- **Theme Support:** Identity UI components support light/dark themes
-- **Responsive Design:** Touch-friendly avatar selection grid, mobile-optimized identity forms
-
-### User Experience Flow
-
-#### First-Time Session Creation
-1. User clicks "Create New Session" 
-2. Identity modal appears with username input and avatar grid
-3. User enters username (optional, defaults to "Anonymous User 1")
-4. User selects avatar (optional, random selection if none chosen)
-5. Identity stored in localStorage, session created
-6. User joins session with chosen identity
-
-#### Subsequent Sessions
-1. User clicks "Create New Session" or enters session ID
-2. System checks localStorage for existing identity
-3. If identity exists, user joins directly with stored username/avatar
-4. If conflicts exist, system auto-resolves (adds number to username, selects available avatar)
-5. User can modify identity via settings menu during session
-
-#### Identity Management During Session
-1. User clicks profile/settings icon in toolbar
-2. Identity editor modal opens showing current username and avatar
-3. User can modify username (with validation) and select new avatar
-4. Changes broadcast to all session participants in real-time
-5. File sharing and user list update with new identity immediately
-
-## 🧪 File Sharing Testing Plan
-
-### Functional Testing
-- [ ] **Test Case 1:** Single file upload and download
-  - Upload various file types (documents, images, archives)  
-  - Verify file integrity with checksum comparison
-  - Test progress indicators for large files (>5MB)
-  - Confirm notification appears for all session participants
-- [ ] **Test Case 2:** Ephemeral file operations
-  - Single file uploads by different users (one at a time)
-  - File notification and download workflow
-  - Automatic file cleanup after download or timeout
-  - Real-time notification delivery to all session participants
-- [ ] **Test Case 3:** Session behavior
-  - New joiners do NOT see previously shared files
-  - File timeout after 5 minutes if not downloaded
-  - File cleanup after successful download
-  - No file persistence across session reconnections
-
-### Error & Edge Case Testing
-- [ ] **Test Case 4:** File size and type restrictions  
-  - Upload files exceeding size limits (>10MB)
-  - Attempt to upload blocked file types
-  - Test server response to malformed uploads
-  - Verify client-side validation before upload
-- [ ] **Test Case 5:** Network interruption handling
-  - Upload interruption and resumption
-  - Download failure and retry mechanisms
-  - WebSocket disconnection during file operations
-  - Chunk-level error handling and recovery
-- [ ] **Test Case 6:** Concurrent user scenarios
-  - Single user upload while others are in session
-  - Rate limiting validation (3 uploads per 5 minutes)
-  - Session joining during active file transfer
-  - Notification delivery to multiple users simultaneously
-
-### Performance & Security Testing  
-- [ ] **Test Case 7:** Large file handling
-  - Upload/download files near size limit (10MB)
-  - Memory usage monitoring during transfers
-  - Progress tracking accuracy for large files
-  - Server stability with multiple large transfers
-- [ ] **Test Case 8:** Security validation
-  - Attempt to upload malicious file types
-  - Verify file access restrictions between sessions
-  - Test file path traversal protection
-  - Validate MIME type detection accuracy
-
-### Definition of Done
-For each feature to be considered complete:
-- [ ] Functional requirements met per acceptance criteria
-- [ ] User story acceptance tests pass
-- [ ] Cross-browser compatibility verified
-- [ ] Mobile responsiveness confirmed
-- [ ] Error handling implemented
-- [ ] Documentation updated
+#### Session Management
+- Sessions identified by 6-character alphanumeric codes
+- Server maintains active session list with participant tracking
+- Document state persisted for active sessions
+- Automatic cleanup when sessions become empty
 
 ---
 
-*Document generated by Arcana • October 4, 2025*
+## 4. Configuration & Environment
+
+### 4.1 Environment Variables
+
+#### Frontend Configuration
+```bash
+# Socket server connection
+VITE_SOCKET_SERVER_URL=http://localhost:3000
+
+# Application behavior  
+VITE_DEBUG=false
+VITE_RECONNECTION_ATTEMPTS=5
+VITE_SESSION_KEEPALIVE_INTERVAL=30000
+
+# AI Integration (Optional)
+VITE_ASK_AI_MAX_CHARS=500
+VITE_AUDIO_VOLUME=0.8
+```
+
+#### Backend Configuration
+```bash
+# Server settings
+PORT=3000
+NODE_ENV=production
+
+# AI Integration (Optional)
+COHERE_API_KEY=your_api_key_here
+COHERE_MODEL=command-r-03-2024
+```
+
+### 4.2 Deployment Architecture
+- **Frontend:** Static files served via web server (Apache/Nginx)
+- **Backend:** Node.js WebSocket server on separate port
+- **Process Management:** PM2 for automatic restarts and monitoring
+- **Embedding:** CSS isolation allows safe integration in external sites
+
+---
+
+## 5. Testing Strategy
+
+### 5.1 Functional Testing
+- [ ] Multi-user collaboration (2-5 concurrent users)
+- [ ] Session creation and joining workflows  
+- [ ] Real-time text synchronization accuracy
+- [ ] QR code generation and mobile scanning
+- [ ] Theme switching and persistence
+- [ ] Toast notification system
+
+### 5.2 Technical Testing  
+- [ ] WebSocket connection stability
+- [ ] Document state persistence
+- [ ] Session cleanup on disconnect
+- [ ] Environment variable configuration
+- [ ] CSS isolation for embedding
+- [ ] Performance with large documents
+
+### 5.3 Browser Compatibility
+- [ ] Chrome 90+
+- [ ] Firefox 88+  
+- [ ] Safari 14+
+- [ ] Edge 90+
+- [ ] Mobile Safari (iOS)
+- [ ] Chrome Mobile (Android)
+
+---
+
+## 6. Acceptance Criteria Summary
+
+### MVP Requirements (Must Have)
+- [x] Session creation and joining
+- [x] Real-time collaborative text editing
+- [x] WebSocket communication
+- [x] QR code sharing
+- [x] Toast notification system
+- [x] Theme support (light/dark)
+- [x] Document persistence for active sessions
+
+### Enhanced Features (Should Have)  
+- [ ] User identity system (avatars, usernames)
+- [ ] WebRTC peer-to-peer communication
+- [ ] File sharing capabilities
+- [ ] Mobile app optimization
+- [ ] Advanced text formatting
+
+### Future Considerations (Could Have)
+- [ ] Document history and versioning
+- [ ] Integrated chat system
+- [ ] Advanced user permissions
+- [ ] API for external integrations
+- [ ] Offline editing with sync
+
+---
+
+## 7. Definition of Done
+
+For this project to be considered complete:
+
+1. **Functional Requirements:** All MVP user stories meet acceptance criteria
+2. **Technical Requirements:** System architecture implemented as specified  
+3. **Quality Assurance:** All tests pass across supported browsers
+4. **Documentation:** Complete technical and user documentation
+5. **Deployment:** Production deployment successful and stable
+6. **Performance:** Meets specified latency and user load requirements
+
+---
+
+*This document serves as an example of specification-driven development for educational purposes. It demonstrates how to structure technical requirements, user stories, and acceptance criteria for successful project delivery.*

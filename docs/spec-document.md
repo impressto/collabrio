@@ -105,6 +105,32 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ---
 
+#### US-009: Session Document Persistence
+**As a user**, I want session documents to be preserved when all users leave so I can return later and continue working.
+
+**Acceptance Criteria:**
+- [x] Documents are automatically saved to database when last user leaves session
+- [x] Users rejoining empty sessions see previously saved document content
+- [x] Documents are auto-saved periodically during active editing (5-second debounce)
+- [x] Database cleanup removes sessions older than 30 days
+- [x] Empty documents (whitespace only) are not persisted to save storage
+- [x] Document loading is seamless - no special UI needed for restored content
+
+**Technical Notes:**
+- SQLite database stores session documents with timestamps
+- Debounced auto-save prevents excessive database writes during active editing
+- Document restoration happens automatically during session join process
+- Database cleanup runs on server startup and every 24 hours
+- Sessions remain in memory during active use for performance
+
+**Definition of Done:**
+- Users can leave and rejoin sessions without losing document content
+- Database performance tested with multiple concurrent sessions
+- Cleanup process verified to prevent unbounded storage growth
+- Auto-save functionality confirmed during active collaboration
+
+---
+
 ### Epic 2: Real-time Collaboration  
 **Goal:** Multiple users can edit documents simultaneously
 

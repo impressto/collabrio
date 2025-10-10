@@ -519,4 +519,71 @@ Direct document injection - Updates document state without special formatting
 - **Deployment Learning:** Capture operational lessons for future deployments
 - **Team Communication:** Show how decisions were communicated and tracked
 
+---
+
+### DEC-009: Session Document Persistence Implementation
+**Date:** October 10, 2025  
+**Context:** Users requested document persistence so content isn't lost when all participants leave a session
+
+**Options Considered:**
+1. **SQLite Database with Auto-save** (Selected)
+   - Pros: Lightweight, file-based, no external dependencies, ACID compliance
+   - Cons: Single-server limitation, potential lock contention with high concurrency
+2. **Redis with TTL**
+   - Pros: High performance, built-in expiration, distributed capability
+   - Cons: Additional infrastructure dependency, memory-only storage risk
+3. **File System Storage**
+   - Pros: Simple implementation, no additional dependencies
+   - Cons: Poor performance with many sessions, difficult cleanup management
+
+**Decision:** SQLite with debounced auto-save and cleanup automation  
+**Rationale:** Perfect fit for current single-server architecture with built-in data integrity and simple deployment
+
+**Implementation Details:**
+- **Database Schema:** `sessions(id, document_content, last_updated, created_at)` table
+- **Auto-save Strategy:** 5-second debounced writes during active editing to prevent excessive I/O
+- **Session Restoration:** Automatic loading from database when users rejoin empty sessions
+- **Cleanup Process:** Automatic deletion of sessions older than 30 days, runs daily
+- **Performance:** Document kept in memory during active sessions, database only for persistence
+
+**Technical Architecture:**
+```javascript
+// New database functions added
+saveSessionToDatabase(sessionId, content) - INSERT OR REPLACE with timestamps
+loadSessionFromDatabase(sessionId) - SELECT document_content WHERE id = ?
+cleanupOldSessions() - DELETE WHERE last_updated < 30 days ago
+debouncedSaveSession() - Debounced wrapper for auto-save during editing
+
+// Modified session lifecycle
+join-session: Load from DB if not in memory
+document-change: Auto-save with 5s debounce
+disconnect: Save to DB when last user leaves
+```
+
+**Outcome:** ✅ Successfully Implemented  
+- Documents persist across session lifecycle automatically
+- Debounced auto-save prevents performance impact during active editing  
+- 30-day cleanup prevents unbounded storage growth
+- Zero user-facing complexity - completely transparent operation
+
+**Lessons Learned:**
+- **SQLite Simplicity:** Perfect balance of features vs complexity for single-server apps
+- **Debouncing Critical:** Raw document-change events too frequent for direct database writes
+- **Transparent UX:** Best persistence solutions are invisible to users
+- **Cleanup Automation:** Essential for production systems to prevent storage bloat
+- **Memory + Database Hybrid:** Optimal pattern for real-time apps with persistence needs
+
+**Follow-up Actions:**
+- [x] Install sqlite3 dependency in socket-server (Dev Team - 2025-10-10)
+- [x] Create database schema and connection management (Dev Team - 2025-10-10)  
+- [x] Implement save/load functions with error handling (Dev Team - 2025-10-10)
+- [x] Add debounced auto-save to document-change handler (Dev Team - 2025-10-10)
+- [x] Modify session join logic to restore from database (Dev Team - 2025-10-10)
+- [x] Modify disconnect logic to save when session becomes empty (Dev Team - 2025-10-10)
+- [x] Add automated cleanup for old sessions (Dev Team - 2025-10-10)
+- [x] Test server startup with SQLite integration (Dev Team - 2025-10-10)
+- [ ] Load testing with multiple concurrent sessions (Dev Team - TBD)
+- [ ] Monitor database file size growth in production (Dev Team - TBD)
+- [ ] Backup strategy for sessions.db file (Dev Team - TBD)
+
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

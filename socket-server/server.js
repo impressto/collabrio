@@ -10,10 +10,37 @@ const crypto = require('crypto');
 const multer = require('multer');
 const mime = require('mime-types');
 const { CohereClientV2 } = require('cohere-ai');
+const sqlite3 = require('sqlite3').verbose();
 
 // Initialize Cohere AI client
 const cohere = new CohereClientV2({ 
   token: process.env.COHERE_API_KEY || null
+});
+
+// Initialize SQLite database for session persistence
+const dbPath = path.join(__dirname, 'sessions.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Error opening database:', err.message);
+  } else {
+    console.log('Connected to SQLite database for session persistence');
+    
+    // Create sessions table if it doesn't exist
+    db.run(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        document_content TEXT NOT NULL,
+        last_updated INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    `, (err) => {
+      if (err) {
+        console.error('Error creating sessions table:', err.message);
+      } else {
+        console.log('Sessions table ready');
+      }
+    });
+  }
 });
 
 // Create Express app
@@ -48,6 +75,89 @@ const activeFiles = new Map();
 
 // Store session file uploads tracking (sessionId -> Set of fileIds)
 const sessionFiles = new Map();
+
+// Database functions for session persistence
+function saveSessionToDatabase(sessionId, documentContent) {
+  return new Promise((resolve, reject) => {
+    const now = Date.now();
+    db.run(
+      `INSERT OR REPLACE INTO sessions (id, document_content, last_updated, created_at) 
+       VALUES (?, ?, ?, COALESCE((SELECT created_at FROM sessions WHERE id = ?), ?))`,
+      [sessionId, documentContent, now, sessionId, now],
+      function(err) {
+        if (err) {
+          console.error('Error saving session to database:', err.message);
+          reject(err);
+        } else {
+          console.log(`Session ${sessionId} saved to database`);
+          resolve();
+        }
+      }
+    );
+  });
+}
+
+function loadSessionFromDatabase(sessionId) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      'SELECT document_content, last_updated FROM sessions WHERE id = ?',
+      [sessionId],
+      (err, row) => {
+        if (err) {
+          console.error('Error loading session from database:', err.message);
+          reject(err);
+        } else {
+          resolve(row ? row.document_content : null);
+        }
+      }
+    );
+  });
+}
+
+function cleanupOldSessions() {
+  const cutoffTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days
+  db.run(
+    'DELETE FROM sessions WHERE last_updated < ?',
+    [cutoffTime],
+    function(err) {
+      if (err) {
+        console.error('Error cleaning up old sessions:', err.message);
+      } else {
+        console.log(`Cleaned up ${this.changes} old sessions from database`);
+      }
+    }
+  );
+}
+
+// Clean up old sessions on startup and then every 24 hours
+cleanupOldSessions();
+setInterval(cleanupOldSessions, 24 * 60 * 60 * 1000);
+
+// Debouncing for document saves (sessionId -> timeout)
+const saveTimeouts = new Map();
+
+function debouncedSaveSession(sessionId, documentContent, delay = 5000) {
+  // Clear existing timeout for this session
+  if (saveTimeouts.has(sessionId)) {
+    clearTimeout(saveTimeouts.get(sessionId));
+  }
+  
+  // Set new timeout
+  const timeout = setTimeout(() => {
+    if (documentContent && documentContent.trim().length > 0) {
+      saveSessionToDatabase(sessionId, documentContent)
+        .then(() => {
+          console.log(`Document auto-saved to database for session ${sessionId}`);
+        })
+        .catch((error) => {
+          console.error(`Failed to auto-save document for session ${sessionId}:`, error);
+        });
+    }
+    saveTimeouts.delete(sessionId);
+  }, delay);
+  
+  saveTimeouts.set(sessionId, timeout);
+}
 
 // Data directory path (for compatibility with PHP version)
 const dataDir = path.join(__dirname, '../data');
@@ -504,6 +614,7 @@ io.on('connection', (socket) => {
     
     // Send current document content to the new client
     if (sessionDocuments.has(sessionId)) {
+      // Document is in memory
       const currentDocument = sessionDocuments.get(sessionId);
       console.log(`Sending current document to new client ${clientId} in session ${sessionId}`);
       socket.emit('document-update', {
@@ -512,6 +623,42 @@ io.on('connection', (socket) => {
         timestamp: Date.now(),
         isInitialLoad: true
       });
+    } else {
+      // Document not in memory, try to load from database
+      loadSessionFromDatabase(sessionId)
+        .then((documentContent) => {
+          if (documentContent) {
+            console.log(`Loaded document from database for session ${sessionId}`);
+            // Store in memory for other clients joining
+            sessionDocuments.set(sessionId, documentContent);
+            // Send to the new client
+            socket.emit('document-update', {
+              document: documentContent,
+              updatedBy: 'server',
+              timestamp: Date.now(),
+              isInitialLoad: true
+            });
+          } else {
+            console.log(`No saved document found for session ${sessionId}`);
+            // Send empty document
+            socket.emit('document-update', {
+              document: '',
+              updatedBy: 'server',
+              timestamp: Date.now(),
+              isInitialLoad: true
+            });
+          }
+        })
+        .catch((error) => {
+          console.error(`Error loading document for session ${sessionId}:`, error);
+          // Send empty document on error
+          socket.emit('document-update', {
+            document: '',
+            updatedBy: 'server',
+            timestamp: Date.now(),
+            isInitialLoad: true
+          });
+        });
     }
   });
 
@@ -615,12 +762,25 @@ io.on('connection', (socket) => {
         // Remove client from session
         activeSessions.get(sessionId).delete(clientId);
         
-        // If session is empty, remove it
+        // If session is empty, save document to database and remove from memory
         if (activeSessions.get(sessionId).size === 0) {
           activeSessions.delete(sessionId);
-          // Also remove the stored document for this session
+          
+          // Save document to database before removing from memory
+          const documentContent = sessionDocuments.get(sessionId);
+          if (documentContent && documentContent.trim().length > 0) {
+            saveSessionToDatabase(sessionId, documentContent)
+              .then(() => {
+                console.log(`Document saved to database for session ${sessionId} before cleanup`);
+              })
+              .catch((error) => {
+                console.error(`Failed to save document for session ${sessionId}:`, error);
+              });
+          }
+          
+          // Remove the stored document from memory
           sessionDocuments.delete(sessionId);
-          console.log(`Cleaned up document storage for empty session ${sessionId}`);
+          console.log(`Cleaned up memory storage for empty session ${sessionId}`);
         } else {
           // Get current user list with identities
           const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
@@ -655,6 +815,9 @@ io.on('connection', (socket) => {
     
     // Store the updated document content for this session
     sessionDocuments.set(docSessionId, document);
+    
+    // Auto-save to database (debounced)
+    debouncedSaveSession(docSessionId, document);
     
     // Broadcast document update to all other clients in the session
     socket.to(docSessionId).emit('document-update', {

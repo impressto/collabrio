@@ -15,7 +15,7 @@ function LandingPage({ darkTheme, createNewSession, joinExistingSession }) {
               />
               Collabrio
             </h1>
-            <p>Real-time collaborative text editor</p>
+            <p>Real-time collaborative clipboard</p>
           </header>
           
           <div className="landing-content">

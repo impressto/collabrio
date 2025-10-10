@@ -759,6 +759,74 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle direct AI requests (for silent injection)
+  socket.on('ask-ai-direct', async ({ sessionId: aiSessionId, selectedText, requestId }) => {
+    if (!aiSessionId) {
+      console.error('No session ID provided for direct AI request');
+      return;
+    }
+    
+    if (!selectedText || selectedText.trim() === '') {
+      console.error('No selected text provided for direct AI request');
+      return;
+    }
+    
+    console.log(`Direct AI request in session ${aiSessionId} with requestId ${requestId} for text: "${selectedText.substring(0, 100)}..."`);
+    
+    // Update client's last seen timestamp for activity tracking
+    updateClientActivity(aiSessionId, clientId || socket.id);
+    
+    try {
+      // Call Cohere AI API
+      const response = await cohere.chat({
+        messages: [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": selectedText.trim()
+              }
+            ]
+          }
+        ],
+        temperature: 0.3,
+        model: process.env.COHERE_MODEL || "command-a-03-2025",
+        safety_mode: "STRICT"
+      });
+      
+      // Extract the AI response text
+      let aiResponseText = response.message?.content?.[0]?.text || 'AI response unavailable';
+      
+      // Remove surrounding quotes if they exist
+      aiResponseText = aiResponseText.trim();
+      if ((aiResponseText.startsWith('"') && aiResponseText.endsWith('"')) ||
+          (aiResponseText.startsWith("'") && aiResponseText.endsWith("'"))) {
+        aiResponseText = aiResponseText.slice(1, -1);
+      }
+      
+      console.log(`Direct AI response ready for requestId ${requestId}`);
+      
+      // Send the response directly back to the requesting client (not to the entire session)
+      socket.emit('ai-response-direct', {
+        requestId: requestId,
+        response: aiResponseText,
+        timestamp: Date.now()
+      });
+      
+    } catch (error) {
+      console.error('Cohere AI API error for direct request:', error);
+      
+      // Send error response back to the requesting client
+      socket.emit('ai-response-direct', {
+        requestId: requestId,
+        response: 'Unable to generate icebreaker. Please try again.',
+        error: true,
+        timestamp: Date.now()
+      });
+    }
+  });
+
   // Handle file sharing events
   socket.on('file-share-request', ({ filename, size, mimeType, sessionId: requestSessionId }) => {
     // Use sessionId from request if provided, otherwise fall back to socket's sessionId

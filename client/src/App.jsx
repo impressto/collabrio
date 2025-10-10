@@ -23,6 +23,7 @@ import {
   hasValidStoredIdentity,
   generateFunnyUsername
 } from './utils/identityUtils'
+import { getRandomTopic, createIcebreakerPrompt } from './utils/icebreakerUtils'
 
 // Avatar options (same as in IdentityModal)
 const AVATAR_OPTIONS = [
@@ -304,6 +305,32 @@ function App() {
       showToast('A shared file has expired', 'warning')
     })
 
+    // Handle direct AI responses (for silent icebreaker injection)
+    socket.on('ai-response-direct', (data) => {
+      console.log('Direct AI response received:', data)
+      
+      if (data.requestId && data.requestId.startsWith('icebreaker-') && data.response) {
+        // Silently inject the AI response into the document
+        const aiResponse = data.response.trim()
+        
+        // Use callback to get the most current document state
+        setDocument(prevDocument => {
+          const injection = prevDocument.length > 0 ? `\n\n${aiResponse}` : aiResponse
+          const newDocument = prevDocument + injection
+          
+          // Broadcast the change to other users
+          socket.emit('document-change', {
+            sessionId: sessionId,
+            document: newDocument
+          })
+          
+          return newDocument
+        })
+        
+        console.log('Icebreaker silently injected into document')
+      }
+    })
+
     socketRef.current = socket
   }
 
@@ -316,6 +343,28 @@ function App() {
         sessionId,
         document: newDocument
       })
+    }
+  }
+
+  // Random Icebreaker Handler
+  const handleRandomIcebreaker = () => {
+    if (socketRef.current && isConnected && sessionId) {
+      // Get a random topic from our predefined array
+      const randomTopic = getRandomTopic()
+      
+      // Create the AI prompt
+      const prompt = createIcebreakerPrompt(randomTopic)
+      
+      console.log('Requesting silent AI icebreaker for topic:', randomTopic)
+      
+      // Send the prompt to the socket server for AI processing (silent mode)
+      socketRef.current.emit('ask-ai-direct', {
+        sessionId: sessionId,
+        selectedText: prompt,
+        requestId: `icebreaker-${Date.now()}` // Unique ID to track this request
+      })
+    } else {
+      console.warn('Not connected to session - cannot generate icebreaker')
     }
   }
 
@@ -553,6 +602,7 @@ function App() {
           sessionId={sessionId}
           leaveSession={leaveSession}
           onFileShare={handleFileShare}
+          onRandomIcebreaker={handleRandomIcebreaker}
           isConnected={isConnected}
         />
 

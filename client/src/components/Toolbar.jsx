@@ -7,6 +7,7 @@ function Toolbar({
   sessionId, 
   leaveSession,
   onFileShare,
+  onRandomIcebreaker,
   isConnected
 }) {
   const handleFileShare = () => {
@@ -34,6 +35,14 @@ function Toolbar({
         title="Share a file with session participants"
       >
         📎 Attach
+      </button>
+      <button 
+        id="random-icebreaker-btn"
+        onClick={onRandomIcebreaker}
+        className="share-button"
+        title="Generate a random icebreaker for the meeting"
+      >
+        🎲 Random
       </button>
       <button 
         id="leave-session-btn"

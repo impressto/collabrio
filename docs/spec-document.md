@@ -200,6 +200,51 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ---
 
+#### US-008: Random Icebreaker Generator
+**As a user**, I want to generate AI-powered icebreaker statements on random topics to silently inject content into the document as if another participant had typed it.
+
+**Acceptance Criteria:**
+- [x] "Random" button accessible in toolbar alongside other action buttons
+- [x] Clicking button selects random topic from predefined frontend array
+- [x] AI prompt constructed: "Generate a short, random, and humorous statement related to [TOPIC] that can be used to break the ice in a quiet meeting."
+- [x] Prompt sent to socket-server using new `ask-ai-direct` event (separate from chat AI)
+- [x] AI-generated response silently injected into shared document for all participants
+- [x] Topics cover diverse, meeting-appropriate subjects (technology, food, travel, hobbies, etc.)
+- [x] Button styling consistent with other toolbar buttons
+- [x] NO audio feedback or loading notifications - completely silent operation
+- [x] Content appears as natural text without special formatting or prefixes
+
+**Technical Notes:**
+- Uses NEW `ask-ai-direct` socket event (different from existing "Ask AI" feature)
+- Server responds with `ai-response-direct` event containing only the AI response
+- Frontend directly injects AI response into document state and broadcasts change
+- NO audio feedback, NO toast notifications, NO special formatting
+- Content appears as if typed by a user - seamless and natural integration
+
+**Topics Array:**
+- **Technology:** "artificial intelligence", "smartphones", "social media", "video games"
+- **Food & Drink:** "coffee culture", "unusual food combinations", "cooking disasters", "favorite snacks"
+- **Travel:** "dream destinations", "travel mishaps", "local customs", "transportation"
+- **Hobbies:** "weekend activities", "childhood collections", "creative pursuits", "sports"
+- **Work Life:** "remote work", "meeting etiquette", "office supplies", "productivity tips"
+- **Entertainment:** "movies", "music genres", "books", "streaming services"
+- **Lifestyle:** "morning routines", "pet stories", "weather preferences", "holiday traditions"
+
+**AI Prompt Template:**
+```
+"Generate a short, random, and humorous statement related to [RANDOMLY_SELECTED_TOPIC] that can be used to break the ice in a quiet meeting."
+```
+
+**Definition of Done:**
+- Random button added to toolbar with consistent styling and loading states
+- Topic array contains 25+ diverse, appropriate topics
+- AI integration working through existing socket-server infrastructure
+- Generated icebreakers appear in document for all session participants
+- Audio feedback matches existing AI feature behavior
+- Button tested across different browsers and themes
+
+---
+
 ## 3. Technical Architecture
 
 ### 3.1 System Architecture

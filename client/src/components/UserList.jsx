@@ -1,10 +1,17 @@
 import React from 'react'
 
-function UserList({ users, currentUserId, isConnected }) {
+function UserList({ users, currentUserId, isConnected, schoolName }) {
+  const getUsersLabel = () => {
+    if (schoolName) {
+      return `${schoolName}:`
+    }
+    return 'Users:'
+  }
+
   if (!isConnected || users.length === 0) {
     return (
       <div className="user-list">
-        <span className="users-label">No users</span>
+        <span className="users-label">{schoolName ? `${schoolName}: No users` : 'No users'}</span>
       </div>
     )
   }
@@ -12,7 +19,7 @@ function UserList({ users, currentUserId, isConnected }) {
   return (
     <div className="user-list">
       <div className="users-container">
-        <span className="users-label">Users:</span>
+        <span className="users-label">{getUsersLabel()}</span>
         <div className="users-list">
           {users.map((user, index) => (
             <div

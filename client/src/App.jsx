@@ -25,7 +25,7 @@ import {
   generateFunnyUsername
 } from './utils/identityUtils'
 import { getRandomTopic, createIcebreakerPrompt } from './utils/icebreakerUtils'
-import { isValidSchoolNumber, getAllSchools } from './utils/schoolUtils'
+import { isValidSchoolNumber, getAllSchools, getSchoolName } from './utils/schoolUtils'
 
 // Avatar options (same as in IdentityModal)
 const AVATAR_OPTIONS = [
@@ -108,13 +108,19 @@ function App() {
     }, 3000)
   }
 
-  // Initialize session from URL hash - prompt for identity first
+  // Initialize session from URL hash - check school authentication first
   useEffect(() => {
     const hash = window.location.hash.substring(1)
     if (hash) {
-      // Show identity modal for URL-based session joining
-      setPendingSessionAction({ action: 'join', sessionId: hash })
-      setShowIdentityModal(true)
+      // Check school authentication first for URL-based session joining
+      if (!isSchoolAuthenticated) {
+        setPendingSessionAction({ action: 'join', sessionId: hash })
+        setShowSchoolAuthModal(true)
+      } else {
+        // Already school authenticated, show identity modal
+        setPendingSessionAction({ action: 'join', sessionId: hash })
+        setShowIdentityModal(true)
+      }
     }
     // No auto-generation - user must explicitly create session
   }, [])
@@ -142,6 +148,39 @@ function App() {
     // Generate a simple 6-character session ID
     // Using base36 (0-9, a-z) for URL-friendly characters
     return Math.random().toString(36).substring(2, 8)
+  }
+
+  const getCurrentSchoolName = () => {
+    if (!isSchoolAuthenticated) return null
+    const stored = localStorage.getItem('collabrio-school-auth')
+    return stored ? getSchoolName(stored) : null
+  }
+
+  const getSessionSchoolNames = () => {
+    const schoolNumbers = new Set()
+    
+    // Add current user's school
+    if (isSchoolAuthenticated) {
+      const stored = localStorage.getItem('collabrio-school-auth')
+      if (stored) {
+        schoolNumbers.add(stored)
+      }
+    }
+    
+    // Add connected users' schools (if they have schoolNumber in their data)
+    connectedUsers.forEach(user => {
+      if (user.schoolNumber) {
+        schoolNumbers.add(user.schoolNumber)
+      }
+    })
+    
+    // Convert to school names
+    const schoolNames = Array.from(schoolNumbers)
+      .map(number => getSchoolName(number))
+      .filter(Boolean)
+      .sort()
+    
+    return schoolNames.length > 0 ? schoolNames.join(' and ') : null
   }
 
   const createNewSession = () => {
@@ -189,10 +228,20 @@ function App() {
   const handleSchoolAuthCancel = () => {
     setShowSchoolAuthModal(false)
     setPendingSessionAction(null)
+    // Clear URL hash if user cancels school auth from a link
+    window.location.hash = ''
   }
 
   // Identity handling functions
   const handleIdentityComplete = (identity) => {
+    // Safety check: Ensure school authentication is still valid
+    if (!isSchoolAuthenticated) {
+      console.warn('Identity completion attempted without school authentication')
+      setShowIdentityModal(false)
+      setShowSchoolAuthModal(true)
+      return
+    }
+    
     // Save identity to localStorage
     saveIdentity(identity.username, identity.avatar)
     setUserIdentity(identity)
@@ -666,6 +715,7 @@ function App() {
           isConnected={isConnected}
           connectedUsers={connectedUsers}
           currentUserId={currentUserId}
+          schoolName={getSessionSchoolNames()}
         />
 
         <Toolbar 

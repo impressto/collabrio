@@ -621,6 +621,7 @@ io.on('connection', (socket) => {
       socketId: socket.id,
       username: finalUsername,
       avatar: finalAvatar,
+      schoolNumber: schoolAuth,
       lastSeen: Date.now()
     });
     
@@ -642,7 +643,8 @@ io.on('connection', (socket) => {
     const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
       id: user.id,
       username: user.username,
-      avatar: user.avatar
+      avatar: user.avatar,
+      schoolNumber: user.schoolNumber
     }));
     
     // Send user joined event to React app
@@ -829,7 +831,8 @@ io.on('connection', (socket) => {
           const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
             id: user.id,
             username: user.username,
-            avatar: user.avatar
+            avatar: user.avatar,
+            schoolNumber: user.schoolNumber
           }));
           
           // Notify remaining clients about user leaving
@@ -1244,7 +1247,8 @@ io.on('connection', (socket) => {
         const currentUsers = Array.from(activeSessions.get(sessionId).values()).map(user => ({
           id: user.id,
           username: user.username,
-          avatar: user.avatar
+          avatar: user.avatar,
+          schoolNumber: user.schoolNumber
         }));
         
         // Notify remaining clients about user leaving

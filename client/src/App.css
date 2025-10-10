@@ -1409,47 +1409,6 @@ body > #root > .collabrio-app {
   font-size: 0.9rem;
 }
 
-.available-schools {
-  margin-top: 1rem;
-  text-align: left;
-}
-
-.available-schools details {
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 0.5rem;
-}
-
-.available-schools summary {
-  cursor: pointer;
-  font-weight: 500;
-  color: #4a5568;
-  font-size: 0.9rem;
-  padding: 0.25rem;
-}
-
-.available-schools summary:hover {
-  color: #2d3748;
-}
-
-.available-schools ul {
-  margin: 0.5rem 0 0 0;
-  padding-left: 1.5rem;
-  list-style: none;
-}
-
-.available-schools li {
-  padding: 0.25rem 0;
-  font-size: 0.85rem;
-  color: #4a5568;
-}
-
-.available-schools li strong {
-  color: #2d3748;
-  font-family: 'Courier New', monospace;
-}
-
 .school-auth-form {
   margin-bottom: 1.5rem;
 }

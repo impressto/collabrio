@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { getAllSchools, isValidSchoolNumber, getSchoolName } from '../utils/schoolUtils'
+import { isValidSchoolNumber, getSchoolName } from '../utils/schoolUtils'
 
 function SchoolAuthModal({ onAuthComplete, onCancel }) {
   const [schoolNumber, setSchoolNumber] = useState('')
@@ -41,9 +41,7 @@ function SchoolAuthModal({ onAuthComplete, onCancel }) {
         localStorage.setItem('collabrio-school-auth', trimmedNumber)
         onAuthComplete(trimmedNumber)
       } else {
-        const allSchools = getAllSchools()
-        const schoolsList = allSchools.map(school => `${school.number} (${school.name})`).join(', ')
-        setError(`Invalid school registration number. Valid schools: ${schoolsList}`)
+        setError('Invalid school registration number. Please check with your teacher.')
       }
     } catch (error) {
       console.error('School validation error:', error)
@@ -59,18 +57,6 @@ function SchoolAuthModal({ onAuthComplete, onCancel }) {
         <div className="school-auth-header">
           <h2>🏫 School Authentication</h2>
           <p>Please enter your school registration number to continue</p>
-          <div className="available-schools">
-            <details>
-              <summary>Available Schools</summary>
-              <ul>
-                {getAllSchools().map(school => (
-                  <li key={school.number}>
-                    <strong>{school.number}</strong> - {school.name}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="school-auth-form">

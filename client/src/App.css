@@ -1992,6 +1992,17 @@ body > #root > .collabrio-app {
   box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
 }
 
+.user-item.clickable {
+  cursor: pointer;
+}
+
+.user-item.clickable:hover {
+  background: #e6fffa;
+  border-color: #38b2ac;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(56, 178, 172, 0.15);
+}
+
 .user-avatar {
   font-size: 1.2rem;
   width: 24px;
@@ -2041,6 +2052,12 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .user-item.current-user {
   background: #2b6cb0;
   border-color: #63b3ed;
+}
+
+.collabrio-app.dark-theme .user-item.clickable:hover {
+  background: #2c7a7b;
+  border-color: #4fd1c7;
+  box-shadow: 0 2px 8px rgba(79, 209, 199, 0.15);
 }
 
 .collabrio-app.dark-theme .user-avatar {

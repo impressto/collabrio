@@ -1,11 +1,19 @@
 import React from 'react'
 
-function UserList({ users, currentUserId, isConnected, schoolName }) {
+function UserList({ users, currentUserId, isConnected, schoolName, onInsertUsername }) {
   const getUsersLabel = () => {
     if (schoolName) {
       return `${schoolName}:`
     }
     return 'Users:'
+  }
+
+  const handleUserClick = (user) => {
+    // Don't insert your own username
+    if (user.id === currentUserId || !onInsertUsername) return
+    
+    const username = user.username || 'Anonymous'
+    onInsertUsername(`@${username} `)
   }
 
   if (!isConnected || users.length === 0) {
@@ -24,8 +32,9 @@ function UserList({ users, currentUserId, isConnected, schoolName }) {
           {users.map((user, index) => (
             <div
               key={user.id || index}
-              className={`user-item ${user.id === currentUserId ? 'current-user' : ''}`}
-              title={`${user.username}${user.id === currentUserId ? ' (You)' : ''}`}
+              className={`user-item ${user.id === currentUserId ? 'current-user' : ''} ${user.id !== currentUserId ? 'clickable' : ''}`}
+              title={`${user.username}${user.id === currentUserId ? ' (You)' : ' - Click to mention'}`}
+              onClick={() => handleUserClick(user)}
             >
               <span className="user-avatar">{user.avatar || '👤'}</span>
               <span className="user-name">

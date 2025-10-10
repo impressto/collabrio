@@ -2,7 +2,7 @@ import React from 'react'
 import { config } from '../config.js'
 import UserList from './UserList'
 
-function Header({ isConnected, connectedUsers, currentUserId, schoolName }) {
+function Header({ isConnected, connectedUsers, currentUserId, schoolName, onInsertUsername }) {
   return (
     <header className="collabrio-header">
       <h1>
@@ -19,6 +19,7 @@ function Header({ isConnected, connectedUsers, currentUserId, schoolName }) {
           currentUserId={currentUserId}
           isConnected={isConnected}
           schoolName={schoolName}
+          onInsertUsername={onInsertUsername}
         />
       </div>
     </header>

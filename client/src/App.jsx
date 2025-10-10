@@ -112,6 +112,44 @@ function App() {
     }, 3000)
   }
 
+  // Insert text at cursor position in the active editor
+  const insertTextAtCursor = (textToInsert) => {
+    const isLiveMode = editorMode === 'live'
+    const activeRef = isLiveMode ? textareaRef : draftRef
+    const currentContent = isLiveMode ? document : draftContent
+    
+    if (!activeRef.current) return
+
+    const textarea = activeRef.current
+    const cursorPosition = textarea.selectionStart
+    const endPosition = textarea.selectionEnd
+    
+    // Create new content with inserted text
+    const beforeCursor = currentContent.substring(0, cursorPosition)
+    const afterCursor = currentContent.substring(endPosition)
+    const newContent = beforeCursor + textToInsert + afterCursor
+    
+    // Check character limit
+    if (newContent.length > config.maxDocumentChars) {
+      showToast(`Cannot insert text: Document limit of ${config.maxDocumentChars.toLocaleString()} characters would be exceeded`, 'warning')
+      return
+    }
+    
+    // Update content based on current mode
+    if (isLiveMode) {
+      handleDocumentChange({ target: { value: newContent } })
+    } else {
+      handleDraftChange({ target: { value: newContent } })
+    }
+    
+    // Focus and position cursor after inserted text
+    setTimeout(() => {
+      textarea.focus()
+      const newCursorPosition = cursorPosition + textToInsert.length
+      textarea.setSelectionRange(newCursorPosition, newCursorPosition)
+    }, 0)
+  }
+
   // Initialize session from URL hash - check school authentication first
   useEffect(() => {
     const hash = window.location.hash.substring(1)
@@ -765,6 +803,7 @@ function App() {
           connectedUsers={connectedUsers}
           currentUserId={currentUserId}
           schoolName={getSessionSchoolNames()}
+          onInsertUsername={insertTextAtCursor}
         />
 
         <Toolbar 

@@ -178,6 +178,41 @@ Create a web-based collaborative text editor that enables multiple users to edit
 - Character limits enforced on both client and server
 - Visual feedback clearly shows usage and remaining capacity
 - Paste truncation works smoothly without breaking user workflow
+
+---
+
+#### US-014: Username Mention System
+**As a user**, I want to quickly mention other users in the document by clicking their avatar so that I can reference collaborators efficiently while writing.
+
+**Acceptance Criteria:**
+- [x] Clicking another user's avatar inserts "@username " at current cursor position
+- [x] Only other users' avatars are clickable (not your own)
+- [x] Clickable avatars show visual hover feedback (teal highlight)
+- [x] Tooltip indicates the action: "Click to mention" vs "You"
+- [x] Username insertion works in both Live editor and Draft editor modes
+- [x] Cursor automatically positions after the inserted mention
+- [x] Character limit validation applies to inserted usernames
+- [x] Focus returns to the editor after username insertion
+- [x] Consistent behavior across light and dark themes
+
+**Technical Notes:**
+- insertTextAtCursor function handles cursor position and content updates
+- Character limit validation prevents insertion if it would exceed limits
+- Uses setTimeout to ensure proper cursor positioning after content update
+- Prop threading: App → Header → UserList for callback function
+- CSS classes distinguish clickable vs non-clickable user items
+
+**User Experience:**
+- Reduces typing effort for mentioning collaborators
+- Visual feedback makes the feature discoverable
+- Seamless integration with existing editor functionality
+- Respects document size limits and current editor mode
+
+**Definition of Done:**
+- Username mentions insert smoothly at cursor position
+- Visual feedback clearly indicates clickable vs non-clickable users
+- Feature works consistently across both editor modes
+- Character limit integration prevents document overflow
 - Counter positioned cleanly within editor interface
 - Both Live and Draft modes respect the character limits
 

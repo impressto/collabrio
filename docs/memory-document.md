@@ -993,4 +993,73 @@ const isAtLimit = (text) => text.length >= config.maxDocumentChars
 - **Progressive Feedback:** Warning states help users manage content proactively
 - **Academic Context:** 5,000 characters perfect for collaborative school work
 
+---
+
+### DEC-016: Username Mention System Implementation
+**Date:** January 3, 2025  
+**Context:** Users requested ability to quickly mention other collaborators while writing, improving communication and coordination during real-time editing
+
+**Problem Identified:**
+- Typing full usernames manually is time-consuming and error-prone
+- Users want to easily reference other collaborators in the document
+- Need discoverable way to insert mentions at precise cursor positions
+- Should integrate seamlessly with existing editor functionality
+
+**Options Considered:**
+1. **Autocomplete with @ Symbol**
+   - Pros: Familiar pattern from social media
+   - Cons: Complex implementation, requires parsing and dropdown UI
+2. **Right-click Context Menu**
+   - Pros: Standard desktop pattern
+   - Cons: Not intuitive on mobile, harder to discover
+3. **Clickable Avatar System** (Selected)
+   - Pros: Highly discoverable, simple implementation, works on all devices
+   - Cons: Requires visual space for user list
+
+**Decision:** Clickable avatar system with "@username " insertion  
+**Rationale:** Most intuitive and discoverable approach that leverages existing user list UI
+
+**Implementation Architecture:**
+```javascript
+// Prop threading pattern
+App.jsx → insertTextAtCursor function
+  ↓
+Header.jsx → passes onInsertUsername prop
+  ↓  
+UserList.jsx → handleUserClick triggers insertion
+
+// Cursor position handling
+const insertTextAtCursor = (textToInsert) => {
+  const isLiveMode = editorMode === 'live'
+  const activeRef = isLiveMode ? textareaRef : draftRef
+  // Insert at cursor, update content, reposition cursor
+}
+```
+
+**User Experience Design:**
+- **Visual Feedback:** Clickable users get hover effects (teal highlight)
+- **Tooltip Clarity:** "Click to mention" vs "You" for current user
+- **Text Format:** "@username " (includes space for natural flow)
+- **Cursor Management:** Automatically positions after inserted mention
+- **Mode Awareness:** Works in both Live and Draft editor modes
+
+**Technical Implementation:**
+- **Character Limit Integration:** Validates insertion won't exceed document limits
+- **Editor Mode Detection:** Uses editorMode state to target correct textarea
+- **Focus Management:** Returns focus to editor after username insertion
+- **CSS Enhancements:** Clickable/non-clickable visual distinction in both themes
+
+**Outcome:** ✅ Successfully Implemented  
+- Natural discovery through existing user list interface
+- Seamless integration with editor functionality and character limits
+- Consistent behavior across editor modes and themes
+- Improved collaboration workflow for mentioning team members
+
+**Lessons Learned:**
+- **Leveraging Existing UI:** Building on user list was more intuitive than new patterns
+- **Prop Threading:** Clean component hierarchy allows feature composition
+- **Mode Awareness:** Editor features must respect Live vs Draft mode contexts
+- **Character Limit Integration:** All text insertion must validate against document limits
+- **Focus Management:** Smooth UX requires returning focus to editor after actions
+
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

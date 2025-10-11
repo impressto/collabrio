@@ -249,7 +249,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .connection-status-right {
-  margin-left: auto;
+  margin-left: 0.5rem;
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -290,6 +290,7 @@ body > #root > .collabrio-app {
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.2s;
+  margin-left: auto;
 }
 
 .collabrio-app .leave-session-button:hover {

@@ -62,13 +62,6 @@ function Toolbar({
       >
         🎲 {randomCooldown > 0 ? `Random (${randomCooldown}s)` : 'Random'}
       </button>
-      <button 
-        id="leave-session-btn"
-        onClick={leaveSession}
-        className="leave-session-button"
-      >
-        🚪 Leave
-      </button>
       <select 
         id="audio-selector"
         onChange={handleAudioSelect}
@@ -89,6 +82,13 @@ function Toolbar({
         title={darkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
       >
         {darkTheme ? '☀️' : '🌙'}
+      </button>
+      <button 
+        id="leave-session-btn"
+        onClick={leaveSession}
+        className="leave-session-button"
+      >
+        🚪 Leave
       </button>
       <span className="connection-status connection-status-right">
         {isConnected ? '🟢 Connected' : '🔴 Disconnected'}

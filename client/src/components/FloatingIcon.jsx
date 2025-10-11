@@ -3,9 +3,15 @@ import React, { useEffect, useState } from 'react'
 function FloatingIcon({ id, emoji, username, onComplete }) {
   const [position, setPosition] = useState({
     bottom: 0,
-    left: Math.random() * 80 + 10, // Random position between 10% and 90%
+    left: Math.random() * 80 + 10, // Random starting position between 10% and 90%
     opacity: 1
   })
+  
+  // Store the initial left position for wave calculation
+  const [initialLeft] = useState(position.left)
+  // Random wave properties for variation - each icon gets unique motion
+  const [waveAmplitude] = useState(Math.random() * 15 + 10) // Wave width: 10-25px side-to-side
+  const [waveFrequency] = useState(Math.random() * 2 + 1.5) // Wave cycles: 1.5-3.5 complete waves during animation
 
   useEffect(() => {
     // Start the animation immediately
@@ -19,9 +25,18 @@ function FloatingIcon({ id, emoji, username, onComplete }) {
       // Easing function for smooth animation
       const easeOut = 1 - Math.pow(1 - progress, 3)
 
+      // Calculate wavy horizontal movement using sine wave
+      // The wave progresses as the icon moves up, creating a snake-like motion
+      const waveOffset = Math.sin(progress * Math.PI * waveFrequency) * waveAmplitude
+      
+      // Calculate new left position, ensuring it stays within screen bounds
+      const newLeft = initialLeft + (waveOffset / window.innerWidth * 100)
+      const boundedLeft = Math.max(5, Math.min(95, newLeft)) // Keep between 5% and 95%
+      
       setPosition(prev => ({
         ...prev,
         bottom: easeOut * 300, // Float up 300px
+        left: boundedLeft, // Wavy horizontal position with bounds
         opacity: 1 - progress // Fade out as it goes up
       }))
 
@@ -34,7 +49,7 @@ function FloatingIcon({ id, emoji, username, onComplete }) {
     }
 
     requestAnimationFrame(animate)
-  }, [id, onComplete])
+  }, [id, onComplete, initialLeft, waveAmplitude, waveFrequency])
 
   return (
     <div

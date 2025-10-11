@@ -33,18 +33,22 @@ function FloatingIcon({ id, emoji, username, onComplete }) {
       const newLeft = initialLeft + (waveOffset / window.innerWidth * 100)
       const boundedLeft = Math.max(5, Math.min(95, newLeft)) // Keep between 5% and 95%
       
+      const newOpacity = 1 - progress // Fade out as it goes up
+      
       setPosition(prev => ({
         ...prev,
         bottom: easeOut * 300, // Float up 300px
         left: boundedLeft, // Wavy horizontal position with bounds
-        opacity: 1 - progress // Fade out as it goes up
+        opacity: newOpacity
       }))
 
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        // Animation complete, notify parent to remove this component
+      // Terminate animation early if opacity reaches 0 or animation completes
+      if (newOpacity <= 0 || progress >= 1) {
+        // Animation complete (either by time or opacity), notify parent to remove this component
         onComplete(id)
+        console.log(`FloatingIcon ${id} animation complete (opacity: ${newOpacity.toFixed(3)}, progress: ${progress.toFixed(3)})`)
+      } else {
+        requestAnimationFrame(animate)
       }
     }
 

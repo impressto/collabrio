@@ -57,6 +57,7 @@ function App() {
   })
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
   const [floatingIcons, setFloatingIcons] = useState([])
+  const [activeAnimationIds, setActiveAnimationIds] = useState(new Map()) // Track active animation IDs by username+audioKey
   const [recentAudioTriggers, setRecentAudioTriggers] = useState(new Map()) // Track recent audio triggers to prevent spam
   const [editorMode, setEditorMode] = useState('live') // 'live' or 'draft'
   const [draftContent, setDraftContent] = useState(() => {
@@ -231,20 +232,24 @@ function App() {
 
   // Create floating icon animation
   const createFloatingIcon = (audioKey, username) => {
-    // Check if there's already a recent floating icon for this user/audio combination
-    const existingIcon = floatingIcons.find(icon => 
-      icon.username === username && icon.emoji === getAudioEmoji(audioKey)
-    )
+    const animationKey = `${username}-${audioKey}` // Composite key for user+audio combination
     
-    if (existingIcon) {
-      return // Prevent duplicate icons
+    // Check if there's already an active animation for this user+audio combination
+    if (activeAnimationIds.has(animationKey)) {
+      console.log(`Preventing duplicate animation: ${animationKey} already active`)
+      return // Prevent duplicate - animation already in progress
     }
     
     const iconId = Date.now() + Math.random() // Unique ID
+    
+    // Track this active animation
+    setActiveAnimationIds(prev => new Map(prev).set(animationKey, iconId))
+    
     const newIcon = {
       id: iconId,
       emoji: getAudioEmoji(audioKey),
-      username: username
+      username: username,
+      animationKey: animationKey // Store the key for cleanup
     }
     
     setFloatingIcons(prev => [...prev, newIcon])
@@ -252,7 +257,21 @@ function App() {
 
   // Remove floating icon when animation completes
   const removeFloatingIcon = (iconId) => {
-    setFloatingIcons(prev => prev.filter(icon => icon.id !== iconId))
+    setFloatingIcons(prev => {
+      // Find the icon being removed to get its animation key
+      const iconToRemove = prev.find(icon => icon.id === iconId)
+      
+      if (iconToRemove && iconToRemove.animationKey) {
+        // Clean up active animation tracking
+        setActiveAnimationIds(activeIds => {
+          const newIds = new Map(activeIds)
+          newIds.delete(iconToRemove.animationKey)
+          return newIds
+        })
+      }
+      
+      return prev.filter(icon => icon.id !== iconId)
+    })
   }
 
   // Initialize session from URL hash - check school authentication first

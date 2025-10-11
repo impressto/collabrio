@@ -296,6 +296,31 @@ body > #root > .collabrio-app {
   background: #7a1a1a;
 }
 
+.collabrio-app .audio-selector {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.collabrio-app .audio-selector:hover {
+  background: #5048e5;
+}
+
+.collabrio-app .audio-selector:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.collabrio-app .audio-selector:disabled:hover {
+  background: #94a3b8;
+}
+
 .collabrio-app .session-input {
   padding: 0.5rem;
   border: 1px solid #ced4da;
@@ -918,6 +943,24 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .share-button.disabled:hover, .collabrio-app.dark-theme .ask-ai-btn.disabled:hover {
   background: #4a5568 !important;
   box-shadow: none !important;
+}
+
+.collabrio-app.dark-theme .audio-selector {
+  background: #5b21b6 !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector:hover {
+  background: #4c1d95 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector:disabled {
+  background: #4a5568 !important;
+  color: #a0aec0 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector:disabled:hover {
+  background: #4a5568 !important;
 }
 
 .collabrio-app.dark-theme .text-too-long-warning {

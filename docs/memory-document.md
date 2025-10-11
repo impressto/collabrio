@@ -1062,4 +1062,84 @@ const insertTextAtCursor = (textToInsert) => {
 - **Character Limit Integration:** All text insertion must validate against document limits
 - **Focus Management:** Smooth UX requires returning focus to editor after actions
 
+---
+
+### DEC-017: Shared Audio System Implementation
+**Date:** January 3, 2025  
+**Context:** Students requested ability to play fun sound effects for all session participants to make collaborative environment more engaging and add acoustic elements
+
+**Problem Identified:**
+- Students wanted to add fun, interactive elements to collaborative sessions
+- Need for shared audio experiences that all participants can hear
+- Existing audio system only handled application sounds (user join/leave, timer)
+- Desire to make educational collaboration more engaging and entertaining
+
+**Options Considered:**
+1. **Individual Audio Only**
+   - Pros: Simple implementation, no server coordination needed
+   - Cons: No shared experience, limited engagement value
+2. **Upload Custom Audio Files**
+   - Pros: Maximum flexibility for students
+   - Cons: File size concerns, inappropriate content risks, complex validation
+3. **Curated Sound Library** (Selected)
+   - Pros: Controlled content, preloaded performance, fun variety
+   - Cons: Limited selection, requires manual curation
+
+**Decision:** Curated sound library with shared playback via existing audioManager  
+**Rationale:** Provides controlled fun environment while leveraging existing audio infrastructure
+
+**Implementation Architecture:**
+```javascript
+// Extending existing audioManager system
+// client/src/utils/audioUtils.js
+audioManager.preloadSound('breaklaw', 'audio/breaklaw.mp3')
+audioManager.preloadSound('burp', 'audio/burp.mp3')
+// ... additional sounds
+
+// Toolbar integration with dropdown selector
+<select onChange={handleAudioSelect} className="audio-selector">
+  <option value="breaklaw">⚖️ Break Law</option>
+  // ... other options
+</select>
+
+// Socket broadcasting pattern
+socket.emit('play-audio', { sessionId, audioKey, username })
+// Server broadcasts to all other session participants
+```
+
+**User Experience Design:**
+- **Toolbar Integration:** Audio selector between Leave and Theme buttons
+- **Visual Feedback:** Toast notifications show "You played" vs "Username played"
+- **Disabled State:** Selector disabled when not connected to session
+- **Emoji Labels:** Fun, recognizable icons make selection engaging
+- **Theme Support:** Consistent styling in both light and dark modes
+
+**Technical Implementation:**
+- **Audio Preloading:** Extended existing audioManager system from Ask AI feature
+- **File Organization:** Audio files stored in client/public/audio/ directory
+- **Socket Events:** 'play-audio' event broadcasts to session participants (excluding sender)
+- **Performance:** Reuses existing preloading system for instant playback
+- **Integration:** Uses existing toast system for user feedback
+
+**Content Curation:**
+Selected 9 sound effects balancing fun engagement with classroom appropriateness:
+- Meme sounds (metal pipe fall, oh no cringe, cartoon boink)
+- Silly sounds (burp, fart with reverb)
+- Gaming references (Five Nights at Freddy's)
+- Positive feedback (thank you for your patronage)
+- Creative variety to match different student personalities
+
+**Outcome:** ✅ Successfully Implemented  
+- Students can share fun audio experiences across sessions
+- Seamless integration with existing audio infrastructure
+- Controlled content library ensures appropriate classroom use
+- Real-time synchronization creates shared engagement moments
+
+**Lessons Learned:**
+- **Reusing Infrastructure:** Extending existing audioManager was much faster than new system
+- **Content Curation:** Balancing fun with appropriateness requires careful selection
+- **Shared Experiences:** Audio creates stronger sense of collaboration than text alone
+- **Performance Benefits:** Preloading prevents delays during collaborative moments
+- **User Feedback:** Clear toast notifications essential for understanding who initiated sounds
+
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

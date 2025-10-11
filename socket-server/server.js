@@ -1227,6 +1227,24 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle shared audio playback
+  socket.on('play-audio', ({ sessionId: audioSessionId, audioKey, username }) => {
+    console.log(`[${new Date().toISOString()}] Audio playback request: "${audioKey}" by ${username} in session ${audioSessionId}`);
+    
+    if (!audioSessionId || !audioKey || !username) {
+      console.warn('Invalid play-audio request: missing required fields');
+      return;
+    }
+
+    // Broadcast to all other users in the session (not the sender)
+    socket.to(audioSessionId).emit('play-audio', {
+      audioKey: audioKey,
+      username: username
+    });
+    
+    console.log(`[${new Date().toISOString()}] Broadcasted audio "${audioKey}" to other clients in session ${audioSessionId}`);
+  });
+
   // Handle explicit leave session
   socket.on('leave-session', () => {
     // Clear heartbeat interval

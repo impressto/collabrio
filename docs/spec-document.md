@@ -218,6 +218,55 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ---
 
+#### US-015: Shared Audio System
+**As a student**, I want to play fun sound effects that all session participants can hear so that I can add acoustic elements and make the collaborative environment more engaging.
+
+**Acceptance Criteria:**
+- [x] Audio dropdown selector appears in toolbar between Leave and Theme buttons
+- [x] Dropdown contains 9 preloaded sound effects with emoji labels
+- [x] Selecting a sound plays it locally and broadcasts to all session participants
+- [x] Only the initiator sees "You played" toast, others see "Username played" toast
+- [x] Audio selector is disabled when not connected to session
+- [x] All audio files are preloaded using existing audioManager system
+- [x] Visual feedback shows audio selection with consistent toolbar styling
+- [x] Dark theme compatible styling for the audio dropdown
+- [x] Server broadcasts audio events to all session participants except sender
+- [x] Audio plays through existing audioManager for consistent volume control
+
+**Available Sound Effects:**
+- ⚖️ Break Law (breaklaw.mp3)
+- 🤢 Burp (burp.mp3)
+- 🎭 Cartoon Boink (cartoonboink.mp3)
+- 💨 Fart (Reverb) (fart-with-reverb.mp3)
+- 🐻 Five Nights at Freddy's (five-nights-at-freddys.mp3)
+- 😱 Freaky (freaky.mp3)
+- 🔧 Metal Pipe Fall (metal-pipe-fall-meme.mp3)
+- 😬 Oh No Cringe (oh-no-cringe.mp3)
+- 🙏 Thank You (thank-you-for-your-patronage.mp3)
+
+**Technical Notes:**
+- Extends existing audioManager system from Ask AI feature
+- Audio files stored in client/public/audio/ directory
+- Socket event 'play-audio' broadcasts to session participants
+- Reuses existing preloading system for performance
+- Integrates with existing toast notification system
+- Uses audioManager keys instead of filenames for consistency
+
+**User Experience:**
+- Makes collaborative sessions more fun and engaging
+- Provides immediate audio feedback for all participants
+- Seamless integration with existing toolbar functionality
+- Respects session connectivity for feature availability
+
+**Definition of Done:**
+- All audio files preload successfully on application start
+- Sound selection broadcasts to all session participants
+- Audio playback works consistently across browsers
+- Visual feedback clearly communicates audio events to users
+- Feature integrates smoothly with existing toolbar design
+
+---
+
 ### Epic 2: Session Management
 **Goal:** Users can create, join, and manage collaborative sessions
 

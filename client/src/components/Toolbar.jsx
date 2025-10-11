@@ -9,7 +9,8 @@ function Toolbar({
   onFileShare,
   onRandomIcebreaker,
   isConnected,
-  randomCooldown
+  randomCooldown,
+  onPlayAudio
 }) {
   const handleFileShare = () => {
     const input = document.createElement('input');
@@ -22,6 +23,38 @@ function Toolbar({
       }
     };
     input.click();
+  };
+
+  // Available audio files for shared playback (using audioManager keys)
+  const audioFiles = [
+    { value: '', label: '🔊 Play Sound' },
+    { value: 'breaklaw', label: '⚖️ Break Law' },
+    { value: 'burp', label: '🤢 Burp' },
+    { value: 'cartoonboink', label: '🎭 Cartoon Boink' },
+    { value: 'fart-with-reverb', label: '💨 Fart (Reverb)' },
+    { value: 'five-nights-at-freddys', label: '🐻 Five Nights at Freddy\'s' },
+    { value: 'freaky', label: '😱 Freaky' },
+    { value: 'metal-pipe-fall-meme', label: '🔧 Metal Pipe Fall' },
+    { value: 'oh-no-cringe', label: '😬 Oh No Cringe' },
+    { value: 'thank-you-for-your-patronage', label: '🙏 Thank You' }
+  ];
+
+  const handleAudioSelect = (e) => {
+    console.log('=== AUDIO SELECT EVENT ===')
+    const audioKey = e.target.value;
+    console.log('Selected audio key:', audioKey)
+    console.log('onPlayAudio function exists:', !!onPlayAudio)
+    
+    if (audioKey && onPlayAudio) {
+      console.log('Calling onPlayAudio with:', audioKey)
+      onPlayAudio(audioKey);
+    } else {
+      console.log('Not calling onPlayAudio - audioKey:', audioKey, 'onPlayAudio:', !!onPlayAudio)
+    }
+    
+    // Reset dropdown to default
+    e.target.value = '';
+    console.log('=== AUDIO SELECT COMPLETE ===')
   };
 
   return (
@@ -53,6 +86,19 @@ function Toolbar({
       >
         🚪 Leave
       </button>
+      <select 
+        id="audio-selector"
+        onChange={handleAudioSelect}
+        className="audio-selector"
+        title="Play sound for all session participants"
+        disabled={!isConnected}
+      >
+        {audioFiles.map((audio) => (
+          <option key={audio.value} value={audio.value}>
+            {audio.label}
+          </option>
+        ))}
+      </select>
       <button 
         id="theme-toggle-btn" 
         onClick={() => setDarkTheme(!darkTheme)} 

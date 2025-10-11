@@ -113,14 +113,53 @@ class AudioManager {
       if (audio) audio.volume = this.volume
     })
   }
+  
+  // Debug method to check loaded sounds
+  getLoadedSounds() {
+    const loaded = {}
+    Object.keys(this.sounds).forEach(key => {
+      const audio = this.sounds[key]
+      loaded[key] = {
+        loaded: !!audio,
+        readyState: audio ? audio.readyState : 'none',
+        src: audio ? audio.src : 'none'
+      }
+    })
+    return loaded
+  }
 }
 
 // Create singleton instance
 export const audioManager = new AudioManager()
 
+// Debug: Log audio configuration
+console.log('AudioManager Configuration:', {
+  enabled: audioManager.enabled,
+  volume: audioManager.volume,
+  soundEffectsEnabled: config.soundEffectsEnabled,
+  soundEffectsVolume: config.soundEffectsVolume,
+  baseUrl: config.baseUrl
+})
+
 // Preload all sounds
 audioManager.preloadSound('userJoin', 'chime.mp3')
 audioManager.preloadSound('userLeave', 'leave.mp3')
 audioManager.preloadSound('timer', 'timer.mp3')
+
+// Preload shared audio files from audio folder
+audioManager.preloadSound('breaklaw', 'audio/breaklaw.mp3')
+audioManager.preloadSound('burp', 'audio/burp.mp3')
+audioManager.preloadSound('cartoonboink', 'audio/cartoonboink.mp3')
+audioManager.preloadSound('fart-with-reverb', 'audio/fart-with-reverb.mp3')
+audioManager.preloadSound('five-nights-at-freddys', 'audio/five-nights-at-freddys.mp3')
+audioManager.preloadSound('freaky', 'audio/freaky.mp3')
+audioManager.preloadSound('metal-pipe-fall-meme', 'audio/metal-pipe-fall-meme.mp3')
+audioManager.preloadSound('oh-no-cringe', 'audio/oh-no-cringe.mp3')
+audioManager.preloadSound('thank-you-for-your-patronage', 'audio/thank-you-for-your-patronage.mp3')
+
+// Debug: Log loaded sounds after a short delay
+setTimeout(() => {
+  console.log('AudioManager Loaded Sounds:', audioManager.getLoadedSounds())
+}, 2000)
 
 export default audioManager

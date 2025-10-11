@@ -150,6 +150,70 @@ function App() {
     }, 0)
   }
 
+  // Play shared audio for all session participants
+  const playSharedAudio = (audioKey, username) => {
+    console.log(`Playing shared audio "${audioKey}" requested by ${username}`)
+    console.log('Available audio keys:', Object.keys(audioManager.sounds))
+    console.log('AudioManager enabled:', audioManager.enabled)
+    
+    const result = audioManager.play(audioKey)
+    if (result) {
+      console.log('Audio play promise returned:', result)
+    } else {
+      console.error('Audio play failed - no promise returned')
+    }
+    
+    showToast(`🔊 ${username} played: ${getAudioLabel(audioKey)}`, 'info')
+  }
+
+  // Handle audio selection from toolbar
+  const handlePlayAudio = (audioKey) => {
+    console.log('=== HANDLE PLAY AUDIO CALLED ===')
+    console.log('AudioKey:', audioKey)
+    console.log('Socket connected:', !!socketRef.current)
+    console.log('Is connected:', isConnected)
+    console.log('Session ID:', sessionId)
+    console.log('Username:', userIdentity.username)
+    
+    if (!socketRef.current || !isConnected) {
+      console.log('Aborting: Not connected to session')
+      showToast('Cannot play audio: Not connected to session', 'error')
+      return
+    }
+
+    // Play locally immediately
+    console.log('Playing audio locally...')
+    audioManager.play(audioKey)
+    
+    // Broadcast to other users
+    console.log('Emitting play-audio socket event...')
+    socketRef.current.emit('play-audio', {
+      sessionId: sessionId,
+      audioKey: audioKey,
+      username: userIdentity.username
+    })
+    console.log('Socket event emitted successfully')
+
+    showToast(`🔊 You played: ${getAudioLabel(audioKey)}`, 'success')
+    console.log('=== HANDLE PLAY AUDIO COMPLETE ===')
+  }
+
+  // Helper function to get user-friendly audio labels
+  const getAudioLabel = (audioKey) => {
+    const audioLabels = {
+      'breaklaw': 'Break Law',
+      'burp': 'Burp',
+      'cartoonboink': 'Cartoon Boink',
+      'fart-with-reverb': 'Fart (Reverb)',
+      'five-nights-at-freddys': 'Five Nights at Freddy\'s',
+      'freaky': 'Freaky',
+      'metal-pipe-fall-meme': 'Metal Pipe Fall',
+      'oh-no-cringe': 'Oh No Cringe',
+      'thank-you-for-your-patronage': 'Thank You'
+    }
+    return audioLabels[audioKey] || audioKey
+  }
+
   // Initialize session from URL hash - check school authentication first
   useEffect(() => {
     const hash = window.location.hash.substring(1)
@@ -506,6 +570,15 @@ function App() {
       setDocument(prev => prev.substring(0, data.limit))
     })
 
+    // Handle shared audio playback
+    socket.on('play-audio', (data) => {
+      console.log('=== RECEIVED SHARED AUDIO EVENT ===')
+      console.log('Event data:', data)
+      console.log('AudioKey:', data.audioKey, 'Username:', data.username)
+      playSharedAudio(data.audioKey, data.username)
+      console.log('=== END SHARED AUDIO EVENT ===')
+    })
+
     socketRef.current = socket
   }
 
@@ -816,6 +889,7 @@ function App() {
           onRandomIcebreaker={handleRandomIcebreaker}
           isConnected={isConnected}
           randomCooldown={randomCooldown}
+          onPlayAudio={handlePlayAudio}
         />
 
         <Editor 

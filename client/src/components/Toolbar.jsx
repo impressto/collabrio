@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { getToolbarAudioOptions } from '../config/sharedAudio.js'
+import AudioSelectorPopup from './AudioSelectorPopup.jsx'
 
 function Toolbar({ 
   shareSession, 
@@ -13,6 +14,8 @@ function Toolbar({
   randomCooldown,
   onPlayAudio
 }) {
+  const [showAudioPopup, setShowAudioPopup] = useState(false)
+
   const handleFileShare = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -29,16 +32,19 @@ function Toolbar({
   // Get available audio files from centralized configuration
   const audioFiles = getToolbarAudioOptions();
 
-  const handleAudioSelect = (e) => {
-    const audioKey = e.target.value;
-    
+  const handleAudioButtonClick = () => {
+    setShowAudioPopup(true)
+  }
+
+  const handleAudioSelect = (audioKey) => {
     if (audioKey && onPlayAudio) {
       onPlayAudio(audioKey);
     }
-    
-    // Reset dropdown to default
-    e.target.value = '';
-  };
+  }
+
+  const handleCloseAudioPopup = () => {
+    setShowAudioPopup(false)
+  }
 
   return (
     <div className="toolbar">
@@ -62,19 +68,15 @@ function Toolbar({
       >
         🎲 {randomCooldown > 0 ? `Random (${randomCooldown}s)` : 'Random'}
       </button>
-      <select 
-        id="audio-selector"
-        onChange={handleAudioSelect}
-        className="audio-selector"
+      <button 
+        id="audio-selector-btn"
+        onClick={handleAudioButtonClick}
+        className="audio-selector-button"
         title="Play sound for all session participants"
         disabled={!isConnected}
       >
-        {audioFiles.map((audio) => (
-          <option key={audio.value} value={audio.value}>
-            {audio.label}
-          </option>
-        ))}
-      </select>
+        🔊 React
+      </button>
       <button 
         id="theme-toggle-btn" 
         onClick={() => setDarkTheme(!darkTheme)} 
@@ -93,6 +95,14 @@ function Toolbar({
       <span className="connection-status connection-status-right">
         {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
       </span>
+
+      <AudioSelectorPopup
+        isVisible={showAudioPopup}
+        onClose={handleCloseAudioPopup}
+        onSelectAudio={handleAudioSelect}
+        audioOptions={audioFiles}
+        isConnected={isConnected}
+      />
     </div>
   )
 }

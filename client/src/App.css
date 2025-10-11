@@ -322,6 +322,31 @@ body > #root > .collabrio-app {
   background: #94a3b8;
 }
 
+.collabrio-app .audio-selector-button {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  min-width: 120px;
+}
+
+.collabrio-app .audio-selector-button:hover {
+  background: #5048e5;
+}
+
+.collabrio-app .audio-selector-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.collabrio-app .audio-selector-button:disabled:hover {
+  background: #94a3b8;
+}
+
 .collabrio-app .session-input {
   padding: 0.5rem;
   border: 1px solid #ced4da;
@@ -961,6 +986,24 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app.dark-theme .audio-selector:disabled:hover {
+  background: #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector-button {
+  background: #5b21b6 !important;
+  color: #e0e0e0 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector-button:hover {
+  background: #4c1d95 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector-button:disabled {
+  background: #4a5568 !important;
+  color: #a0aec0 !important;
+}
+
+.collabrio-app.dark-theme .audio-selector-button:disabled:hover {
   background: #4a5568 !important;
 }
 
@@ -2264,4 +2307,191 @@ body > #root > .collabrio-app {
 
 .collabrio-app.dark-theme .floating-username {
   color: #e2e8f0;
+}
+
+/* Audio Selector Popup Styles */
+.collabrio-app .audio-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.collabrio-app .audio-selector-popup {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  max-height: 80vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.collabrio-app .audio-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.collabrio-app .audio-selector-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.collabrio-app .audio-selector-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.collabrio-app .audio-selector-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.collabrio-app .audio-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  padding: 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.collabrio-app .audio-option-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 80px;
+}
+
+.collabrio-app .audio-option-button:hover:not(.disabled) {
+  border-color: #4299e1;
+  background: #f7fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.collabrio-app .audio-option-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.collabrio-app .audio-option-emoji {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+
+.collabrio-app .audio-option-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #4a5568;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.collabrio-app .audio-selector-warning {
+  background: #fff3cd;
+  border-top: 1px solid #e9ecef;
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #856404;
+}
+
+/* Dark theme for audio selector */
+.collabrio-app.dark-theme .audio-selector-popup {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .audio-selector-header {
+  background: #4a5568;
+  border-bottom-color: #718096;
+}
+
+.collabrio-app.dark-theme .audio-selector-header h3 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .audio-selector-close {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .audio-selector-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.collabrio-app.dark-theme .audio-option-button {
+  background: #4a5568;
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .audio-option-button:hover:not(.disabled) {
+  background: #2d3748;
+  border-color: #63b3ed;
+}
+
+.collabrio-app.dark-theme .audio-option-button.disabled {
+  background: #2d3748;
+  opacity: 0.4;
+}
+
+.collabrio-app.dark-theme .audio-option-name {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .audio-selector-warning {
+  background: #744210;
+  border-top-color: #718096;
+  color: #fbb6ce;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .collabrio-app .audio-selector-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .collabrio-app .audio-option-button {
+    padding: 0.75rem 0.25rem;
+    min-height: 70px;
+  }
+  
+  .collabrio-app .audio-option-emoji {
+    font-size: 1.25rem;
+  }
+  
+  .collabrio-app .audio-option-name {
+    font-size: 0.7rem;
+  }
 }

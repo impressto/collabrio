@@ -66,16 +66,14 @@ export class SharedAudioManager {
   }
 
   // Play shared audio for all session participants (from socket events)
-  playSharedAudio(audioKey, username, { createFloatingIcon, showToast }) {
+  playSharedAudio(audioKey, username, { createFloatingIcon }) {
     const result = audioManager.play(audioKey)
     if (!result) {
       console.error('Audio play failed for:', audioKey)
     }
     
-    // Create floating icon animation
+    // Create floating icon animation (visual indicator replaces toast notification)
     createFloatingIcon(audioKey, username)
-    
-    showToast(`🔊 ${username} played: ${this.getAudioLabel(audioKey)}`, 'info')
   }
 
   // Handle audio selection from toolbar (local user action)
@@ -122,7 +120,7 @@ export class SharedAudioManager {
     // Play locally immediately
     audioManager.play(audioKey)
     
-    // Create floating icon for local user
+    // Create floating icon for local user (visual indicator replaces toast notification)
     createFloatingIcon(audioKey, userIdentity.username)
     
     // Broadcast to other users
@@ -131,8 +129,6 @@ export class SharedAudioManager {
       audioKey: audioKey,
       username: userIdentity.username
     })
-
-    showToast(`🔊 You played: ${this.getAudioLabel(audioKey)}`, 'success')
   }
 }
 

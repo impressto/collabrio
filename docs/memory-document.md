@@ -1216,4 +1216,195 @@ const createFloatingIcon = (audioKey, username) => {
 - **State Management:** Simple array-based state sufficient for ephemeral UI elements
 - **User Delight:** Small animations significantly impact perceived quality and engagement
 
+---
+
+### DEC-019: Audio Selector UX Redesign (October 11, 2025)
+
+**Context:** Students requested visual grid interface for sound selection instead of dropdown, citing difficulty seeing all available options at once.
+
+**Problem:** Dropdown selector UX limitations:
+- Required scrolling to see all options
+- No visual preview of sound categories
+- Small touch targets on mobile devices
+- Unclear which sounds were available without opening dropdown
+
+**Decision:** ✅ Multi-column Grid Popup Interface
+
+**Implementation Architecture:**
+```javascript
+// New AudioSelectorPopup component
+const AudioSelectorPopup = ({ isVisible, onClose, onSelectAudio, audioOptions }) => {
+  return (
+    <div className="audio-selector-overlay">
+      <div className="audio-selector-popup">
+        <div className="audio-selector-grid">
+          {audioOptions.map(audio => (
+            <button onClick={() => handleAudioClick(audio.value)}>
+              <div className="audio-option-emoji">{emoji}</div>
+              <div className="audio-option-name">{name}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// CSS Grid responsive layout
+.audio-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+```
+
+**User Experience Improvements:**
+- **Visual Overview:** See all 25+ sounds at once in organized grid
+- **Emoji Recognition:** Large emoji icons aid quick identification
+- **Mobile Friendly:** Responsive grid with appropriate touch targets
+- **Glassmorphism Design:** Modern popup with backdrop blur effects
+- **Instant Selection:** Click any option to play immediately and close popup
+
+**Outcome:** ✅ Successfully Implemented
+- Students report much faster sound selection
+- Increased engagement with audio features due to discoverability
+- Better mobile experience with larger touch areas
+- Consistent with modern app interface patterns
+
+---
+
+### DEC-020: Floating Icon Duplication Bug Resolution (October 11, 2025)
+
+**Context:** Users reported floating icons occasionally appearing twice for the same sound selection, creating visual confusion and suggesting system instability.
+
+**Problem Analysis:**
+- Floating icons appeared to "reset" and restart animation mid-flight
+- Issue occurred across multiple clients simultaneously
+- Delay between duplicate icons ranged from 0.5-1+ seconds
+- Root cause: Animation continued calculating positions after icon became invisible (opacity = 0)
+
+**Technical Investigation:**
+```javascript
+// Original problematic code
+if (progress < 1) {
+  requestAnimationFrame(animate) // Continued even when invisible
+} else {
+  onComplete(id) // Only called after full 3 seconds
+}
+
+// Issue: Animation ran for ~1 second after opacity hit 0
+// During invisible "zombie" period, duplicate icons could be created
+```
+
+**Solution Architecture:**
+```javascript
+// 1. Early animation termination
+if (newOpacity <= 0 || progress >= 1) {
+  onComplete(id) // Call as soon as invisible OR time complete
+}
+
+// 2. ID-based deduplication tracking
+const [activeAnimationIds, setActiveAnimationIds] = useState(new Map())
+
+// 3. Composite key prevention
+const createFloatingIcon = (audioKey, username) => {
+  const animationKey = `${username}-${audioKey}`
+  if (activeAnimationIds.has(animationKey)) {
+    return // Prevent duplicate
+  }
+  // Track active animation...
+}
+```
+
+**Multi-layered Protection System:**
+1. **Early Termination:** Stop animation when opacity ≤ 0 (saves ~1 second)
+2. **ID Tracking:** activeAnimationIds Map prevents duplicate creation
+3. **Composite Keys:** username+audioKey ensures per-user+sound tracking
+4. **Automatic Cleanup:** Remove tracking when animation completes
+
+**Outcome:** ✅ Bug Resolved
+- Eliminated all floating icon duplication issues
+- Improved performance by stopping invisible animations
+- Reduced "zombie animation" CPU usage
+- Tighter user experience with immediate visual feedback
+
+---
+
+### DEC-021: Audio Feedback Simplification (October 11, 2025)
+
+**Context:** Redundant visual feedback - both toast notifications AND floating icons appeared for audio events, creating visual clutter.
+
+**Problem:** Competing visual systems:
+- Toast notifications: Text-based temporary popup messages
+- Floating icons: Animated visual indicators with emoji and username
+- Both triggered simultaneously, creating redundant feedback
+
+**Decision:** ✅ Remove Audio Toast Notifications, Keep Floating Icons
+
+**Rationale:**
+- **Floating icons more engaging:** Students prefer animated visual feedback
+- **Less visual clutter:** Single clear feedback mechanism
+- **Better information density:** Icons show who + what in compact animated form
+- **Preserved error handling:** Connection errors still show toast notifications
+
+**Implementation Changes:**
+```javascript
+// Removed redundant success toasts
+// showToast(`🔊 You played: ${audioName}`, 'success') ❌
+// showToast(`🔊 ${username} played: ${audioName}`, 'info') ❌
+
+// Kept important error toasts
+if (!isConnected) {
+  showToast('Cannot play audio: Not connected to session', 'error') ✅
+}
+```
+
+**Outcome:** ✅ Cleaner User Experience
+- Reduced visual noise in collaborative sessions
+- Floating icons provide sufficient, more engaging feedback
+- Error states still properly communicated via toasts
+- Students report cleaner, less distracting interface
+
+---
+
+### DEC-022: Code Architecture Refactoring (October 11, 2025)
+
+**Context:** App.jsx growing complex with audio-related functionality scattered throughout main component, reducing maintainability.
+
+**Problem:** Monolithic component structure:
+- App.jsx exceeded 1000+ lines with mixed concerns
+- Audio logic embedded in main application component
+- Difficult to test audio features independently
+- Code reuse limited by tight coupling
+
+**Decision:** ✅ Extract SharedAudioManager Utility Class
+
+**Refactoring Architecture:**
+```javascript
+// Before: All in App.jsx (1021 lines)
+const handlePlayAudio = (audioKey) => { /* complex logic */ }
+const createFloatingIcon = (audioKey, username) => { /* state management */ }
+const playSharedAudio = (audioKey, username) => { /* audio + UI logic */ }
+
+// After: SharedAudioManager.js (139 lines) + App.jsx (941 lines)
+export class SharedAudioManager {
+  handlePlayAudio(audioKey, dependencies) { /* extracted logic */ }
+  createFloatingIcon(audioKey, username, stateFunctions) { /* extracted */ }
+  playSharedAudio(audioKey, username, callbacks) { /* extracted */ }
+}
+```
+
+**Benefits Achieved:**
+- **Reduced App.jsx:** 1021 → 941 lines (80 lines removed)
+- **Organized Logic:** All audio functionality centralized
+- **Testable Units:** Audio features can be unit tested independently
+- **Reusable Code:** SharedAudioManager can be imported by other components
+- **Cleaner Architecture:** Clear separation of concerns
+
+**Outcome:** ✅ More Maintainable Codebase
+- Audio features properly encapsulated in dedicated module
+- Main App component focused on core application logic
+- Easier to add new audio features without touching main component
+- Better code organization for team development
+
 This memory document serves as both project documentation and educational example of how to maintain organizational knowledge throughout software development.

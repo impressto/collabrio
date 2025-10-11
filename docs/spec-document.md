@@ -2,8 +2,8 @@
 ## Technical Specification Document
 
 **Project Name:** Collabrio  
-**Version:** 2.1  
-**Last Updated:** January 3, 2025  
+**Version:** 2.2  
+**Last Updated:** October 11, 2025  
 **Status:** Production Ready  
 **Repository:** `/home/impressto/work/impressto/homeserver/www/homelab/collabrio`
 
@@ -222,41 +222,44 @@ Create a web-based collaborative text editor that enables multiple users to edit
 **As a student**, I want to play fun sound effects that all session participants can hear so that I can add acoustic elements and make the collaborative environment more engaging.
 
 **Acceptance Criteria:**
-- [x] Audio dropdown selector appears in toolbar between Leave and Theme buttons
-- [x] Dropdown contains 9 preloaded sound effects with emoji labels
+- [x] Audio popup selector appears in toolbar with visual grid interface
+- [x] Grid contains 25+ preloaded sound effects with emoji icons and descriptive names
 - [x] Selecting a sound plays it locally and broadcasts to all session participants
-- [x] Only the initiator sees "You played" toast, others see "Username played" toast
+- [x] Visual feedback provided through floating icon animations (toasts removed to reduce clutter)
 - [x] Audio selector is disabled when not connected to session
 - [x] All audio files are preloaded using existing audioManager system
-- [x] Visual feedback shows audio selection with consistent toolbar styling
-- [x] Dark theme compatible styling for the audio dropdown
+- [x] Multi-column responsive grid layout for easy sound selection
+- [x] Dark theme compatible styling for the audio popup
 - [x] Server broadcasts audio events to all session participants except sender
 - [x] Audio plays through existing audioManager for consistent volume control
 
-**Available Sound Effects:**
-- ⚖️ Break Law (breaklaw.mp3)
-- 🤢 Burp (burp.mp3)
-- 🎭 Cartoon Boink (cartoonboink.mp3)
-- 💨 Fart (Reverb) (fart-with-reverb.mp3)
-- 🐻 Five Nights at Freddy's (five-nights-at-freddys.mp3)
-- 😱 Freaky (freaky.mp3)
-- 🔧 Metal Pipe Fall (metal-pipe-fall-meme.mp3)
-- 😬 Oh No Cringe (oh-no-cringe.mp3)
-- 🙏 Thank You (thank-you-for-your-patronage.mp3)
+**Audio Selection Interface:**
+- **🔊 React Button**: Opens popup with multi-column grid of available sounds
+- **Visual Grid Layout**: Auto-fill columns with minimum 120px width, responsive design
+- **Emoji + Name Display**: Each option shows distinctive emoji and descriptive name
+- **Hover Effects**: Interactive buttons with lift animation and color changes
+- **Backdrop Interaction**: Click outside popup or X button to close
+- **Mobile Responsive**: Grid adapts to smaller screens (100px minimum, 3-4 columns)
 
-**Technical Notes:**
-- Extends existing audioManager system from Ask AI feature
-- Audio files stored in client/public/audio/ directory
-- Socket event 'play-audio' broadcasts to session participants
-- Reuses existing preloading system for performance
-- Integrates with existing toast notification system
-- Uses audioManager keys instead of filenames for consistency
+**Sound Categories Available:**
+- 25+ curated sound effects including memes, gaming references, and reaction sounds
+- Examples: Metal Pipe Fall, Bruh, Evil Laugh, Burp, FNAF, Explosion, etc.
+- Each sound has distinctive emoji identifier and user-friendly name
+
+**Technical Implementation:**
+- AudioSelectorPopup component with grid-based layout and glassmorphism design
+- SharedAudioManager utility class handles audio logic (extracted from App.jsx)
+- Audio files stored in client/public/audio/ directory with centralized configuration
+- Socket event 'play-audio' broadcasts to session participants (excluding sender)
+- Floating icon animations replace toast notifications for cleaner UX
+- Responsive CSS Grid with auto-fill columns and mobile breakpoints
 
 **User Experience:**
-- Makes collaborative sessions more fun and engaging
-- Provides immediate audio feedback for all participants
-- Seamless integration with existing toolbar functionality
-- Respects session connectivity for feature availability
+- Visual grid interface much more intuitive than dropdown selector
+- Students can see all available sounds at once for faster selection
+- Floating icon animations provide clear, non-intrusive feedback
+- Mobile-friendly touch targets and responsive design
+- Consistent with modern app interface patterns
 
 **Definition of Done:**
 - All audio files preload successfully on application start
@@ -291,16 +294,18 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 **Technical Implementation:**
 - FloatingIcon React component with requestAnimationFrame animation
-- State management via floatingIcons array in App.jsx
-- Emoji mapping system matching toolbar dropdown selections
-- Self-cleaning component removes itself via onComplete callback
-- Integration with existing shared audio system
+- ID-based deduplication system prevents duplicate animations per user+sound combination
+- Early termination when opacity reaches 0 for optimal performance
+- State management via floatingIcons array and activeAnimationIds tracking Map
+- Emoji mapping system matching audio popup selections
+- Self-cleaning component removes itself via onComplete callback with automatic tracking cleanup
 
 **Performance Considerations:**
 - Uses requestAnimationFrame for smooth 60fps animation
+- Early animation termination prevents unnecessary calculations on invisible icons
+- ID-based tracking system eliminates duplicate icon creation race conditions
 - Automatic cleanup prevents memory leaks from accumulated components
-- Minimal DOM impact with efficient component lifecycle
-- No CSS transitions - JavaScript handles animation for precise control
+- Minimal DOM impact with efficient component lifecycle and precise deduplication
 
 **User Experience:**
 - Immediate visual feedback identifies sound initiators
@@ -308,12 +313,19 @@ Create a web-based collaborative text editor that enables multiple users to edit
 - Clear attribution helps maintain classroom awareness
 - Non-intrusive positioning doesn't obstruct main content
 
+**Recent Improvements (October 2025):**
+- **Duplicate Icon Bug Fix**: Resolved issue where floating icons appeared twice due to race conditions
+- **Early Animation Termination**: Icons now stop animating when opacity reaches 0 instead of full duration
+- **ID-based Deduplication**: Composite key tracking (username+audioKey) prevents duplicate animations
+- **Performance Optimization**: Eliminated "zombie" animation calculations on invisible icons
+- **Toast Notification Cleanup**: Removed redundant success toasts since floating icons provide visual feedback
+
 **Definition of Done:**
-- Floating animations trigger for all shared audio events
+- Floating animations trigger for all shared audio events without duplicates
 - Visual design matches application theme and quality standards
 - Performance remains smooth with multiple simultaneous animations
 - Feature works consistently across both application views
-- No memory leaks or orphaned animation components
+- No memory leaks, orphaned components, or duplicate icon issues
 
 ---
 

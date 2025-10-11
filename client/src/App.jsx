@@ -158,8 +158,7 @@ function App() {
   // Play shared audio for all session participants
   const playSharedAudio = (audioKey, username) => {
     sharedAudioManager.playSharedAudio(audioKey, username, {
-      createFloatingIcon,
-      showToast
+      createFloatingIcon
     })
   }
 

@@ -27,7 +27,7 @@ import {
 } from './utils/identityUtils'
 import { getRandomTopic, createIcebreakerPrompt } from './utils/icebreakerUtils'
 import { isValidSchoolNumber, getAllSchools, getSchoolName } from './utils/schoolUtils'
-import { getAudioEmojis, getAudioDisplayNames } from './config/sharedAudio.js'
+import { sharedAudioManager } from './utils/sharedAudioManager.js'
 
 // Avatar options (same as in IdentityModal)
 const AVATAR_OPTIONS = [
@@ -157,120 +157,41 @@ function App() {
 
   // Play shared audio for all session participants
   const playSharedAudio = (audioKey, username) => {
-    const result = audioManager.play(audioKey)
-    if (!result) {
-      console.error('Audio play failed for:', audioKey)
-    }
-    
-    // Create floating icon animation
-    createFloatingIcon(audioKey, username)
-    
-    showToast(`🔊 ${username} played: ${getAudioLabel(audioKey)}`, 'info')
+    sharedAudioManager.playSharedAudio(audioKey, username, {
+      createFloatingIcon,
+      showToast
+    })
   }
 
   // Handle audio selection from toolbar
   const handlePlayAudio = (audioKey) => {
-    if (!socketRef.current || !isConnected) {
-      showToast('Cannot play audio: Not connected to session', 'error')
-      return
-    }
-
-    // Check for recent duplicate triggers (debouncing)
-    const now = Date.now()
-    const triggerKey = `${userIdentity.username}-${audioKey}`
-    const lastTrigger = recentAudioTriggers.get(triggerKey)
-    
-    if (lastTrigger && (now - lastTrigger) < 1000) { // 1 second debounce
-      showToast('Please wait before playing the same sound again', 'warning')
-      return
-    }
-    
-    // Update recent triggers
-    setRecentAudioTriggers(prev => {
-      const newMap = new Map(prev)
-      newMap.set(triggerKey, now)
-      
-      // Clean up old entries (older than 5 seconds)
-      for (const [key, timestamp] of newMap.entries()) {
-        if (now - timestamp > 5000) {
-          newMap.delete(key)
-        }
-      }
-      
-      return newMap
+    sharedAudioManager.handlePlayAudio(audioKey, {
+      socketRef,
+      isConnected,
+      sessionId,
+      userIdentity,
+      recentAudioTriggers,
+      setRecentAudioTriggers,
+      createFloatingIcon,
+      showToast
     })
-
-    // Play locally immediately
-    audioManager.play(audioKey)
-    
-    // Create floating icon for local user
-    createFloatingIcon(audioKey, userIdentity.username)
-    
-    // Broadcast to other users
-    socketRef.current.emit('play-audio', {
-      sessionId: sessionId,
-      audioKey: audioKey,
-      username: userIdentity.username
-    })
-
-    showToast(`🔊 You played: ${getAudioLabel(audioKey)}`, 'success')
-  }
-
-  // Get centralized audio data
-  const audioDisplayNames = getAudioDisplayNames()
-  const audioEmojis = getAudioEmojis()
-
-  // Helper function to get user-friendly audio labels
-  const getAudioLabel = (audioKey) => {
-    return audioDisplayNames[audioKey] || audioKey
-  }
-
-  // Helper function to get emoji for each audio key
-  const getAudioEmoji = (audioKey) => {
-    return audioEmojis[audioKey] || '🔊'
   }
 
   // Create floating icon animation
   const createFloatingIcon = (audioKey, username) => {
-    const animationKey = `${username}-${audioKey}` // Composite key for user+audio combination
-    
-    // Check if there's already an active animation for this user+audio combination
-    if (activeAnimationIds.has(animationKey)) {
-      console.log(`Preventing duplicate animation: ${animationKey} already active`)
-      return // Prevent duplicate - animation already in progress
-    }
-    
-    const iconId = Date.now() + Math.random() // Unique ID
-    
-    // Track this active animation
-    setActiveAnimationIds(prev => new Map(prev).set(animationKey, iconId))
-    
-    const newIcon = {
-      id: iconId,
-      emoji: getAudioEmoji(audioKey),
-      username: username,
-      animationKey: animationKey // Store the key for cleanup
-    }
-    
-    setFloatingIcons(prev => [...prev, newIcon])
+    return sharedAudioManager.createFloatingIcon(audioKey, username, {
+      floatingIcons,
+      setFloatingIcons,
+      activeAnimationIds,
+      setActiveAnimationIds
+    })
   }
 
   // Remove floating icon when animation completes
   const removeFloatingIcon = (iconId) => {
-    setFloatingIcons(prev => {
-      // Find the icon being removed to get its animation key
-      const iconToRemove = prev.find(icon => icon.id === iconId)
-      
-      if (iconToRemove && iconToRemove.animationKey) {
-        // Clean up active animation tracking
-        setActiveAnimationIds(activeIds => {
-          const newIds = new Map(activeIds)
-          newIds.delete(iconToRemove.animationKey)
-          return newIds
-        })
-      }
-      
-      return prev.filter(icon => icon.id !== iconId)
+    sharedAudioManager.removeFloatingIcon(iconId, {
+      setFloatingIcons,
+      setActiveAnimationIds
     })
   }
 

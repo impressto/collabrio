@@ -46,7 +46,6 @@ function FloatingIcon({ id, emoji, username, onComplete }) {
       if (newOpacity <= 0 || progress >= 1) {
         // Animation complete (either by time or opacity), notify parent to remove this component
         onComplete(id)
-        console.log(`FloatingIcon ${id} animation complete (opacity: ${newOpacity.toFixed(3)}, progress: ${progress.toFixed(3)})`)
       } else {
         requestAnimationFrame(animate)
       }

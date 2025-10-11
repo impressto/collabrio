@@ -231,7 +231,7 @@ export const getAudioDisplayNames = () => {
 
 export const getToolbarAudioOptions = () => {
   return [
-    { value: '', label: '🔊 Play Sound' },
+    { value: '', label: '🔊 React' },
     ...sharedAudioClips.map(clip => ({
       value: clip.key,
       label: `${clip.emoji} ${clip.label}`

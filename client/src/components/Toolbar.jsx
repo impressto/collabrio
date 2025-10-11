@@ -88,7 +88,7 @@ function Toolbar({
         onClick={leaveSession}
         className="leave-session-button"
       >
-        🚪 Leave
+        🚪 Exit
       </button>
       <span className="connection-status connection-status-right">
         {isConnected ? '🟢 Connected' : '🔴 Disconnected'}

@@ -17,6 +17,7 @@ import Footer from './components/Footer'
 import IdentityModal from './components/IdentityModal'
 import SchoolAuthModal from './components/SchoolAuthModal'
 import FloatingIcon from './components/FloatingIcon'
+import ImageThumbnail from './components/ImageThumbnail'
 
 // Utilities
 import { 
@@ -71,6 +72,7 @@ function App() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentUploadFile, setCurrentUploadFile] = useState(null)
+  const [sharedImages, setSharedImages] = useState([])
   
   // School authentication state
   const [isSchoolAuthenticated, setIsSchoolAuthenticated] = useState(() => {
@@ -440,12 +442,15 @@ function App() {
     })
 
     // File sharing event handlers
-    socket.on('file-available', (data) => {
+    socket.on('file-available', async (data) => {
       // Don't show notification if this user uploaded the file
       if (data.uploadedBy === socket.id) {
         showToast(`File "${data.filename}" uploaded successfully!`, 'success')
         return
       }
+      
+      // Check if it's an image file
+      const isImage = data.mimeType && data.mimeType.startsWith('image/')
       
       // Add notification for other users
       setFileNotifications(prev => [...prev, {
@@ -455,8 +460,30 @@ function App() {
         size: data.size,
         mimeType: data.mimeType,
         uploadedBy: data.uploadedBy,
-        timestamp: data.timestamp
+        timestamp: data.timestamp,
+        isImage
       }])
+      
+      // If it's an image, also fetch the data for thumbnail display
+      if (isImage) {
+        const imageData = await fetchImageData(data.fileId, data.filename, data.mimeType)
+        if (imageData) {
+          // Find the username of the user who uploaded the file
+          const uploaderUser = connectedUsers.find(user => user.id === data.uploadedBy)
+          const senderName = uploaderUser?.username || 'Anonymous User'
+          
+          setSharedImages(prev => [...prev, {
+            id: data.fileId, // Use fileId as the unique identifier
+            fileId: data.fileId,
+            filename: data.filename,
+            size: data.size,
+            mimeType: data.mimeType,
+            sender: senderName,
+            timestamp: new Date(data.timestamp),
+            data: imageData // Base64 image data
+          }])
+        }
+      }
     })
 
     socket.on('file-share-accepted', (data) => {
@@ -493,6 +520,8 @@ function App() {
 
     socket.on('file-expired', (data) => {
       setFileNotifications(prev => prev.filter(notif => notif.fileId !== data.fileId))
+      // Also remove from shared images if it was an image
+      setSharedImages(prev => prev.filter(img => img.fileId !== data.fileId))
       showToast('A shared file has expired', 'warning')
     })
 
@@ -774,6 +803,8 @@ function App() {
       
       // Remove notification after download
       setFileNotifications(prev => prev.filter(notif => notif.fileId !== fileId))
+      // Also remove from shared images if it was an image
+      setSharedImages(prev => prev.filter(img => img.fileId !== fileId))
       
     } catch (error) {
       console.error('Download error:', error)
@@ -781,8 +812,41 @@ function App() {
     }
   }
 
+  const fetchImageData = async (fileId, filename, mimeType) => {
+    try {
+      const downloadUrl = `${config.socketServerUrl}/download-file/${fileId}?sessionId=${sessionId}`
+      const response = await fetch(downloadUrl)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`)
+      }
+      
+      const blob = await response.blob()
+      
+      // Convert blob to base64
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const base64Data = reader.result.split(',')[1] // Remove data:image/...;base64, prefix
+          resolve(base64Data)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+    } catch (error) {
+      console.error('Error fetching image data:', error)
+      return null
+    }
+  }
+
   const dismissFileNotification = (fileId) => {
     setFileNotifications(prev => prev.filter(notif => notif.fileId !== fileId))
+    // Note: Don't remove shared image thumbnails when dismissing notifications
+    // Thumbnails should remain visible until file expires, is downloaded, or manually removed
+  }
+
+  const removeSharedImage = (imageId) => {
+    setSharedImages(prev => prev.filter(img => img.id !== imageId))
   }
 
   const cancelUpload = () => {
@@ -857,6 +921,8 @@ function App() {
           isConnected={isConnected}
           randomCooldown={randomCooldown}
           onPlayAudio={handlePlayAudio}
+          sharedImages={sharedImages}
+          onRemoveImage={removeSharedImage}
         />
 
         <Editor 

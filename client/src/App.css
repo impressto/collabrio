@@ -2329,7 +2329,7 @@ body > #root > .collabrio-app {
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  max-width: 600px;
+  max-width: 800px;
   max-height: 80vh;
   width: 100%;
   overflow: hidden;
@@ -2493,5 +2493,268 @@ body > #root > .collabrio-app {
   
   .collabrio-app .audio-option-name {
     font-size: 0.7rem;
+  }
+}
+
+/* Image Thumbnail Styles */
+.collabrio-app .image-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 2px solid #e9ecef;
+  cursor: pointer;
+  object-fit: cover;
+  transition: all 0.2s ease;
+  background: #f8f9fa;
+  margin-right: 0.5rem;
+}
+
+.collabrio-app .image-thumbnail:hover {
+  border-color: #4299e1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Modal Styles */
+.collabrio-app .image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.collabrio-app .image-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.collabrio-app .image-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.collabrio-app .image-modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collabrio-app .image-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.collabrio-app .image-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.collabrio-app .image-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  min-height: 300px;
+}
+
+.collabrio-app .image-modal-image {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 1rem;
+}
+
+.collabrio-app .image-modal-info {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.collabrio-app .image-modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.collabrio-app .image-download-btn {
+  background: #3182ce;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collabrio-app .image-download-btn:hover {
+  background: #2c5282;
+  transform: translateY(-1px);
+}
+
+.collabrio-app .image-close-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.collabrio-app .image-close-btn:hover {
+  background: #5a6268;
+}
+
+/* Dark theme image styles */
+.collabrio-app.dark-theme .image-thumbnail {
+  border-color: #4a5568;
+  background: #2d3748;
+}
+
+.collabrio-app.dark-theme .image-thumbnail:hover {
+  border-color: #63b3ed;
+}
+
+.collabrio-app.dark-theme .image-modal {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .image-modal-header {
+  background: #4a5568;
+  border-bottom-color: #718096;
+}
+
+.collabrio-app.dark-theme .image-modal-title {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .image-modal-close {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .image-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .image-modal-info {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .image-download-btn {
+  background: #4299e1;
+}
+
+.collabrio-app.dark-theme .image-download-btn:hover {
+  background: #3182ce;
+}
+
+.collabrio-app.dark-theme .image-close-btn {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .image-close-btn:hover {
+  background: #718096;
+}
+
+/* Loading state for image modal */
+.collabrio-app .image-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #666;
+  font-size: 1rem;
+}
+
+.collabrio-app .image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #e53e3e;
+  text-align: center;
+}
+
+.collabrio-app .image-error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Responsive design for image modal */
+@media (max-width: 768px) {
+  .collabrio-app .image-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .collabrio-app .image-modal-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .collabrio-app .image-modal-title {
+    font-size: 1rem;
+    max-width: 200px;
+  }
+  
+  .collabrio-app .image-modal-content {
+    padding: 1rem;
+  }
+  
+  .collabrio-app .image-modal-image {
+    max-height: 60vh;
+  }
+  
+  .collabrio-app .image-modal-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .collabrio-app .image-download-btn,
+  .collabrio-app .image-close-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

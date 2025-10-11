@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { getToolbarAudioOptions } from '../config/sharedAudio.js'
 import AudioSelectorPopup from './AudioSelectorPopup.jsx'
+import ImageThumbnail from './ImageThumbnail.jsx'
 
 function Toolbar({ 
   shareSession, 
@@ -12,7 +13,9 @@ function Toolbar({
   onRandomIcebreaker,
   isConnected,
   randomCooldown,
-  onPlayAudio
+  onPlayAudio,
+  sharedImages = [],
+  onRemoveImage
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
 
@@ -85,6 +88,16 @@ function Toolbar({
       >
         {darkTheme ? '☀️' : '🌙'}
       </button>
+      
+      {/* Display image thumbnails */}
+      {sharedImages.map((image) => (
+        <ImageThumbnail 
+          key={image.id}
+          image={image}
+          onRemove={onRemoveImage}
+        />
+      ))}
+      
       <button 
         id="leave-session-btn"
         onClick={leaveSession}

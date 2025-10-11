@@ -9,6 +9,7 @@ This directory contains Architecture Decision Records for the Collabrio project.
 | [ADR-0001](adr-0001-record-architecture-decisions.md) | Record Architecture Decisions | Accepted | 2025-10-11 |
 | [ADR-0002](adr-0002-extract-sharedaudiomanager.md) | Extract SharedAudioManager Utility Class | Accepted | 2025-10-11 |
 | [ADR-0003](adr-0003-floating-icon-duplication-fix.md) | Floating Icon Duplication Bug Resolution | Accepted | 2025-10-11 |
+| [ADR-0004](adr-0004-image-thumbnail-preview-system.md) | Image Thumbnail Preview System | Accepted | 2025-10-11 |
 
 ## ADR Process
 

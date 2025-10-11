@@ -182,7 +182,6 @@ function Editor({
       setAiResponseCountAtStart(currentResponseCount)
       
       // Start playing the timer audio in loop using audioManager
-      console.log('Starting timer audio...')
       audioManager.play('timer', {
         loop: true,
         volume: config.audioVolume || 0.8
@@ -249,10 +248,7 @@ function Editor({
       const currentResponseCount = (document.match(/\[AI Response:/g) || []).length
       const hasNewResponse = currentResponseCount > aiResponseCountAtStart
       
-      console.log('Checking AI response count. Starting count:', aiResponseCountAtStart, 'Current count:', currentResponseCount, 'Has new response:', hasNewResponse)
-      
       if (hasNewResponse) {
-        console.log('Stopping audio - new AI response detected')
         
         // Stop the timer audio using audioManager
         audioManager.stop('timer')

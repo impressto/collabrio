@@ -10,12 +10,10 @@ class AudioManager {
   
   preloadSound(name, filename) {
     if (!this.enabled) {
-      console.log(`AudioManager: Sound effects disabled, skipping preload of ${filename}`)
       return null
     }
     
     const audioUrl = `${config.baseUrl}/client/public/${filename}`
-    console.log(`AudioManager: Preloading sound "${name}" from ${audioUrl}`)
     
     try {
       const audio = new Audio(audioUrl)
@@ -23,14 +21,9 @@ class AudioManager {
       audio.volume = this.volume
       this.sounds[name] = audio
       
-      // Handle loading success
-      audio.oncanplaythrough = () => {
-        console.log(`AudioManager: Successfully loaded sound "${name}" (${filename})`)
-      }
-      
       // Handle loading errors gracefully
       audio.onerror = (e) => {
-        console.error(`AudioManager: Failed to load sound "${name}" (${filename}):`, e)
+        console.error(`AudioManager: Failed to load sound "${name}"`, e)
         delete this.sounds[name]
       }
       
@@ -42,24 +35,16 @@ class AudioManager {
   }
   
   play(soundName, options = {}) {
-    console.log(`AudioManager: Attempting to play sound "${soundName}"`, { enabled: this.enabled, soundExists: !!this.sounds[soundName] })
-    
     if (!this.enabled) {
-      console.warn(`AudioManager: Sound effects disabled`)
       return
     }
     
     if (!this.sounds[soundName]) {
-      console.warn(`AudioManager: Sound "${soundName}" not found or failed to load`)
+      console.warn(`AudioManager: Sound "${soundName}" not found`)
       return
     }
     
     const audio = this.sounds[soundName]
-    console.log(`AudioManager: Playing "${soundName}" with options:`, options, 'Audio state:', { 
-      readyState: audio.readyState, 
-      volume: audio.volume,
-      src: audio.src 
-    })
     
     try {
       audio.currentTime = 0 // Reset to beginning
@@ -72,13 +57,10 @@ class AudioManager {
       const playPromise = audio.play()
       
       if (playPromise) {
-        playPromise.then(() => {
-          console.log(`AudioManager: Successfully started playing "${soundName}"`)
-        }).catch((error) => {
+        playPromise.catch((error) => {
           // Handle autoplay policy or other play errors
-          console.error(`AudioManager: Failed to play "${soundName}":`, error.name, error.message)
           if (error.name !== 'AbortError') {
-            console.warn(`Failed to play sound ${soundName}:`, error)
+            console.warn(`Failed to play sound ${soundName}:`, error.name)
           }
         })
       }
@@ -132,14 +114,7 @@ class AudioManager {
 // Create singleton instance
 export const audioManager = new AudioManager()
 
-// Debug: Log audio configuration
-console.log('AudioManager Configuration:', {
-  enabled: audioManager.enabled,
-  volume: audioManager.volume,
-  soundEffectsEnabled: config.soundEffectsEnabled,
-  soundEffectsVolume: config.soundEffectsVolume,
-  baseUrl: config.baseUrl
-})
+// AudioManager initialization complete
 
 // Preload all sounds
 audioManager.preloadSound('userJoin', 'chime.mp3')
@@ -154,9 +129,6 @@ sharedAudioClips.forEach(clip => {
   audioManager.preloadSound(clip.key, clip.filename)
 })
 
-// Debug: Log loaded sounds after a short delay
-setTimeout(() => {
-  console.log('AudioManager Loaded Sounds:', audioManager.getLoadedSounds())
-}, 2000)
+// Audio files are loaded asynchronously
 
 export default audioManager

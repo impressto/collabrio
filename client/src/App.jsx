@@ -57,6 +57,7 @@ function App() {
   })
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
   const [floatingIcons, setFloatingIcons] = useState([])
+  const [recentAudioTriggers, setRecentAudioTriggers] = useState(new Map()) // Track recent audio triggers to prevent spam
   const [editorMode, setEditorMode] = useState('live') // 'live' or 'draft'
   const [draftContent, setDraftContent] = useState(() => {
     // Initialize draft content from localStorage
@@ -155,15 +156,9 @@ function App() {
 
   // Play shared audio for all session participants
   const playSharedAudio = (audioKey, username) => {
-    console.log(`Playing shared audio "${audioKey}" requested by ${username}`)
-    console.log('Available audio keys:', Object.keys(audioManager.sounds))
-    console.log('AudioManager enabled:', audioManager.enabled)
-    
     const result = audioManager.play(audioKey)
-    if (result) {
-      console.log('Audio play promise returned:', result)
-    } else {
-      console.error('Audio play failed - no promise returned')
+    if (!result) {
+      console.error('Audio play failed for:', audioKey)
     }
     
     // Create floating icon animation
@@ -174,37 +169,50 @@ function App() {
 
   // Handle audio selection from toolbar
   const handlePlayAudio = (audioKey) => {
-    console.log('=== HANDLE PLAY AUDIO CALLED ===')
-    console.log('AudioKey:', audioKey)
-    console.log('Socket connected:', !!socketRef.current)
-    console.log('Is connected:', isConnected)
-    console.log('Session ID:', sessionId)
-    console.log('Username:', userIdentity.username)
-    
     if (!socketRef.current || !isConnected) {
-      console.log('Aborting: Not connected to session')
       showToast('Cannot play audio: Not connected to session', 'error')
       return
     }
 
+    // Check for recent duplicate triggers (debouncing)
+    const now = Date.now()
+    const triggerKey = `${userIdentity.username}-${audioKey}`
+    const lastTrigger = recentAudioTriggers.get(triggerKey)
+    
+    if (lastTrigger && (now - lastTrigger) < 1000) { // 1 second debounce
+      showToast('Please wait before playing the same sound again', 'warning')
+      return
+    }
+    
+    // Update recent triggers
+    setRecentAudioTriggers(prev => {
+      const newMap = new Map(prev)
+      newMap.set(triggerKey, now)
+      
+      // Clean up old entries (older than 5 seconds)
+      for (const [key, timestamp] of newMap.entries()) {
+        if (now - timestamp > 5000) {
+          newMap.delete(key)
+        }
+      }
+      
+      return newMap
+    })
+
     // Play locally immediately
-    console.log('Playing audio locally...')
     audioManager.play(audioKey)
     
     // Create floating icon for local user
     createFloatingIcon(audioKey, userIdentity.username)
     
     // Broadcast to other users
-    console.log('Emitting play-audio socket event...')
     socketRef.current.emit('play-audio', {
       sessionId: sessionId,
       audioKey: audioKey,
       username: userIdentity.username
     })
-    console.log('Socket event emitted successfully')
 
     showToast(`🔊 You played: ${getAudioLabel(audioKey)}`, 'success')
-    console.log('=== HANDLE PLAY AUDIO COMPLETE ===')
   }
 
   // Get centralized audio data
@@ -223,6 +231,15 @@ function App() {
 
   // Create floating icon animation
   const createFloatingIcon = (audioKey, username) => {
+    // Check if there's already a recent floating icon for this user/audio combination
+    const existingIcon = floatingIcons.find(icon => 
+      icon.username === username && icon.emoji === getAudioEmoji(audioKey)
+    )
+    
+    if (existingIcon) {
+      return // Prevent duplicate icons
+    }
+    
     const iconId = Date.now() + Math.random() // Unique ID
     const newIcon = {
       id: iconId,
@@ -269,10 +286,7 @@ function App() {
     }
   }, [sessionId, isInSession])
 
-  // Debug: Log when document state changes
-  useEffect(() => {
-    console.log('Document state changed to:', document)
-  }, [document])
+  // Document state changes are tracked for synchronization
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -460,18 +474,13 @@ function App() {
     })
 
     socket.on('document-update', (data) => {
-      console.log('Received document-update:', data)
-      console.log('Current document state:', document)
       setDocument(data.document)
     })
 
     socket.on('user-joined', (data) => {
-      console.log('User joined:', data)
-      
       // Play chime sound if there are already other users in the session
       // (don't play on initial connection when joining alone)
       if (data.users && data.users.length > 1) {
-        console.log('Playing chime sound for user join')
         audioManager.play('userJoin')
       }
       
@@ -479,9 +488,6 @@ function App() {
     })
 
     socket.on('user-left', (data) => {
-      console.log('User left:', data)
-      console.log('Playing leave sound for user departure')
-      
       // Play leave sound when someone leaves
       audioManager.play('userLeave')
       
@@ -489,8 +495,6 @@ function App() {
     })
 
     socket.on('server-text-injection', (data) => {
-      console.log('Server text injection:', data)
-      
       // Insert server text into the document with formatting
       const injectedText = `\n\n[${data.type.toUpperCase()}] ${data.text}\n\n`
       setDocument(prevDoc => prevDoc + injectedText)
@@ -498,8 +502,6 @@ function App() {
 
     // File sharing event handlers
     socket.on('file-available', (data) => {
-      console.log('File available:', data)
-      
       // Don't show notification if this user uploaded the file
       if (data.uploadedBy === socket.id) {
         showToast(`File "${data.filename}" uploaded successfully!`, 'success')
@@ -519,7 +521,6 @@ function App() {
     })
 
     socket.on('file-share-accepted', (data) => {
-      console.log('File share accepted:', data)
       // Start chunked upload
       if (currentFileUpload.current) {
         startChunkedUpload(currentFileUpload.current, data.fileId, data.chunkSize)
@@ -540,7 +541,6 @@ function App() {
     })
 
     socket.on('file-upload-complete', (data) => {
-      console.log('File upload complete:', data)
       setIsUploading(false)
       setUploadProgress(0)
       setCurrentUploadFile(null)
@@ -549,20 +549,16 @@ function App() {
     })
 
     socket.on('file-downloaded', (data) => {
-      console.log('File downloaded:', data)
       showToast(`Someone downloaded "${data.filename}"`, 'info')
     })
 
     socket.on('file-expired', (data) => {
-      console.log('File expired:', data)
       setFileNotifications(prev => prev.filter(notif => notif.fileId !== data.fileId))
       showToast('A shared file has expired', 'warning')
     })
 
     // Handle direct AI responses (for silent icebreaker injection)
     socket.on('ai-response-direct', (data) => {
-      console.log('Direct AI response received:', data)
-      
       if (data.requestId && data.requestId.startsWith('icebreaker-') && data.response) {
         // Silently inject the AI response into the document
         const aiResponse = data.response.trim()
@@ -580,8 +576,6 @@ function App() {
           
           return newDocument
         })
-        
-        console.log('Icebreaker silently injected into document')
       }
     })
 
@@ -596,11 +590,10 @@ function App() {
 
     // Handle shared audio playback
     socket.on('play-audio', (data) => {
-      console.log('=== RECEIVED SHARED AUDIO EVENT ===')
-      console.log('Event data:', data)
-      console.log('AudioKey:', data.audioKey, 'Username:', data.username)
-      playSharedAudio(data.audioKey, data.username)
-      console.log('=== END SHARED AUDIO EVENT ===')
+      // Only play audio for other users, not the person who triggered it
+      if (data.username !== userIdentity.username) {
+        playSharedAudio(data.audioKey, data.username)
+      }
     })
 
     socketRef.current = socket
@@ -654,8 +647,6 @@ function App() {
       // Create the AI prompt
       const prompt = createIcebreakerPrompt(randomTopic)
       
-      console.log('Requesting silent AI icebreaker for topic:', randomTopic)
-      
       // Send the prompt to the socket server for AI processing (silent mode)
       socketRef.current.emit('ask-ai-direct', {
         sessionId: sessionId,
@@ -692,6 +683,8 @@ function App() {
     setIsInSession(false)
     setSessionId('')
     setConnectedUsers([]) // Clear user list when leaving
+    setFloatingIcons([]) // Clear any floating icons
+    setRecentAudioTriggers(new Map()) // Clear audio trigger debouncing
     window.location.hash = ''
     if (socketRef.current) {
       socketRef.current.disconnect()
@@ -753,7 +746,7 @@ function App() {
       return
     }
 
-    console.log('Starting file share:', file.name, file.size, 'bytes', 'Session:', sessionId)
+
     
     setIsUploading(true)
     setUploadProgress(0)

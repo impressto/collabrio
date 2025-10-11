@@ -30,21 +30,14 @@ function Toolbar({
   const audioFiles = getToolbarAudioOptions();
 
   const handleAudioSelect = (e) => {
-    console.log('=== AUDIO SELECT EVENT ===')
     const audioKey = e.target.value;
-    console.log('Selected audio key:', audioKey)
-    console.log('onPlayAudio function exists:', !!onPlayAudio)
     
     if (audioKey && onPlayAudio) {
-      console.log('Calling onPlayAudio with:', audioKey)
       onPlayAudio(audioKey);
-    } else {
-      console.log('Not calling onPlayAudio - audioKey:', audioKey, 'onPlayAudio:', !!onPlayAudio)
     }
     
     // Reset dropdown to default
     e.target.value = '';
-    console.log('=== AUDIO SELECT COMPLETE ===')
   };
 
   return (

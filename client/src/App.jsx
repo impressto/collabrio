@@ -468,9 +468,8 @@ function App() {
       if (isImage) {
         const imageData = await fetchImageData(data.fileId, data.filename, data.mimeType)
         if (imageData) {
-          // Find the username of the user who uploaded the file
-          const uploaderUser = connectedUsers.find(user => user.id === data.uploadedBy)
-          const senderName = uploaderUser?.username || 'Anonymous User'
+          // Use the username directly from the server (more reliable than client-side lookup)
+          const senderName = data.uploaderUsername || 'Anonymous User'
           
           setSharedImages(prev => [...prev, {
             id: data.fileId, // Use fileId as the unique identifier

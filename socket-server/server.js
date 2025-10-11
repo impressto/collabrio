@@ -387,6 +387,10 @@ app.post('/upload-file', upload.single('file'), (req, res) => {
     
     console.log(`File uploaded: ${req.file.originalname} (${req.file.size} bytes) by ${userId} in session ${sessionId}`);
     
+    // Get uploader's username from active session
+    const uploaderInfo = activeSessions.get(sessionId)?.get(userId);
+    const uploaderUsername = uploaderInfo?.username || 'Anonymous User';
+
     // Notify all session participants about new file
     io.to(sessionId).emit('file-available', {
       fileId: fileId,
@@ -394,6 +398,7 @@ app.post('/upload-file', upload.single('file'), (req, res) => {
       size: req.file.size,
       mimeType: req.file.mimetype,
       uploadedBy: userId,
+      uploaderUsername: uploaderUsername,
       timestamp: Date.now()
     });
     
@@ -1181,6 +1186,10 @@ io.on('connection', (socket) => {
           size: fileTransfer.size
         });
         
+        // Get uploader's username from active session
+        const uploaderInfo = activeSessions.get(sessionId)?.get(clientId);
+        const uploaderUsername = uploaderInfo?.username || 'Anonymous User';
+
         // Notify all session participants about new file
         io.to(sessionId).emit('file-available', {
           fileId: fileId,
@@ -1188,6 +1197,7 @@ io.on('connection', (socket) => {
           size: fileTransfer.size,
           mimeType: fileTransfer.mimeType,
           uploadedBy: clientId,
+          uploaderUsername: uploaderUsername,
           timestamp: Date.now()
         });
       } else {

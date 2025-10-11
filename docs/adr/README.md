@@ -10,6 +10,7 @@ This directory contains Architecture Decision Records for the Collabrio project.
 | [ADR-0002](adr-0002-extract-sharedaudiomanager.md) | Extract SharedAudioManager Utility Class | Accepted | 2025-10-11 |
 | [ADR-0003](adr-0003-floating-icon-duplication-fix.md) | Floating Icon Duplication Bug Resolution | Accepted | 2025-10-11 |
 | [ADR-0004](adr-0004-image-thumbnail-preview-system.md) | Image Thumbnail Preview System | Accepted | 2025-10-11 |
+| [ADR-0005](adr-0005-include-username-in-file-events.md) | Include Username in File-Available Events | Accepted | 2025-10-11 |
 
 ## ADR Process
 

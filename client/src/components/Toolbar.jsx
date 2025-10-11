@@ -1,4 +1,5 @@
 import React from 'react'
+import { getToolbarAudioOptions } from '../config/sharedAudio.js'
 
 function Toolbar({ 
   shareSession, 
@@ -25,19 +26,8 @@ function Toolbar({
     input.click();
   };
 
-  // Available audio files for shared playback (using audioManager keys)
-  const audioFiles = [
-    { value: '', label: '🔊 Play Sound' },
-    { value: 'breaklaw', label: '⚖️ Break Law' },
-    { value: 'burp', label: '🤢 Burp' },
-    { value: 'cartoonboink', label: '🎭 Cartoon Boink' },
-    { value: 'fart-with-reverb', label: '💨 Fart (Reverb)' },
-    { value: 'five-nights-at-freddys', label: '🐻 Five Nights at Freddy\'s' },
-    { value: 'freaky', label: '😱 Freaky' },
-    { value: 'metal-pipe-fall-meme', label: '🔧 Metal Pipe Fall' },
-    { value: 'oh-no-cringe', label: '😬 Oh No Cringe' },
-    { value: 'thank-you-for-your-patronage', label: '🙏 Thank You' }
-  ];
+  // Get available audio files from centralized configuration
+  const audioFiles = getToolbarAudioOptions();
 
   const handleAudioSelect = (e) => {
     console.log('=== AUDIO SELECT EVENT ===')

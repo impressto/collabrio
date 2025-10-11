@@ -27,6 +27,7 @@ import {
 } from './utils/identityUtils'
 import { getRandomTopic, createIcebreakerPrompt } from './utils/icebreakerUtils'
 import { isValidSchoolNumber, getAllSchools, getSchoolName } from './utils/schoolUtils'
+import { getAudioEmojis, getAudioDisplayNames } from './config/sharedAudio.js'
 
 // Avatar options (same as in IdentityModal)
 const AVATAR_OPTIONS = [
@@ -206,35 +207,17 @@ function App() {
     console.log('=== HANDLE PLAY AUDIO COMPLETE ===')
   }
 
+  // Get centralized audio data
+  const audioDisplayNames = getAudioDisplayNames()
+  const audioEmojis = getAudioEmojis()
+
   // Helper function to get user-friendly audio labels
   const getAudioLabel = (audioKey) => {
-    const audioLabels = {
-      'breaklaw': 'Break Law',
-      'burp': 'Burp',
-      'cartoonboink': 'Cartoon Boink',
-      'fart-with-reverb': 'Fart (Reverb)',
-      'five-nights-at-freddys': 'Five Nights at Freddy\'s',
-      'freaky': 'Freaky',
-      'metal-pipe-fall-meme': 'Metal Pipe Fall',
-      'oh-no-cringe': 'Oh No Cringe',
-      'thank-you-for-your-patronage': 'Thank You'
-    }
-    return audioLabels[audioKey] || audioKey
+    return audioDisplayNames[audioKey] || audioKey
   }
 
   // Helper function to get emoji for each audio key
   const getAudioEmoji = (audioKey) => {
-    const audioEmojis = {
-      'breaklaw': '⚖️',
-      'burp': '🤢',
-      'cartoonboink': '🎭',
-      'fart-with-reverb': '💨',
-      'five-nights-at-freddys': '🐻',
-      'freaky': '😱',
-      'metal-pipe-fall-meme': '🔧',
-      'oh-no-cringe': '😬',
-      'thank-you-for-your-patronage': '🙏'
-    }
     return audioEmojis[audioKey] || '🔊'
   }
 

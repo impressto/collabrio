@@ -146,16 +146,13 @@ audioManager.preloadSound('userJoin', 'chime.mp3')
 audioManager.preloadSound('userLeave', 'leave.mp3')
 audioManager.preloadSound('timer', 'timer.mp3')
 
-// Preload shared audio files from audio folder
-audioManager.preloadSound('breaklaw', 'audio/breaklaw.mp3')
-audioManager.preloadSound('burp', 'audio/burp.mp3')
-audioManager.preloadSound('cartoonboink', 'audio/cartoonboink.mp3')
-audioManager.preloadSound('fart-with-reverb', 'audio/fart-with-reverb.mp3')
-audioManager.preloadSound('five-nights-at-freddys', 'audio/five-nights-at-freddys.mp3')
-audioManager.preloadSound('freaky', 'audio/freaky.mp3')
-audioManager.preloadSound('metal-pipe-fall-meme', 'audio/metal-pipe-fall-meme.mp3')
-audioManager.preloadSound('oh-no-cringe', 'audio/oh-no-cringe.mp3')
-audioManager.preloadSound('thank-you-for-your-patronage', 'audio/thank-you-for-your-patronage.mp3')
+// Preload shared audio files from centralized configuration
+import { sharedAudioClips } from '../config/sharedAudio.js'
+
+// Preload all shared audio files
+sharedAudioClips.forEach(clip => {
+  audioManager.preloadSound(clip.key, clip.filename)
+})
 
 // Debug: Log loaded sounds after a short delay
 setTimeout(() => {

@@ -1,53 +1,79 @@
-# Collabrio - Real-time Collaborative Clipboard
+# Collabrio - Real-time Collaborative Text Editor
+
+**Version:** 2.2 | **Status:** Production Ready | **Updated:** October 11, 2025
 
 ![collabrio_screen](https://github.com/user-attachments/assets/2688b452-1a9e-4f4e-ae43-a0064cc209a2)
 
-> **An Educational Example of Specification-Driven Development**
+## 🎯 Quick Start
 
-Collabrio is a fully functional web-based collaborative text editor that demonstrates best practices for specification-driven development and project documentation. While built for educational purposes, it's production-ready and can handle real collaborative workloads.
+**Collabrio** is an anonymous collaborative text editor designed for educational environments. Students can collaborate on documents in real-time with fun interactive features.
 
-## 🎓 Educational Purpose
+### Key Features
+- 📝 **Anonymous Collaboration** - No signup required, share via URL/QR code
+- 🎵 **Shared Audio System** - 25+ reaction sounds with floating icon animations  
+- 🏫 **School Authentication** - Restricted access to authorized educational institutions
+- 📱 **Mobile Friendly** - Responsive design works on all devices
+- 🌙 **Dark/Light Themes** - Student preference support
+- ⚡ **Real-time Sync** - WebSocket with P2P fallback
 
-This project serves as a **complete example** of how to:
+Designed for classroom collaboration where students need:
+- Quick session creation without accounts
+- Fun, engaging audio feedback  
+- Mobile-friendly interface for BYOD environments
+- Teacher control through school authentication
+- Anonymous participation to reduce social pressure
 
-- **Write effective technical specifications** with clear user stories and acceptance criteria
-- **Maintain decision logs** that capture the "why" behind technical choices  
-- **Use living documentation** that evolves with the project
-- **Practice spec-driven development** from requirements to implementation
-- **Balance user needs** with technical constraints in real-world scenarios
+## � Installation & Setup
 
-### For Students & Instructors
+```bash
+# Clone repository  
+git clone [repository-url]
+cd collabrio
 
-- **📋 [Specification Document](docs/spec-document.md)** - Demonstrates proper user story structure, acceptance criteria, and technical requirements
-- **🧠 [Memory Document](docs/memory-document.md)** - Shows decision logging, lessons learned, and organizational knowledge management
-- **💻 Working Application** - See how specifications translate to actual functionality
+# Install dependencies
+npm install
+cd client && npm install && cd ..
 
-## 🚀 Project Overview
+# Development mode
+npm run dev          # Starts both client and socket server
+# OR
+cd client && npm run dev     # Client only (port 5173)
+cd socket-server && npm run dev  # Socket server only (port 3001)
 
-**Collabrio** enables multiple users to collaborate on a shared text document in real-time through their web browsers. No accounts, no setup, no friction - just instant collaboration.
+# Production build
+npm run build        # Builds client to dist/
+```
 
-### Core Features
+## 🔧 Configuration
 
-✅ **Real-time Collaboration** - Multiple users edit simultaneously  
-✅ **Anonymous Access** - No registration required, share via URL  
-✅ **QR Code Sharing** - Easy mobile access through generated QR codes  
-✅ **Theme Support** - Light and dark themes with persistence  
-✅ **User Identity** - Optional usernames and avatars for better collaboration  
-✅ **Network Resilience** - WebSocket fallback when peer-to-peer is blocked  
-✅ **Production Ready** - CSS isolation allows embedding in any website  
+**Environment Variables** (client/.env):
+```bash
+VITE_SOCKET_SERVER_URL=wss://your-socket-server.com
+VITE_BASE_URL=https://your-app-domain.com
+VITE_DEBUG=false
+```
 
-### Technical Highlights
+**School Numbers** (for authentication):
+- Earl of March: `906484`
+- Bell High School: `894362`
 
-- **Frontend:** React + Vite for modern development workflow
-- **Backend:** Node.js + Socket.IO for reliable real-time communication  
-- **Architecture:** Component-based design with clean separation of concerns
-- **Configuration:** Environment variables for flexible deployment
-- **Embedding:** CSS isolation allows safe integration anywhere
-- **Documentation:** Complete specifications and decision logs
+## 📚 Documentation Structure
 
-## 🛠️ Quick Start
+- **README.md** (this file) - Quick start and overview
+- **ARCHITECTURE.md** - Technical system overview  
+- **USER_STORIES.md** - Current features and acceptance criteria
+- **adr/** - Architecture Decision Records (industry-standard decision documentation)
+- **archive/** - Detailed historical documentation
 
-### Prerequisites
+## 🔗 Quick Links
+
+- **Socket Admin:** `/socket-server/admin.html`
+- **Test Pages:** Various test-*.html files for feature validation  
+- **Archive Docs:** `/docs/archive/` for detailed project history
+
+---
+
+**Need Help?** Check `ARCHITECTURE.md` for technical details or `USER_STORIES.md` for feature specifications.
 - Node.js 18+ 
 - Yarn package manager
 - Modern web browser

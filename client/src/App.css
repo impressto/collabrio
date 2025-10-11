@@ -2220,3 +2220,47 @@ body > #root > .collabrio-app {
   background: rgba(245, 101, 101, 0.9);
   color: white;
 }
+
+/* Floating icon animations */
+.floating-icon {
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.floating-icon-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #4299e1;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+  min-width: 80px;
+}
+
+.floating-emoji {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+
+.floating-username {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Dark theme floating icons */
+.collabrio-app.dark-theme .floating-icon-content {
+  background: rgba(45, 55, 72, 0.95);
+  border-color: #63b3ed;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .floating-username {
+  color: #e2e8f0;
+}

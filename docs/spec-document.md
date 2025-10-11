@@ -267,6 +267,56 @@ Create a web-based collaborative text editor that enables multiple users to edit
 
 ---
 
+#### US-016: Floating Audio Icon Animations
+**As a student**, I want to see visual animations showing who played which sound so that I can easily identify sound triggers and enjoy enhanced visual feedback during collaborative sessions.
+
+**Acceptance Criteria:**
+- [x] Floating icons appear from random positions at the bottom of the screen
+- [x] Icons display the sound's emoji and the username of who triggered it
+- [x] Animation smoothly floats upward 300px over 3 seconds with fade-out effect
+- [x] Icons appear for both local user (when they play) and remote users (when others play)
+- [x] Random horizontal positioning between 10% and 90% of screen width
+- [x] High z-index ensures icons appear above all content including modals
+- [x] Automatic cleanup removes icons when animation completes
+- [x] Glassmorphism design with backdrop blur and theme-aware styling
+- [x] Works on both landing page and collaborative editor views
+- [x] Each icon has unique ID to prevent conflicts with multiple simultaneous animations
+
+**Visual Design:**
+- **Container**: Glassmorphism effect with backdrop blur and rounded corners
+- **Content**: Sound emoji (1.5rem) above username (0.75rem, bold)
+- **Animation**: Smooth easing with 300px upward movement and opacity fade
+- **Positioning**: Random horizontal placement, fixed bottom start position
+- **Themes**: Light mode (white background, blue border) and dark mode (dark background, light blue border)
+
+**Technical Implementation:**
+- FloatingIcon React component with requestAnimationFrame animation
+- State management via floatingIcons array in App.jsx
+- Emoji mapping system matching toolbar dropdown selections
+- Self-cleaning component removes itself via onComplete callback
+- Integration with existing shared audio system
+
+**Performance Considerations:**
+- Uses requestAnimationFrame for smooth 60fps animation
+- Automatic cleanup prevents memory leaks from accumulated components
+- Minimal DOM impact with efficient component lifecycle
+- No CSS transitions - JavaScript handles animation for precise control
+
+**User Experience:**
+- Immediate visual feedback identifies sound initiators
+- Adds playful, engaging element to collaborative sessions
+- Clear attribution helps maintain classroom awareness
+- Non-intrusive positioning doesn't obstruct main content
+
+**Definition of Done:**
+- Floating animations trigger for all shared audio events
+- Visual design matches application theme and quality standards
+- Performance remains smooth with multiple simultaneous animations
+- Feature works consistently across both application views
+- No memory leaks or orphaned animation components
+
+---
+
 ### Epic 2: Session Management
 **Goal:** Users can create, join, and manage collaborative sessions
 

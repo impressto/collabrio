@@ -16,6 +16,7 @@ import UploadProgress from './components/UploadProgress'
 import Footer from './components/Footer'
 import IdentityModal from './components/IdentityModal'
 import SchoolAuthModal from './components/SchoolAuthModal'
+import FloatingIcon from './components/FloatingIcon'
 
 // Utilities
 import { 
@@ -54,6 +55,7 @@ function App() {
     return saved ? JSON.parse(saved) : false
   })
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [floatingIcons, setFloatingIcons] = useState([])
   const [editorMode, setEditorMode] = useState('live') // 'live' or 'draft'
   const [draftContent, setDraftContent] = useState(() => {
     // Initialize draft content from localStorage
@@ -163,6 +165,9 @@ function App() {
       console.error('Audio play failed - no promise returned')
     }
     
+    // Create floating icon animation
+    createFloatingIcon(audioKey, username)
+    
     showToast(`🔊 ${username} played: ${getAudioLabel(audioKey)}`, 'info')
   }
 
@@ -184,6 +189,9 @@ function App() {
     // Play locally immediately
     console.log('Playing audio locally...')
     audioManager.play(audioKey)
+    
+    // Create floating icon for local user
+    createFloatingIcon(audioKey, userIdentity.username)
     
     // Broadcast to other users
     console.log('Emitting play-audio socket event...')
@@ -212,6 +220,39 @@ function App() {
       'thank-you-for-your-patronage': 'Thank You'
     }
     return audioLabels[audioKey] || audioKey
+  }
+
+  // Helper function to get emoji for each audio key
+  const getAudioEmoji = (audioKey) => {
+    const audioEmojis = {
+      'breaklaw': '⚖️',
+      'burp': '🤢',
+      'cartoonboink': '🎭',
+      'fart-with-reverb': '💨',
+      'five-nights-at-freddys': '🐻',
+      'freaky': '😱',
+      'metal-pipe-fall-meme': '🔧',
+      'oh-no-cringe': '😬',
+      'thank-you-for-your-patronage': '🙏'
+    }
+    return audioEmojis[audioKey] || '🔊'
+  }
+
+  // Create floating icon animation
+  const createFloatingIcon = (audioKey, username) => {
+    const iconId = Date.now() + Math.random() // Unique ID
+    const newIcon = {
+      id: iconId,
+      emoji: getAudioEmoji(audioKey),
+      username: username
+    }
+    
+    setFloatingIcons(prev => [...prev, newIcon])
+  }
+
+  // Remove floating icon when animation completes
+  const removeFloatingIcon = (iconId) => {
+    setFloatingIcons(prev => prev.filter(icon => icon.id !== iconId))
   }
 
   // Initialize session from URL hash - check school authentication first
@@ -864,6 +905,17 @@ function App() {
           takenUsernames={connectedUsers.map(user => user.username).filter(Boolean)}
           isFirstTime={true}
         />
+
+        {/* Floating Audio Icons */}
+        {floatingIcons.map((icon) => (
+          <FloatingIcon
+            key={icon.id}
+            id={icon.id}
+            emoji={icon.emoji}
+            username={icon.username}
+            onComplete={removeFloatingIcon}
+          />
+        ))}
       </>
     )
   }
@@ -955,6 +1007,17 @@ function App() {
         
         <Footer connectionType={connectionType} sessionId={sessionId} />
       </div>
+
+      {/* Floating Audio Icons */}
+      {floatingIcons.map((icon) => (
+        <FloatingIcon
+          key={icon.id}
+          id={icon.id}
+          emoji={icon.emoji}
+          username={icon.username}
+          onComplete={removeFloatingIcon}
+        />
+      ))}
     </div>
   )
 }

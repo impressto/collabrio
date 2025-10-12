@@ -1,4 +1,4 @@
-# Collabrio - Real-time Collaborative Text Editor
+# Collabrio - Real-time Collaborative Clipboard
 
 **Version:** 2.2 | **Status:** Production Ready | **Updated:** October 11, 2025
 

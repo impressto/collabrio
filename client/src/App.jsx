@@ -124,11 +124,11 @@ function App() {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('/config')
+        const response = await fetch(`${config.socketServerUrl}/config`)
         if (response.ok) {
-          const config = await response.json()
-          setServerConfig(config)
-          console.log('Server config loaded:', config)
+          const serverConfig = await response.json()
+          setServerConfig(serverConfig)
+          console.log('Server config loaded:', serverConfig)
         } else {
           console.warn('Failed to fetch server config, using defaults')
         }

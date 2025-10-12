@@ -2584,15 +2584,18 @@ body > #root > .collabrio-app {
   align-items: center;
   padding: 1.5rem;
   min-height: 300px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .collabrio-app .image-modal-image {
   max-width: 100%;
-  max-height: 70vh;
+  max-height: 60vh;
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .collabrio-app .image-modal-info {
@@ -2883,10 +2886,13 @@ body > #root > .collabrio-app {
   
   .collabrio-app .image-modal-content {
     padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
   }
   
   .collabrio-app .image-modal-image {
-    max-height: 60vh;
+    max-height: 50vh;
+    flex-shrink: 0;
   }
   
   .collabrio-app .image-modal-actions {

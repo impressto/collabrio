@@ -132,6 +132,7 @@ function ImageThumbnail({ image, onRemove, onDelete }) {
                 <div><strong>Shared by:</strong> {image.sender}</div>
                 <div><strong>Size:</strong> {formatFileSize(image.size)}</div>
                 <div><strong>Time:</strong> {formatTimestamp(image.timestamp)}</div>
+                <div><strong>Cached:</strong> {image.isCached ? 'Yes' : 'No'}</div>
               </div>
               
               <div className="image-modal-actions">
@@ -142,13 +143,13 @@ function ImageThumbnail({ image, onRemove, onDelete }) {
                 >
                   💾 Download
                 </button>
-                {onDelete && image.isCached && (
+                {onDelete && (
                   <button 
                     className="image-delete-btn"
                     onClick={handleDeleteClick}
-                    title="Delete from cache"
+                    title={image.isCached ? "Delete from cache" : "Delete from cache (not cached yet)"}
                   >
-                    🗑️ Delete
+                    🗑️ Delete {image.isCached ? '' : '(Test)'}
                   </button>
                 )}
                 <button 

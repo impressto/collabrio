@@ -65,3 +65,4 @@ socket-server/.env
 socket-server/messages/*
 socket-server/sessions.db
 gtag_include.php
+socket-server/cached-images/*

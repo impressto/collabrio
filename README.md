@@ -2,7 +2,7 @@
 
 **Version:** 2.2 | **Status:** Production Ready | **Updated:** October 11, 2025
 
-![collabrio_screen](https://github.com/user-attachments/assets/2688b452-1a9e-4f4e-ae43-a0064cc209a2)
+![collabrio_screen](https://github.com/user-attachments/assets/f5d57667-f52c-49f1-b071-6b7c391e76df)
 
 ## 🎯 Quick Start
 

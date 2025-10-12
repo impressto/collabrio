@@ -18,7 +18,7 @@ export const config = {
   askAiMaxChars: parseInt(import.meta.env.VITE_ASK_AI_MAX_CHARS) || 500,
   
   // Document limits
-  maxDocumentChars: parseInt(import.meta.env.VITE_MAX_DOCUMENT_CHARS) || 5000,
+  maxDocumentChars: parseInt(import.meta.env.VITE_MAX_DOCUMENT_CHARS) || 20000,
   
   // Debug configuration
   debug: import.meta.env.VITE_DEBUG === 'true' || import.meta.env.DEV,

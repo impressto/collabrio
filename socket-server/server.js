@@ -859,7 +859,7 @@ io.on('connection', (socket) => {
     }
     
     // Server-side character limit validation
-    const MAX_DOCUMENT_CHARS = parseInt(process.env.MAX_DOCUMENT_CHARS) || 5000;
+    const MAX_DOCUMENT_CHARS = parseInt(process.env.MAX_DOCUMENT_CHARS) || 20000;
     if (document && document.length > MAX_DOCUMENT_CHARS) {
       console.warn(`Document too large: ${document.length} characters (limit: ${MAX_DOCUMENT_CHARS})`);
       socket.emit('document-limit-exceeded', { 

@@ -665,7 +665,7 @@ VITE_ASK_AI_MAX_CHARS=500
 VITE_AUDIO_VOLUME=0.8
 
 # Document Limits
-VITE_MAX_DOCUMENT_CHARS=5000
+VITE_MAX_DOCUMENT_CHARS=20000
 ```
 
 #### Backend Configuration
@@ -683,7 +683,7 @@ COHERE_API_KEY=your_api_key_here
 COHERE_MODEL=command-r-plus
 
 # Document Limits
-MAX_DOCUMENT_CHARS=5000
+MAX_DOCUMENT_CHARS=20000
 ```
 
 ### 4.2 Deployment Architecture

@@ -975,7 +975,7 @@ const isAtLimit = (text) => text.length >= config.maxDocumentChars
 - **Toast Notifications:** Clear feedback when limits are enforced
 
 **Technical Implementation:**
-- **Environment Configuration:** VITE_MAX_DOCUMENT_CHARS=5000 / MAX_DOCUMENT_CHARS=5000
+- **Environment Configuration:** VITE_MAX_DOCUMENT_CHARS=20000 / MAX_DOCUMENT_CHARS=20000
 - **Positioning:** Absolute within editor container (not viewport-fixed)
 - **Prevention Logic:** Allows deletions and replacements even at limit
 - **Server Validation:** Rejects documents exceeding limit with clear error message

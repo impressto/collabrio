@@ -39,6 +39,7 @@ Collabrio is a real-time collaborative text editor built on React + Socket.IO ar
 - `UserList.jsx` - Active collaborator display
 - `Toast.jsx` - Notification system
 - `UploadProgress.jsx` - File upload feedback
+- `ImageThumbnail.jsx` - Image preview, download, and cache management
 
 **Audio System:**
 - `FloatingIcon.jsx` - Animated emoji feedback for audio events
@@ -52,11 +53,20 @@ Collabrio is a real-time collaborative text editor built on React + Socket.IO ar
 - `admin.html` - Server monitoring and session management interface
 - `messages/` - Session persistence and message logging
 
+**Backend Modules:**
+- `modules/fileManager.js` - File upload/download handling and rate limiting
+- `modules/imageCache.js` - Image caching, storage, and deletion management
+- `modules/aiService.js` - AI integration for content enhancement
+- `config/database.js` - SQLite database for cached image metadata
+
 **Key Features:**
 - Session-based message storage
 - Real-time event broadcasting  
 - User join/leave management
 - Message history replay for new connections
+- File upload/download system with chunked transfer
+- Image caching and persistent storage
+- Database-backed metadata management
 
 ## Data Flow
 
@@ -71,6 +81,13 @@ Collabrio is a real-time collaborative text editor built on React + Socket.IO ar
 2. **Sound Playback** → Local audio + floating icon animation → Visual feedback
 3. **Deduplication** → ID-based tracking prevents duplicate animations
 4. **State Management** → SharedAudioManager handles all audio logic
+
+### Image Management Flow
+1. **File Upload** → Chunked transfer → Validation → Temporary storage
+2. **Image Processing** → Cache generation → Database metadata storage
+3. **Real-time Sharing** → Thumbnail broadcast → All users receive preview
+4. **Cache Management** → Persistent storage → User-initiated deletion
+5. **Modal Interaction** → Scrollable preview → Download/delete actions
 
 ## Configuration System
 

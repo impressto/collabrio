@@ -78,6 +78,47 @@
 
 **Current Status:** ✅ Implemented and stable
 
+### File & Media Management Features
+
+#### Image Upload & Sharing
+**As a collaborator**, I want to upload and share images instantly so that I can include visual content in our collaborative work.
+
+**Acceptance Criteria:**
+- Drag-and-drop or click-to-upload image functionality
+- Support for common image formats (PNG, JPG, GIF, WebP)
+- Real-time sharing with all session participants
+- Thumbnail previews for quick reference
+- File size validation and upload progress feedback
+- Chunked upload for reliable large file transfer
+
+**Current Status:** ✅ Implemented and stable
+
+#### Image Cache Management
+**As a user**, I want to manage cached images so that I can free up server storage and remove unwanted content.
+
+**Acceptance Criteria:**
+- Image modal with full-size preview and scrollable content
+- Download button for saving images locally
+- Delete button for removing images from server cache
+- Confirmation dialog before deletion to prevent accidents
+- Real-time deletion notifications for all participants
+- Cached vs. non-cached status indication
+
+**Current Status:** ✅ Implemented and stable
+
+#### Image Thumbnail Modal
+**As a user**, I want to view images in full detail so that I can see shared content clearly.
+
+**Acceptance Criteria:**
+- Modal popup with large image preview
+- Scrollable content when image is large
+- Download and delete actions always accessible
+- Mobile-responsive design with touch-friendly controls
+- Image metadata display (size, timestamp, uploader)
+- Keyboard navigation support (ESC to close)
+
+**Current Status:** ✅ Implemented and stable
+
 ### Audio & Engagement Features
 
 #### Interactive Audio Feedback
@@ -176,18 +217,27 @@ Replaced with grid-based popup for better mobile experience and visual appeal.
 2. Set username/avatar → Verify appears in user list  
 3. Refresh browser → Verify preferences persist
 
+**Image Management:**
+1. Upload image → Verify thumbnail appears for all users
+2. Click thumbnail → Verify modal opens with full preview
+3. Scroll in modal → Verify buttons always accessible
+4. Download image → Verify file downloads correctly
+5. Delete image → Verify confirmation dialog and real-time removal
+
 **Mobile Experience:**
 1. Access on mobile → Verify responsive layout
 2. Scan QR code → Verify successful session joining
 3. Use touch interactions → Verify all features functional
+4. Upload image on mobile → Verify works with camera/gallery
 
 ## Known Limitations
 
-- **File Upload:** Not currently implemented
+- **File Types:** Currently supports images only (no documents, videos, etc.)
 - **Text Formatting:** Basic formatting only (no rich text)
 - **Session History:** Limited to server restart intervals
 - **User Limit:** No enforced limit (performance may degrade with 50+ users)
 - **Audio Library:** Fixed set of sounds (not user-customizable)
+- **Image Cache:** No automatic cleanup (manual deletion only)
 
 ## Future Considerations
 

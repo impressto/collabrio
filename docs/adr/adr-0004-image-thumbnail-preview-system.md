@@ -23,6 +23,7 @@ Implement an automatic image thumbnail preview system that displays small thumbn
 - **Automatic Image Detection**: Detect image MIME types (image/*) on file share
 - **Toolbar Thumbnails**: Display 40x40px clickable thumbnails in toolbar
 - **Full-Size Modal**: Click thumbnail opens full-size image in modal popup
+- **Universal Visibility**: All users see thumbnails, including the original uploader
 - **Download Option**: Maintain original download functionality
 - **Automatic Cleanup**: Remove thumbnails when files expire or are downloaded
 
@@ -55,6 +56,7 @@ socket.on('file-available', async (data) => {
 - **Improved UX**: Students can preview images instantly without downloads
 - **Mobile Friendly**: No file downloads needed for image viewing
 - **Visual Collaboration**: Better support for image-based collaborative work
+- **Universal Thumbnails**: Uploaders see their own thumbnails (know what others see)
 - **Maintained Compatibility**: Original download functionality preserved
 - **Educational Value**: Supports visual learning and presentation workflows
 

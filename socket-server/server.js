@@ -209,11 +209,11 @@ if (!fs.existsSync(messageDir)) {
 
 // File sharing configuration
 const FILE_CONFIG = {
-  maxFileSize: 10 * 1024 * 1024, // 10MB
-  timeoutMinutes: 5,
-  chunkSize: 64 * 1024, // 64KB
-  maxUploadsPerUser: 3,
-  uploadWindowMinutes: 5,
+  maxFileSize: (parseInt(process.env.MAX_FILE_SIZE_MB) || 5) * 1024 * 1024, // Default: 5MB
+  timeoutMinutes: parseInt(process.env.FILE_TIMEOUT_MINUTES) || 5,
+  chunkSize: 64 * 1024, // 64KB (fixed for protocol compatibility)
+  maxUploadsPerUser: parseInt(process.env.MAX_UPLOADS_PER_USER) || 3,
+  uploadWindowMinutes: parseInt(process.env.UPLOAD_WINDOW_MINUTES) || 5,
   allowedTypes: [
     // Documents
     'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -552,6 +552,17 @@ app.get('/debug/sessions', (req, res) => {
   res.json({
     totalSessions: activeSessions.size,
     sessions: sessionInfo
+  });
+});
+
+// Configuration endpoint for client to get server limits
+app.get('/config', (req, res) => {
+  res.json({
+    maxFileSize: FILE_CONFIG.maxFileSize,
+    maxFileSizeMB: FILE_CONFIG.maxFileSize / (1024 * 1024),
+    fileTimeout: FILE_CONFIG.fileTimeout,
+    maxUploadsPerUser: FILE_CONFIG.maxUploadsPerUser,
+    uploadWindow: FILE_CONFIG.uploadWindow
   });
 });
 

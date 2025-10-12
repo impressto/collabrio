@@ -74,6 +74,15 @@ function App() {
   const [currentUploadFile, setCurrentUploadFile] = useState(null)
   const [sharedImages, setSharedImages] = useState([])
   
+  // Server configuration state
+  const [serverConfig, setServerConfig] = useState({
+    maxFileSize: 5 * 1024 * 1024, // Default 5MB
+    maxFileSizeMB: 5,
+    fileTimeout: 300000, // 5 minutes
+    maxUploadsPerUser: 3,
+    uploadWindow: 300000 // 5 minutes
+  })
+  
   // School authentication state
   const [isSchoolAuthenticated, setIsSchoolAuthenticated] = useState(() => {
     // Check if user has valid school auth in localStorage
@@ -110,6 +119,26 @@ function App() {
   useEffect(() => {
     localStorage.setItem('collabrio-draft-content', draftContent)
   }, [draftContent])
+
+  // Fetch server configuration on mount
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/config')
+        if (response.ok) {
+          const config = await response.json()
+          setServerConfig(config)
+          console.log('Server config loaded:', config)
+        } else {
+          console.warn('Failed to fetch server config, using defaults')
+        }
+      } catch (error) {
+        console.warn('Error fetching server config, using defaults:', error)
+      }
+    }
+    
+    fetchConfig()
+  }, [])
 
   // Toast functionality
   const showToast = (message, type = 'success') => {
@@ -443,28 +472,30 @@ function App() {
 
     // File sharing event handlers
     socket.on('file-available', async (data) => {
-      // Don't show notification if this user uploaded the file
-      if (data.uploadedBy === socket.id) {
-        showToast(`File "${data.filename}" uploaded successfully!`, 'success')
-        return
-      }
-      
       // Check if it's an image file
       const isImage = data.mimeType && data.mimeType.startsWith('image/')
       
-      // Add notification for other users
-      setFileNotifications(prev => [...prev, {
-        id: Date.now(),
-        fileId: data.fileId,
-        filename: data.filename,
-        size: data.size,
-        mimeType: data.mimeType,
-        uploadedBy: data.uploadedBy,
-        timestamp: data.timestamp,
-        isImage
-      }])
+      // Handle user's own uploads vs others' uploads differently
+      const isOwnUpload = data.uploadedBy === socket.id
       
-      // If it's an image, also fetch the data for thumbnail display
+      if (isOwnUpload) {
+        // Show success toast for own uploads
+        showToast(`File "${data.filename}" uploaded successfully!`, 'success')
+      } else {
+        // Add notification for other users' uploads
+        setFileNotifications(prev => [...prev, {
+          id: Date.now(),
+          fileId: data.fileId,
+          filename: data.filename,
+          size: data.size,
+          mimeType: data.mimeType,
+          uploadedBy: data.uploadedBy,
+          timestamp: data.timestamp,
+          isImage
+        }])
+      }
+      
+      // Create image thumbnails for ALL images (including own uploads)
       if (isImage) {
         const imageData = await fetchImageData(data.fileId, data.filename, data.mimeType)
         if (imageData) {
@@ -706,10 +737,9 @@ function App() {
       return
     }
 
-    // Validate file size
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-      showToast('File too large. Maximum size is 10MB.', 'error')
+    // Validate file size using server configuration
+    if (file.size > serverConfig.maxFileSize) {
+      showToast(`File too large. Maximum size is ${serverConfig.maxFileSizeMB}MB.`, 'error')
       return
     }
 

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 
-function ImageThumbnail({ image, onRemove }) {
+function ImageThumbnail({ image, onRemove, onDelete }) {
   const [showModal, setShowModal] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const handleThumbnailClick = () => {
     setShowModal(true)
@@ -11,6 +12,7 @@ function ImageThumbnail({ image, onRemove }) {
 
   const handleCloseModal = () => {
     setShowModal(false)
+    setShowDeleteConfirm(false)
   }
 
   const handleDownload = () => {
@@ -25,6 +27,23 @@ function ImageThumbnail({ image, onRemove }) {
     } catch (error) {
       console.error('Error downloading image:', error)
     }
+  }
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation()
+    setShowDeleteConfirm(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (onDelete) {
+      await onDelete(image)
+    }
+    setShowDeleteConfirm(false)
+    setShowModal(false)
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false)
   }
 
   const handleImageLoad = () => {
@@ -123,6 +142,15 @@ function ImageThumbnail({ image, onRemove }) {
                 >
                   💾 Download
                 </button>
+                {onDelete && (
+                  <button 
+                    className="image-delete-btn"
+                    onClick={handleDeleteClick}
+                    title="Delete from cache"
+                  >
+                    🗑️ Delete
+                  </button>
+                )}
                 <button 
                   className="image-close-btn"
                   onClick={handleCloseModal}
@@ -130,6 +158,31 @@ function ImageThumbnail({ image, onRemove }) {
                   Close
                 </button>
               </div>
+
+              {/* Delete Confirmation Dialog */}
+              {showDeleteConfirm && (
+                <div className="delete-confirm-overlay">
+                  <div className="delete-confirm-dialog">
+                    <h4>Delete Image</h4>
+                    <p>Are you sure you want to delete "{image.filename}" from the server cache?</p>
+                    <p className="delete-warning">This will remove it for all session participants.</p>
+                    <div className="delete-confirm-actions">
+                      <button 
+                        className="confirm-delete-btn"
+                        onClick={handleConfirmDelete}
+                      >
+                        Delete
+                      </button>
+                      <button 
+                        className="cancel-delete-btn"
+                        onClick={handleCancelDelete}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

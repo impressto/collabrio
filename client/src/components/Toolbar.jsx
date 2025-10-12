@@ -15,7 +15,8 @@ function Toolbar({
   randomCooldown,
   onPlayAudio,
   sharedImages = [],
-  onRemoveImage
+  onRemoveImage,
+  onDeleteCachedImage
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
 
@@ -95,6 +96,7 @@ function Toolbar({
           key={image.id}
           image={image}
           onRemove={onRemoveImage}
+          onDelete={onDeleteCachedImage}
         />
       ))}
       

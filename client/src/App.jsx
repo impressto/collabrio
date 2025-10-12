@@ -475,14 +475,17 @@ function App() {
       // Check if it's an image file
       const isImage = data.mimeType && data.mimeType.startsWith('image/')
       
+      // Skip notifications for cached images (from session resume)
+      const isCachedImage = data.isCached === true
+      
       // Handle user's own uploads vs others' uploads differently
       const isOwnUpload = data.uploadedBy === socket.id
       
-      if (isOwnUpload) {
-        // Show success toast for own uploads
+      if (isOwnUpload && !isCachedImage) {
+        // Show success toast for own uploads (but not for cached images)
         showToast(`File "${data.filename}" uploaded successfully!`, 'success')
-      } else {
-        // Add notification for other users' uploads
+      } else if (!isOwnUpload && !isCachedImage) {
+        // Add notification for other users' uploads (but not for cached images)
         setFileNotifications(prev => [...prev, {
           id: Date.now(),
           fileId: data.fileId,
@@ -494,10 +497,11 @@ function App() {
           isImage
         }])
       }
+      // Note: Cached images skip both toasts and notifications
       
       // Create image thumbnails for ALL images (including own uploads)
       if (isImage) {
-        const imageData = await fetchImageData(data.fileId, data.filename, data.mimeType)
+        const imageData = await fetchImageData(data.fileId, data.filename, data.mimeType, data.cachedImageUrl)
         if (imageData) {
           // Use the username directly from the server (more reliable than client-side lookup)
           const senderName = data.uploaderUsername || 'Anonymous User'
@@ -553,6 +557,14 @@ function App() {
       // Also remove from shared images if it was an image
       setSharedImages(prev => prev.filter(img => img.fileId !== data.fileId))
       showToast('A shared file has expired', 'warning')
+    })
+
+    // Handle cached image deletion
+    socket.on('cached-image-deleted', (data) => {
+      console.log('Cached image deleted:', data)
+      // Remove from shared images
+      setSharedImages(prev => prev.filter(img => img.fileId !== data.fileId))
+      showToast(`Image "${data.filename}" was deleted from cache`, 'info')
     })
 
     // Handle direct AI responses (for silent icebreaker injection)
@@ -841,9 +853,13 @@ function App() {
     }
   }
 
-  const fetchImageData = async (fileId, filename, mimeType) => {
+  const fetchImageData = async (fileId, filename, mimeType, cachedImageUrl = null) => {
     try {
-      const downloadUrl = `${config.socketServerUrl}/download-file/${fileId}?sessionId=${sessionId}`
+      // Use cached image URL if available, otherwise use regular download endpoint
+      const downloadUrl = cachedImageUrl 
+        ? `${config.socketServerUrl}${cachedImageUrl}`
+        : `${config.socketServerUrl}/download-file/${fileId}?sessionId=${sessionId}`
+      
       const response = await fetch(downloadUrl)
       
       if (!response.ok) {
@@ -876,6 +892,26 @@ function App() {
 
   const removeSharedImage = (imageId) => {
     setSharedImages(prev => prev.filter(img => img.id !== imageId))
+  }
+
+  const deleteCachedImage = async (image) => {
+    try {
+      // Call the server to delete the cached image
+      const response = await fetch(`${config.socketServerUrl}/cached-image/${sessionId}/${image.fileId}`, {
+        method: 'DELETE'
+      })
+      
+      const result = await response.json()
+      
+      if (result.status === 'success') {
+        showToast(`Image "${result.filename}" deleted successfully`, 'success')
+      } else {
+        showToast(`Failed to delete image: ${result.message}`, 'error')
+      }
+    } catch (error) {
+      console.error('Error deleting cached image:', error)
+      showToast('Failed to delete image from server', 'error')
+    }
   }
 
   const cancelUpload = () => {
@@ -952,6 +988,7 @@ function App() {
           onPlayAudio={handlePlayAudio}
           sharedImages={sharedImages}
           onRemoveImage={removeSharedImage}
+          onDeleteCachedImage={deleteCachedImage}
         />
 
         <Editor 

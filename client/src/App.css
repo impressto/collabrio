@@ -2644,6 +2644,107 @@ body > #root > .collabrio-app {
   background: #5a6268;
 }
 
+.collabrio-app .image-delete-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collabrio-app .image-delete-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+/* Delete confirmation dialog */
+.collabrio-app .delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+
+.collabrio-app .delete-confirm-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e2e8f0;
+}
+
+.collabrio-app .delete-confirm-dialog h4 {
+  margin: 0 0 1rem 0;
+  color: #2d3748;
+  font-size: 1.25rem;
+}
+
+.collabrio-app .delete-confirm-dialog p {
+  margin: 0.5rem 0;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.collabrio-app .delete-warning {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.collabrio-app .delete-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.collabrio-app .confirm-delete-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.collabrio-app .confirm-delete-btn:hover {
+  background: #c82333;
+}
+
+.collabrio-app .cancel-delete-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.collabrio-app .cancel-delete-btn:hover {
+  background: #5a6268;
+}
+
 /* Dark theme image styles */
 .collabrio-app.dark-theme .image-thumbnail {
   border-color: #4a5568;
@@ -2694,6 +2795,47 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app.dark-theme .image-close-btn:hover {
+  background: #718096;
+}
+
+.collabrio-app.dark-theme .image-delete-btn {
+  background: #f56565;
+}
+
+.collabrio-app.dark-theme .image-delete-btn:hover {
+  background: #e53e3e;
+}
+
+.collabrio-app.dark-theme .delete-confirm-dialog {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+.collabrio-app.dark-theme .delete-confirm-dialog h4 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .delete-confirm-dialog p {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .delete-warning {
+  color: #f56565;
+}
+
+.collabrio-app.dark-theme .confirm-delete-btn {
+  background: #f56565;
+}
+
+.collabrio-app.dark-theme .confirm-delete-btn:hover {
+  background: #e53e3e;
+}
+
+.collabrio-app.dark-theme .cancel-delete-btn {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .cancel-delete-btn:hover {
   background: #718096;
 }
 
@@ -2753,8 +2895,23 @@ body > #root > .collabrio-app {
   }
   
   .collabrio-app .image-download-btn,
+  .collabrio-app .image-delete-btn,
   .collabrio-app .image-close-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .collabrio-app .delete-confirm-dialog {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+  }
+
+  .collabrio-app .delete-confirm-actions {
+    flex-direction: column;
+  }
+
+  .collabrio-app .confirm-delete-btn,
+  .collabrio-app .cancel-delete-btn {
+    width: 100%;
   }
 }

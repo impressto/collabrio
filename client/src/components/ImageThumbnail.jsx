@@ -142,7 +142,7 @@ function ImageThumbnail({ image, onRemove, onDelete }) {
                 >
                   💾 Download
                 </button>
-                {onDelete && (
+                {onDelete && image.isCached && (
                   <button 
                     className="image-delete-btn"
                     onClick={handleDeleteClick}

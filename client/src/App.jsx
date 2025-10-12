@@ -514,7 +514,8 @@ function App() {
             mimeType: data.mimeType,
             sender: senderName,
             timestamp: new Date(data.timestamp),
-            data: imageData // Base64 image data
+            data: imageData, // Base64 image data
+            isCached: data.isCached || false // Flag to indicate cached images
           }])
         }
       }

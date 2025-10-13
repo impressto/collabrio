@@ -2368,7 +2368,7 @@ body > #root > .collabrio-app {
 
 .collabrio-app .audio-selector-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.75rem;
   padding: 1.5rem;
   max-height: 60vh;
@@ -2474,10 +2474,27 @@ body > #root > .collabrio-app {
   color: #fbb6ce;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
+/* Responsive grid columns for audio selector */
+/* Large screens (1200px+): 6 columns (default) */
+
+/* Medium-large screens (992px - 1199px): 5 columns */
+@media (max-width: 1199px) {
   .collabrio-app .audio-selector-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Medium screens (768px - 991px): 4 columns */
+@media (max-width: 991px) {
+  .collabrio-app .audio-selector-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Small screens (576px - 767px): 3 columns */
+@media (max-width: 767px) {
+  .collabrio-app .audio-selector-grid {
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
     padding: 1rem;
   }
@@ -2493,6 +2510,28 @@ body > #root > .collabrio-app {
   
   .collabrio-app .audio-option-name {
     font-size: 0.7rem;
+  }
+}
+
+/* Extra small screens (575px and below): 2 columns */
+@media (max-width: 575px) {
+  .collabrio-app .audio-selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    padding: 0.75rem;
+  }
+  
+  .collabrio-app .audio-option-button {
+    padding: 0.5rem 0.125rem;
+    min-height: 60px;
+  }
+  
+  .collabrio-app .audio-option-emoji {
+    font-size: 1rem;
+  }
+  
+  .collabrio-app .audio-option-name {
+    font-size: 0.6rem;
   }
 }
 

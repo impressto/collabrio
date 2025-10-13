@@ -3,6 +3,27 @@
 
 export const sharedAudioClips = [
   {
+    key: 'agony',
+    filename: 'audio/agony.mp3',
+    emoji: '😫',
+    label: 'Agony',
+    displayName: 'Agony'
+  },
+  {
+    key: 'ahh',
+    filename: 'audio/ahh.mp3',
+    emoji: '😌',
+    label: 'Ahh',
+    displayName: 'Ahh'
+  },
+  {
+    key: 'all-quiet-on-the-western-front',
+    filename: 'audio/all-quiet-on-the-western-front.mp3',
+    emoji: '🎬',
+    label: 'All Quiet',
+    displayName: 'All Quiet on the Western Front'
+  },
+  {
     key: 'angry-indian-scam',
     filename: 'audio/angry-indian-scam.mp3',
     emoji: '😡',
@@ -15,6 +36,13 @@ export const sharedAudioClips = [
     emoji: '🤬',
     label: 'Aw Piss',
     displayName: 'Aw Piss'
+  },
+  {
+    key: 'awwww',
+    filename: 'audio/awwww.mp3',
+    emoji: '🥺',
+    label: 'Awww',
+    displayName: 'Awww'
   },
   {
     key: 'babycry',
@@ -38,6 +66,13 @@ export const sharedAudioClips = [
     displayName: 'Burp'
   },
   {
+    key: 'cat-laugh',
+    filename: 'audio/cat-laugh.mp3',
+    emoji: '😸',
+    label: 'Cat Laugh',
+    displayName: 'Cat Laugh'
+  },
+  {
     key: 'confetti-pop-sound',
     filename: 'audio/confetti-pop-sound.mp3',
     emoji: '🎉',
@@ -45,11 +80,32 @@ export const sharedAudioClips = [
     displayName: 'Confetti Pop'
   },
   {
+    key: 'curb-your-enthusiasm',
+    filename: 'audio/curb-your-enthusiasm.mp3',
+    emoji: '🎺',
+    label: 'Curb Theme',
+    displayName: 'Curb Your Enthusiasm'
+  },
+  {
     key: 'deep-boom',
     filename: 'audio/deep-boom.mp3',
     emoji: '💥',
     label: 'Deep Boom',
     displayName: 'Deep Boom'
+  },
+  {
+    key: 'ding-sound-effect-2',
+    filename: 'audio/ding-sound-effect_2.mp3',
+    emoji: '🔔',
+    label: 'Ding',
+    displayName: 'Ding Sound Effect'
+  },
+  {
+    key: 'laught-muehehehe',
+    filename: 'audio/laught-muehehehe.mp3',
+    emoji: '😈',
+    label: 'Evil Laugh',
+    displayName: 'Evil Laugh'
   },
   {
     key: 'ewww-you-nasty',
@@ -87,6 +143,20 @@ export const sharedAudioClips = [
     displayName: 'Go Play Minecraft'
   },
   {
+    key: 'heavenly-music',
+    filename: 'audio/heavenly-music.mp3',
+    emoji: '😇',
+    label: 'Heavenly',
+    displayName: 'Heavenly Music'
+  },
+  {
+    key: 'hey-boi',
+    filename: 'audio/hey_boi.mp3',
+    emoji: '👋',
+    label: 'Hey Boi',
+    displayName: 'Hey Boi'
+  },
+  {
     key: 'hmm',
     filename: 'audio/hmm.mp3',
     emoji: '🤔',
@@ -101,18 +171,18 @@ export const sharedAudioClips = [
     displayName: 'Huh'
   },
   {
-    key: 'laught-muehehehe',
-    filename: 'audio/laught-muehehehe.mp3',
-    emoji: '😈',
-    label: 'Evil Laugh',
-    displayName: 'Evil Laugh'
-  },
-  {
     key: 'lego-sound',
     filename: 'audio/lego-sound.mp3',
     emoji: '🧱',
     label: 'Lego Sound',
     displayName: 'Lego Sound'
+  },
+  {
+    key: 'loud-incorrect-buzzer',
+    filename: 'audio/loud-incorrect-buzzer.mp3',
+    emoji: '❌',
+    label: 'Wrong Buzzer',
+    displayName: 'Loud Incorrect Buzzer'
   },
   {
     key: 'man-gasping',
@@ -129,6 +199,13 @@ export const sharedAudioClips = [
     displayName: 'Metal Pipe Fall'
   },
   {
+    key: 'monster',
+    filename: 'audio/monster.mp3',
+    emoji: '👹',
+    label: 'Monster',
+    displayName: 'Monster'
+  },
+  {
     key: 'nope',
     filename: 'audio/nope.mp3',
     emoji: '🙅',
@@ -143,11 +220,25 @@ export const sharedAudioClips = [
     displayName: 'Oh No Cringe'
   },
   {
+    key: 'prowler',
+    filename: 'audio/prowler.mp3',
+    emoji: '🕷️',
+    label: 'Prowler',
+    displayName: 'Prowler'
+  },
+  {
     key: 'rage_quit',
     filename: 'audio/rage_quit.mp3',
     emoji: '😤',
     label: 'Rage Quit',
     displayName: 'Rage Quit'
+  },
+  {
+    key: 'romantic',
+    filename: 'audio/romantic.mp3',
+    emoji: '💕',
+    label: 'Romantic',
+    displayName: 'Romantic'
   },
   {
     key: 'sad',
@@ -164,11 +255,25 @@ export const sharedAudioClips = [
     displayName: 'Scream'
   },
   {
+    key: 'stop-it-get-some-help',
+    filename: 'audio/stop-it-get-some-help.mp3',
+    emoji: '🛑',
+    label: 'Get Help',
+    displayName: 'Stop It Get Some Help'
+  },
+  {
     key: 'sudden-suspense',
     filename: 'audio/sudden-suspense.mp3',
     emoji: '😰',
     label: 'Suspense',
     displayName: 'Sudden Suspense'
+  },
+  {
+    key: 'taco-bell-bong',
+    filename: 'audio/taco-bell-bong.mp3',
+    emoji: '🌮',
+    label: 'Taco Bell',
+    displayName: 'Taco Bell Bong'
   },
   {
     key: 'thank-you-for-your-patronage',
@@ -192,6 +297,13 @@ export const sharedAudioClips = [
     displayName: 'Tuco Get Out'
   },
   {
+    key: 'western-movie',
+    filename: 'audio/western-movie.mp3',
+    emoji: '🤠',
+    label: 'Western',
+    displayName: 'Western Movie'
+  },
+  {
     key: 'wow',
     filename: 'audio/wow.mp3',
     emoji: '😲',
@@ -211,6 +323,20 @@ export const sharedAudioClips = [
     emoji: '🎉',
     label: 'Yippee',
     displayName: 'Yippee'
+  },
+  {
+    key: 'you-fat-bald-bastard',
+    filename: 'audio/you-fat-bald-bastard.mp3',
+    emoji: '😠',
+    label: 'Fat Bald Bastard',
+    displayName: 'You Fat Bald Bastard'
+  },
+  {
+    key: 'you-just-have-to-say-that-youre-fine',
+    filename: 'audio/you-just-have-to-say-that-youre-fine.mp3',
+    emoji: '🙂',
+    label: 'Say You\'re Fine',
+    displayName: 'You Just Have to Say That You\'re Fine'
   }
 ]
 

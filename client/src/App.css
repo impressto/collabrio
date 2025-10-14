@@ -16,7 +16,7 @@
   font-size: 16px !important;
   line-height: 1.5 !important;
   color: #333 !important;
-  background: #fff !important;
+  background: #f5f5f5 !important;
   box-sizing: border-box !important;
   
   /* Size constraints for embedded context */
@@ -171,7 +171,7 @@ body > #root > .collabrio-app {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #f8f9fa;
+  background: #ffffff;
   border-bottom: 1px solid #e9ecef;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -612,7 +612,7 @@ body > #root > .collabrio-app {
   line-height: 1.5;
   resize: none;
   outline: none;
-  background: transparent;
+  background: #ffffff;
 }
 
 .collabrio-app .collaborative-editor:focus {

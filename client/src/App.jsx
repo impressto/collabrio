@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { io } from 'socket.io-client'
 import config from './config.js'
 import { audioManager } from './utils/audioUtils.js'
@@ -109,6 +109,31 @@ function App() {
   const textareaRef = useRef(null)
   const draftRef = useRef(null)
   const currentFileUpload = useRef(null)
+  
+  // User activity tracking for auto-scroll
+  const lastUserActivityRef = useRef(Date.now())
+  const USER_INACTIVITY_THRESHOLD = 10000 // 10 seconds in milliseconds
+
+  // Auto-scroll function to move textarea to bottom
+  const autoScrollToBottom = useCallback(() => {
+    const currentTime = Date.now()
+    const timeSinceLastActivity = currentTime - lastUserActivityRef.current
+    
+    // Only auto-scroll if user hasn't been active recently
+    if (timeSinceLastActivity >= USER_INACTIVITY_THRESHOLD) {
+      const activeTextarea = editorMode === 'live' ? textareaRef.current : draftRef.current
+      if (activeTextarea) {
+        // Scroll to bottom of textarea
+        activeTextarea.scrollTop = activeTextarea.scrollHeight
+        console.log('🔽 Auto-scrolled to bottom (user inactive for', Math.round(timeSinceLastActivity / 1000), 'seconds)')
+      }
+    }
+  }, [editorMode])
+
+  // Update user activity timestamp
+  const updateUserActivity = useCallback(() => {
+    lastUserActivityRef.current = Date.now()
+  }, [])
 
   // Save theme preference to localStorage
   useEffect(() => {
@@ -445,6 +470,12 @@ function App() {
 
     socket.on('document-update', (data) => {
       setDocument(data.document)
+      
+      // Auto-scroll to bottom if user hasn't been typing recently
+      // Only trigger if the update came from another user (not from current user)
+      if (data.updatedBy !== currentUserId && data.updatedBy !== 'ai-system') {
+        autoScrollToBottom()
+      }
     })
 
     socket.on('user-joined', (data) => {
@@ -468,6 +499,11 @@ function App() {
       // Insert server text into the document with formatting
       const injectedText = `\n\n[${data.type.toUpperCase()}] ${data.text}\n\n`
       setDocument(prevDoc => prevDoc + injectedText)
+      
+      // Auto-scroll to bottom after server text injection (like icebreakers)
+      setTimeout(() => {
+        autoScrollToBottom()
+      }, 100) // Small delay to ensure DOM is updated
     })
 
     // File sharing event handlers
@@ -587,6 +623,11 @@ function App() {
           
           return newDocument
         })
+        
+        // Auto-scroll to bottom after icebreaker injection
+        setTimeout(() => {
+          autoScrollToBottom()
+        }, 100) // Small delay to ensure DOM is updated
       }
     })
 
@@ -613,6 +654,9 @@ function App() {
   const handleDocumentChange = (e) => {
     const newDocument = e.target.value
     setDocument(newDocument)
+    
+    // Update user activity timestamp when user types
+    updateUserActivity()
     
     if (socketRef.current && isConnected) {
       socketRef.current.emit('document-change', {
@@ -710,6 +754,9 @@ function App() {
 
   const handleDraftChange = (e) => {
     setDraftContent(e.target.value)
+    
+    // Update user activity timestamp when user types in draft
+    updateUserActivity()
   }
 
   const addDraftToLive = () => {
@@ -1007,6 +1054,7 @@ function App() {
           clearDraft={clearDraft}
           showToast={showToast}
           socket={socketRef.current}
+          updateUserActivity={updateUserActivity}
         />
 
         <ShareModal 

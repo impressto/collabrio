@@ -16,7 +16,8 @@ function Editor({
   copyDraftContent,
   clearDraft,
   showToast,
-  socket
+  socket,
+  updateUserActivity
 }) {
   const isLiveMode = editorMode === 'live'
   const isDraftMode = editorMode === 'draft'
@@ -392,10 +393,28 @@ function Editor({
             onKeyDown={(e) => {
               handleKeyDown(e)
               handleKeyPress(e)
+              // Track user activity on key presses (including arrow keys, backspace, etc.)
+              if (updateUserActivity) updateUserActivity()
             }}
             onPaste={handlePaste}
-            onMouseUp={handleTextSelection}
-            onKeyUp={handleTextSelection}
+            onMouseUp={(e) => {
+              handleTextSelection(e)
+              // Track user activity on mouse interactions
+              if (updateUserActivity) updateUserActivity()
+            }}
+            onKeyUp={(e) => {
+              handleTextSelection(e)
+              // Track user activity on key releases
+              if (updateUserActivity) updateUserActivity()
+            }}
+            onClick={() => {
+              // Track user activity on clicks
+              if (updateUserActivity) updateUserActivity()
+            }}
+            onFocus={() => {
+              // Track user activity when textarea gains focus
+              if (updateUserActivity) updateUserActivity()
+            }}
             placeholder="Start typing your doc here. Highlight something to toss it into the AI blender..."
             className="collaborative-editor"
           />
@@ -411,10 +430,28 @@ function Editor({
             onKeyDown={(e) => {
               handleKeyDown(e)
               handleKeyPress(e)
+              // Track user activity on key presses (including arrow keys, backspace, etc.)
+              if (updateUserActivity) updateUserActivity()
             }}
             onPaste={handlePaste}
-            onMouseUp={handleTextSelection}
-            onKeyUp={handleTextSelection}
+            onMouseUp={(e) => {
+              handleTextSelection(e)
+              // Track user activity on mouse interactions
+              if (updateUserActivity) updateUserActivity()
+            }}
+            onKeyUp={(e) => {
+              handleTextSelection(e)
+              // Track user activity on key releases
+              if (updateUserActivity) updateUserActivity()
+            }}
+            onClick={() => {
+              // Track user activity on clicks
+              if (updateUserActivity) updateUserActivity()
+            }}
+            onFocus={() => {
+              // Track user activity when textarea gains focus
+              if (updateUserActivity) updateUserActivity()
+            }}
             placeholder="Compose your draft here privately before adding to the shared document..."
             className="collaborative-editor draft-editor"
           />

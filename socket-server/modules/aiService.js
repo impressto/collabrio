@@ -31,7 +31,9 @@ class AIService {
     });
     
     try {
-      // Call Cohere AI API
+      // Call Cohere AI API with short response instruction
+      const shortResponsePrompt = "Please provide a concise, brief response (3-5 sentences maximum). " + selectedText.trim();
+      
       const response = await this.cohere.chat({
         messages: [
           {
@@ -39,7 +41,7 @@ class AIService {
             "content": [
               {
                 "type": "text",
-                "text": selectedText.trim()
+                "text": shortResponsePrompt
               }
             ]
           }
@@ -103,7 +105,9 @@ class AIService {
     console.log(`Direct AI request with requestId ${requestId} for text: "${selectedText.substring(0, 100)}..."`);
     
     try {
-      // Call Cohere AI API
+      // Call Cohere AI API with short response instruction
+      const shortResponsePrompt = "Please provide a concise, brief response (3-5 sentences maximum). " + selectedText.trim();
+      
       const response = await this.cohere.chat({
         messages: [
           {
@@ -111,7 +115,7 @@ class AIService {
             "content": [
               {
                 "type": "text",
-                "text": selectedText.trim()
+                "text": shortResponsePrompt
               }
             ]
           }

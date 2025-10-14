@@ -5,6 +5,11 @@
  * safely in any external website.
  */
 
+/* Global body styles */
+body {
+  margin: 0 !important;
+}
+
 .collabrio-app {
   /* CSS Reset and Isolation for embedded context */
   all: initial;

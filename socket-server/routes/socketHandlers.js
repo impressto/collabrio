@@ -71,6 +71,9 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       // Send document content
       await sendDocumentContent(sessionId, socket);
       
+      // Send current background image if exists
+      sendBackgroundImage(sessionId, socket);
+      
       // Send cached images
       await imageCache.sendCachedImagesToClient(sessionId, socket);
     });
@@ -116,6 +119,21 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
             isInitialLoad: true
           });
         }
+      }
+    }
+
+    // Background image sending helper
+    function sendBackgroundImage(sessionId, socket) {
+      if (sessionManager.hasSessionBackgroundImage(sessionId)) {
+        const backgroundData = sessionManager.getSessionBackgroundImage(sessionId);
+        console.log(`Sending current background image to new client ${clientId} in session ${sessionId}`);
+        socket.emit('background-image-update', {
+          backgroundImage: backgroundData.backgroundImage,
+          filename: backgroundData.filename,
+          updatedBy: 'server',
+          timestamp: Date.now(),
+          isInitialLoad: true
+        });
       }
     }
 
@@ -197,6 +215,30 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       
       socket.to(docSessionId).emit('document-update', {
         document: document,
+        updatedBy: socket.id,
+        timestamp: Date.now()
+      });
+    });
+
+    // Handle background image changes
+    socket.on('background-image-change', ({ sessionId: bgSessionId, backgroundImage, filename }) => {
+      if (!bgSessionId) {
+        console.error('No session ID provided for background image change');
+        return;
+      }
+      
+      console.log(`Background image updated in session ${bgSessionId} by ${socket.id}`);
+      updateClientActivity(bgSessionId, clientId || socket.id);
+      
+      // Store the background image in the session (optional - for persistence)
+      if (sessionManager.hasSession(bgSessionId)) {
+        sessionManager.setSessionBackgroundImage(bgSessionId, backgroundImage, filename);
+      }
+      
+      // Broadcast to all other clients in the session
+      socket.to(bgSessionId).emit('background-image-update', {
+        backgroundImage: backgroundImage,
+        filename: filename,
         updatedBy: socket.id,
         timestamp: Date.now()
       });

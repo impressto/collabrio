@@ -475,6 +475,33 @@ body > #root > .collabrio-app {
   transform: translateY(-1px);
 }
 
+.collabrio-app .clear-background-btn {
+  position: absolute;
+  top: 12px;
+  right: 56px; /* Position to the left of copy button (36px width + 8px gap + 12px right) */
+  z-index: 10;
+  background: transparent;
+  border: 1px solid rgba(108, 117, 125, 0.3);
+  border-radius: 50%;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6c757d;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  backdrop-filter: blur(10px);
+}
+
+.collabrio-app .clear-background-btn:hover {
+  border-color: rgba(108, 117, 125, 0.6);
+  color: #495057;
+  transform: translateY(-1px);
+}
+
 .collabrio-app .add-draft-btn {
   position: absolute;
   top: 12px;
@@ -643,7 +670,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .collaborative-editor.has-background-image {
-  opacity: 0.7; /* 70% opacity to see background image through */
+  opacity: 0.8; /* 80% opacity to see background image through */
 }
 
 /* Modal Styles */
@@ -854,7 +881,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app.dark-theme .collaborative-editor.has-background-image {
-  opacity: 0.7; /* 70% opacity to see background image through */
+  opacity: 0.8; /* 80% opacity to see background image through */
 }
 
 .collabrio-app.dark-theme .editor-container {
@@ -928,6 +955,17 @@ body > #root > .collabrio-app {
   background: #4a5568 !important;
   color: #e0e0e0 !important;
   border-color: #718096 !important;
+}
+
+.collabrio-app.dark-theme .clear-background-btn {
+  background: transparent !important;
+  border: 1px solid rgba(160, 174, 192, 0.3) !important;
+  color: #a0aec0 !important;
+}
+
+.collabrio-app.dark-theme .clear-background-btn:hover {
+  border-color: rgba(160, 174, 192, 0.6) !important;
+  color: #e0e0e0 !important;
 }
 
 .collabrio-app.dark-theme .editor-tabs {
@@ -1261,7 +1299,7 @@ body > #root > .collabrio-app {
 
 .collabrio-app .download-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .collabrio-app .download-btn.downloading {
@@ -1476,12 +1514,12 @@ body > #root > .collabrio-app {
 
 .footer .connection-type {
   font-family: 'Courier New', monospace;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .footer .session-id {
   font-family: 'Courier New', monospace;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 
@@ -2280,7 +2318,7 @@ body > #root > .collabrio-app {
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.8; }
 }
 
 @keyframes blink {

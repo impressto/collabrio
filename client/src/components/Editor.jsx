@@ -18,7 +18,8 @@ function Editor({
   backgroundImage,
   showToast,
   socket,
-  updateUserActivity
+  updateUserActivity,
+  onClearBackground
 }) {
   const isLiveMode = editorMode === 'live'
   const isDraftMode = editorMode === 'draft'
@@ -367,6 +368,17 @@ function Editor({
         >
           ⧉
         </button>
+
+        {/* Clear Background Button - only show when background image is set */}
+        {backgroundImage && (
+          <button 
+            className="clear-background-btn" 
+            onClick={onClearBackground}
+            title="Clear background image"
+          >
+            🧹
+          </button>
+        )}
 
         {/* Draft Mode Buttons */}
         {isDraftMode && draftContent.trim() && (

@@ -2,6 +2,7 @@ class SessionManager {
   constructor() {
     this.activeSessions = new Map(); // Store active sessions
     this.sessionDocuments = new Map(); // Store session documents (sessionId -> document content)
+    this.sessionBackgroundImages = new Map(); // Store session background images (sessionId -> {backgroundImage, filename})
     this.saveTimeouts = new Map(); // Debouncing for document saves (sessionId -> timeout)
   }
 
@@ -24,6 +25,7 @@ class SessionManager {
   deleteSession(sessionId) {
     this.activeSessions.delete(sessionId);
     this.sessionDocuments.delete(sessionId);
+    this.sessionBackgroundImages.delete(sessionId);
     
     // Clear any pending save timeout
     if (this.saveTimeouts.has(sessionId)) {
@@ -66,6 +68,19 @@ class SessionManager {
 
   hasSessionDocument(sessionId) {
     return this.sessionDocuments.has(sessionId);
+  }
+
+  // Background image management
+  setSessionBackgroundImage(sessionId, backgroundImage, filename) {
+    this.sessionBackgroundImages.set(sessionId, { backgroundImage, filename });
+  }
+
+  getSessionBackgroundImage(sessionId) {
+    return this.sessionBackgroundImages.get(sessionId);
+  }
+
+  hasSessionBackgroundImage(sessionId) {
+    return this.sessionBackgroundImages.has(sessionId);
   }
 
   // Debounced document saving

@@ -479,6 +479,15 @@ function App() {
       }
     })
 
+    socket.on('background-image-update', (data) => {
+      setBackgroundImage(data.backgroundImage)
+      if (data.filename) {
+        showToast(`Background changed to "${data.filename}" by another user`, 'info')
+      } else if (data.backgroundImage === null) {
+        showToast('Background image cleared by another user', 'info')
+      }
+    })
+
     socket.on('user-joined', (data) => {
       // Play chime sound if there are already other users in the session
       // (don't play on initial connection when joining alone)
@@ -767,7 +776,22 @@ function App() {
     // Create background image data URL from the base64 data
     const backgroundImageUrl = `data:${image.mimeType};base64,${image.data}`
     setBackgroundImage(backgroundImageUrl)
-    showToast(`"${image.filename}" set as background!`, 'success')
+    
+    // Emit background image change to other users in the session
+    if (socketRef.current && sessionId) {
+      socketRef.current.emit('background-image-change', {
+        sessionId: sessionId,
+        backgroundImage: backgroundImageUrl,
+        filename: image.filename
+      })
+    }
+    
+    showToast(`"${image.filename}" set as background for all users!`, 'success')
+  }
+
+  const handleClearBackground = () => {
+    setBackgroundImage(null)
+    showToast('Background cleared!', 'success')
   }
 
   const handleDraftChange = (e) => {
@@ -1075,6 +1099,7 @@ function App() {
           showToast={showToast}
           socket={socketRef.current}
           updateUserActivity={updateUserActivity}
+          onClearBackground={handleClearBackground}
         />
 
         <ShareModal 

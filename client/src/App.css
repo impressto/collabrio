@@ -286,6 +286,85 @@ body > #root > .collabrio-app {
   background: #666;
 }
 
+/* Icebreaker Dropdown Styles */
+.collabrio-app .icebreaker-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.collabrio-app .share-button.active {
+  background: #0056b3;
+  border-color: #004085;
+}
+
+.collabrio-app .icebreaker-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 2px;
+  min-width: 300px; /* Ensure dropdown is wide enough for topic names */
+}
+
+/* Custom scrollbar for dropdown */
+.collabrio-app .icebreaker-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.collabrio-app .icebreaker-dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.collabrio-app .icebreaker-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.collabrio-app .icebreaker-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.collabrio-app .icebreaker-dropdown-item {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #495057;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.collabrio-app .icebreaker-dropdown-item:hover {
+  background: #f8f9fa;
+  color: #212529;
+}
+
+.collabrio-app .icebreaker-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.collabrio-app .icebreaker-dropdown-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.collabrio-app .icebreaker-dropdown-item:disabled:hover {
+  background: white;
+  color: #495057;
+}
+
 .collabrio-app .leave-session-button {
   background: #911f1f;
   color: white;
@@ -1046,6 +1125,46 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .share-button.disabled:hover, .collabrio-app.dark-theme .ask-ai-btn.disabled:hover {
   background: #4a5568 !important;
   box-shadow: none !important;
+}
+
+/* Dark theme icebreaker dropdown styles */
+.collabrio-app.dark-theme .share-button.active {
+  background: #2b6cb0 !important;
+  border-color: #2c5282 !important;
+}
+
+.collabrio-app.dark-theme .icebreaker-dropdown-menu {
+  background: #2d3748 !important;
+  border: 1px solid #4a5568 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Dark theme scrollbar */
+.collabrio-app.dark-theme .icebreaker-dropdown-menu::-webkit-scrollbar-track {
+  background: #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .icebreaker-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #718096 !important;
+}
+
+.collabrio-app.dark-theme .icebreaker-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0 !important;
+}
+
+.collabrio-app.dark-theme .icebreaker-dropdown-item {
+  color: #e2e8f0 !important;
+  border-bottom: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .icebreaker-dropdown-item:hover {
+  background: #4a5568 !important;
+  color: #f7fafc !important;
+}
+
+.collabrio-app.dark-theme .icebreaker-dropdown-item:disabled:hover {
+  background: #2d3748 !important;
+  color: #e2e8f0 !important;
 }
 
 .collabrio-app.dark-theme .audio-selector {

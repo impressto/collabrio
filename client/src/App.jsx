@@ -687,7 +687,7 @@ function App() {
   }
 
   // Random Icebreaker Handler
-  const handleRandomIcebreaker = () => {
+  const handleRandomIcebreaker = (specificTopic = null) => {
     // Check if button is on cooldown
     if (randomCooldown > 0) {
       return
@@ -716,11 +716,11 @@ function App() {
       
       setRandomCooldownTimer(timer)
       
-      // Get a random topic from our predefined array
-      const randomTopic = getRandomTopic()
+      // Use specific topic if provided, otherwise get a random one
+      const selectedTopic = specificTopic || getRandomTopic()
       
       // Create the AI prompt
-      const prompt = createIcebreakerPrompt(randomTopic)
+      const prompt = createIcebreakerPrompt(selectedTopic)
       
       // Send the prompt to the socket server for AI processing (silent mode)
       socketRef.current.emit('ask-ai-direct', {

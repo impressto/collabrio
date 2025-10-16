@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { getToolbarAudioOptions } from '../config/sharedAudio.js'
+import { getAllTopics } from '../utils/icebreakerUtils.js'
 import AudioSelectorPopup from './AudioSelectorPopup.jsx'
 import ImageThumbnail from './ImageThumbnail.jsx'
 
@@ -20,6 +21,22 @@ function Toolbar({
   onSetAsBackground
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
+  const [showIcebreakerDropdown, setShowIcebreakerDropdown] = useState(false)
+  const icebreakerDropdownRef = useRef(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (icebreakerDropdownRef.current && !icebreakerDropdownRef.current.contains(event.target)) {
+        setShowIcebreakerDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleFileShare = () => {
     const input = document.createElement('input');
@@ -51,6 +68,21 @@ function Toolbar({
     setShowAudioPopup(false)
   }
 
+  const handleIcebreakerDropdownToggle = () => {
+    setShowIcebreakerDropdown(!showIcebreakerDropdown)
+  }
+
+  const handleIcebreakerTopicSelect = (topic) => {
+    if (onRandomIcebreaker) {
+      onRandomIcebreaker(topic) // Pass the specific topic instead of generating random
+    }
+    setShowIcebreakerDropdown(false)
+  }
+
+  const handleCloseIcebreakerDropdown = () => {
+    setShowIcebreakerDropdown(false)
+  }
+
   return (
     <div className="toolbar">
       <button id="share-session-btn" onClick={shareSession} className="share-button">
@@ -64,15 +96,43 @@ function Toolbar({
       >
         📎 Attach
       </button>
-      <button 
-        id="random-icebreaker-btn"
-        onClick={onRandomIcebreaker}
-        className={`share-button ${randomCooldown > 0 ? 'disabled' : ''}`}
-        disabled={randomCooldown > 0}
-        title={randomCooldown > 0 ? `Please wait ${randomCooldown} seconds` : "Generate a random icebreaker for the meeting"}
+            <button 
+        id="file-share-btn"
+        onClick={handleFileShare}
+        className="share-button"
+        title="Share a file with session participants"
+        disabled={!isConnected}
       >
-        🎲 {randomCooldown > 0 ? `Random (${randomCooldown}s)` : 'Random'}
+        📎 Attach
       </button>
+
+      {/* Icebreaker Dropdown */}
+      <div className="icebreaker-dropdown-container" ref={icebreakerDropdownRef}>
+        <button 
+          id="icebreaker-dropdown-btn"
+          onClick={handleIcebreakerDropdownToggle}
+          className={`share-button ${randomCooldown > 0 ? 'disabled' : ''} ${showIcebreakerDropdown ? 'active' : ''}`}
+          disabled={randomCooldown > 0}
+          title={randomCooldown > 0 ? `Please wait ${randomCooldown} seconds` : "Select an icebreaker topic"}
+        >
+          🎲 {randomCooldown > 0 ? `Wait (${randomCooldown}s)` : 'Random'} {showIcebreakerDropdown ? '▲' : '▼'}
+        </button>
+        
+        {showIcebreakerDropdown && (
+          <div className="icebreaker-dropdown-menu">
+            {getAllTopics().map((topic, index) => (
+              <button
+                key={index}
+                className="icebreaker-dropdown-item"
+                onClick={() => handleIcebreakerTopicSelect(topic)}
+                disabled={randomCooldown > 0}
+              >
+                {topic}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <button 
         id="audio-selector-btn"
         onClick={handleAudioButtonClick}

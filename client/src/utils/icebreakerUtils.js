@@ -1,93 +1,40 @@
-// Random Icebreaker Topics for Meeting Ice Breakers
-// Diverse, safe, and meeting-appropriate topics
+// Icebreaker Topics for Meeting Ice Breakers
+// Fascinating and quirky topics to spark interesting conversations
 
 export const ICEBREAKER_TOPICS = [
-  // Tech & Gaming (Updated for 2025)
-  'minecraft but make it weird',
-  'roblox currency as real money',
-  'AI girlfriends/boyfriends',
-  'discord servers you\'d never admit to joining',
-  'mobile games that consumed your soul',
-  'twitch streamers who lowkey changed your life',
-  'game rage moments that weren\'t worth it',
-  'building the most chaotic minecraft world',
-  'if NPCs could rate your gameplay',
-
-  // Social Media & Internet Culture
-  'tiktok algorithms reading your mind',
-  'memes that hit too close to home',
-  'youtube rabbit holes at 3am',
-  'group chat screenshots that would end friendships',
-  'creators who fell off (respectfully)',
-  'digital detox attempts that failed miserably',
-  'internet drama you followed like a TV show',
-  'emoji combinations that say everything',
-  'making content vs consuming content',
-  'parasocial relationships with fictional characters',
-  'AI art that\'s better than human art',
-  'virtual worlds you\'d actually live in',
-  'if your search history became public',
-
-
-  // Canadian GenZ Culture
-  'Tim Hortons orders that define personality',
-  'surviving Canadian winters without losing it',
-  'maple syrup on things it shouldn\'t be on',
-  'hockey vs literally any other sport debates',
-  'explaining Canada to Americans',
-  'cottage country vs city life',
-  'Canadian slang that confuses everyone else',
-  'complaining about Canadian Netflix selection',
-  'double-double psychology',
-  'Canadian politeness as a survival mechanism',
-
-  // Food & Lifestyle
-  'food combos that sound illegal but taste fire',
-  'late-night convenience store runs',
-  'fast food hacks that employees hate',
-  'energy drinks vs actual sleep',
-  'meal prep attempts vs reality',
-  'foods that taste like childhood',
-  'cooking disasters that were somehow edible',
-  'guilty pleasure snacks',
-
-  
-  // Media & Entertainment
-  'shows you binged instead of sleeping',
-  'music that hits different at 2am',
-  'artists before they were mainstream',
-  'concerts that changed your brain chemistry',
-  'voice actors who voice your inner monologue',
-  'reaction videos that are better than the original',
-  'soundtracks that live in your head rent-free',
-  'podcasts that made you question everything',
-
-  // School & Social Life
-  'teacher moments that became legendary',
-  'group project trauma stories',
-  'if you could redesign high school',
-  'friendship dynamics that make no sense',
-  'future careers that don\'t exist yet',
-  'apps that secretly run your life',
-  'homework vs literally anything else',
-  'things boomers will never understand about us',
-
-  // Existential & Random
-  'shower thoughts that keep you up',
-  'conspiracy theories you lowkey believe',
-  'internet mysteries you need solved',
-  'mandela effects that broke your brain',
-  '3am thoughts that hit different',
-  'if pets had social media accounts',
-  'AI uprising scenarios (realistic edition)',
-  'unpopular opinions you\'ll defend forever',
-  'alternate timeline versions of yourself',
-  'simulation theory evidence in daily life'
-];
+  'Ridiculous laws around the world',
+  'Bizarre ancient inventions',
+  'Strange royal traditions',
+  'Failed predictions about the future',
+  'Weird space facts',
+  'Accidental inventions',
+  'Unusual weather phenomena',
+  'Creepy deep-sea creatures',
+  'Plants with strange abilities',
+  'Movies that flopped but became cult classics',
+  'Video games that were too bad to be true',
+  'Bizarre world beliefs & superstitions',
+  'Unbelievable coincidences',
+  'Strange habits of geniuses',
+  'Weirdest tourist attractions',
+  'Strange jobs people actually get paid for',
+  'The worst inventions ever made',
+  'Strangest last words',
+  'World\'s most unsuccessful crimes',
+  'Disasters caused by typos or small mistakes'
+]
 
 // Keep track of recently used topics to avoid immediate repetition
-let recentTopics = [];
-const MAX_RECENT_TOPICS = Math.min(10, Math.floor(ICEBREAKER_TOPICS.length * 0.3)); // Track up to 30% of topics or 10, whichever is smaller
+let recentTopics = []
+const MAX_RECENT_TOPICS = Math.min(10, Math.floor(ICEBREAKER_TOPICS.length * 0.3)) // Track up to 30% of topics or 10, whichever is smaller
+
+/**
+ * Get all available icebreaker topics for dropdown display
+ * @returns {Array<string>} Array of all icebreaker topics
+ */
+export function getAllTopics() {
+  return [...ICEBREAKER_TOPICS]
+}
 
 /**
  * Get a random topic from the icebreaker topics array, avoiding recent repeats
@@ -234,5 +181,5 @@ export function testRandomization(iterations = 20) {
  * @returns {string} The formatted prompt for the AI
  */
 export function createIcebreakerPrompt(topic) {
-  return `Generate a short, weird, and quirky statement or fact related to ${topic}`;
+  return `Generate a short, factual statement or fact related to ${topic}`;
 }

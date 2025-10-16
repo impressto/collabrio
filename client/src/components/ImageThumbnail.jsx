@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function ImageThumbnail({ image, onRemove, onDelete }) {
+function ImageThumbnail({ image, onRemove, onDelete, onSetAsBackground }) {
   const [showModal, setShowModal] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
@@ -143,6 +143,18 @@ function ImageThumbnail({ image, onRemove, onDelete }) {
                 >
                   💾 Download
                 </button>
+                {onSetAsBackground && (
+                  <button 
+                    className="image-background-btn"
+                    onClick={() => {
+                      onSetAsBackground(image)
+                      handleCloseModal()
+                    }}
+                    title="Set as background image"
+                  >
+                    🖼️ Set as Background
+                  </button>
+                )}
                 {onDelete && (
                   <button 
                     className="image-delete-btn"

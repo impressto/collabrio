@@ -103,6 +103,7 @@ function App() {
   const [showIdentityModal, setShowIdentityModal] = useState(false)
   const [pendingSessionAction, setPendingSessionAction] = useState(null) // 'create' or 'join'
   const [currentUserId, setCurrentUserId] = useState('')
+  const [backgroundImage, setBackgroundImage] = useState(null)
   
   // Refs
   const socketRef = useRef(null)
@@ -542,17 +543,27 @@ function App() {
           // Use the username directly from the server (more reliable than client-side lookup)
           const senderName = data.uploaderUsername || 'Anonymous User'
           
-          setSharedImages(prev => [...prev, {
-            id: data.fileId, // Use fileId as the unique identifier
-            fileId: data.fileId,
-            filename: data.filename,
-            size: data.size,
-            mimeType: data.mimeType,
-            sender: senderName,
-            timestamp: new Date(data.timestamp),
-            data: imageData, // Base64 image data
-            isCached: data.isCached || false // Flag to indicate cached images
-          }])
+          setSharedImages(prev => {
+            // Check if image already exists to prevent duplicates (especially during reconnections)
+            const imageExists = prev.some(img => img.fileId === data.fileId)
+            if (imageExists) {
+              console.log(`🔄 Skipping duplicate image: ${data.filename} (fileId: ${data.fileId})`)
+              return prev // Return existing array without changes
+            }
+            
+            // Add new image if it doesn't exist
+            return [...prev, {
+              id: data.fileId, // Use fileId as the unique identifier
+              fileId: data.fileId,
+              filename: data.filename,
+              size: data.size,
+              mimeType: data.mimeType,
+              sender: senderName,
+              timestamp: new Date(data.timestamp),
+              data: imageData, // Base64 image data
+              isCached: data.isCached || false // Flag to indicate cached images
+            }]
+          })
         }
       }
     })
@@ -750,6 +761,13 @@ function App() {
     setDraftContent('')
     localStorage.removeItem('collabrio-draft-content')
     showToast('Draft cleared!')
+  }
+
+  const handleSetAsBackground = (image) => {
+    // Create background image data URL from the base64 data
+    const backgroundImageUrl = `data:${image.mimeType};base64,${image.data}`
+    setBackgroundImage(backgroundImageUrl)
+    showToast(`"${image.filename}" set as background!`, 'success')
   }
 
   const handleDraftChange = (e) => {
@@ -1037,6 +1055,7 @@ function App() {
           sharedImages={sharedImages}
           onRemoveImage={removeSharedImage}
           onDeleteCachedImage={deleteCachedImage}
+          onSetAsBackground={handleSetAsBackground}
         />
 
         <Editor 
@@ -1052,6 +1071,7 @@ function App() {
           addDraftToLive={addDraftToLive}
           copyDraftContent={copyDraftContent}
           clearDraft={clearDraft}
+          backgroundImage={backgroundImage}
           showToast={showToast}
           socket={socketRef.current}
           updateUserActivity={updateUserActivity}

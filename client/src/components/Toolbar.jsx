@@ -16,7 +16,8 @@ function Toolbar({
   onPlayAudio,
   sharedImages = [],
   onRemoveImage,
-  onDeleteCachedImage
+  onDeleteCachedImage,
+  onSetAsBackground
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
 
@@ -91,14 +92,21 @@ function Toolbar({
       </button>
       
       {/* Display image thumbnails */}
-      {sharedImages.map((image) => (
-        <ImageThumbnail 
-          key={image.id}
-          image={image}
-          onRemove={onRemoveImage}
-          onDelete={onDeleteCachedImage}
-        />
-      ))}
+      {sharedImages
+        .filter((image, index, array) => 
+          // Remove duplicates by keeping only the first occurrence of each fileId
+          array.findIndex(img => img.fileId === image.fileId) === index
+        )
+        .map((image) => (
+          <ImageThumbnail 
+            key={image.id}
+            image={image}
+            onRemove={onRemoveImage}
+            onDelete={onDeleteCachedImage}
+            onSetAsBackground={onSetAsBackground}
+          />
+        ))}
+    
       
       <button 
         id="leave-session-btn"

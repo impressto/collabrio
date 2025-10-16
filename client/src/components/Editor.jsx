@@ -15,6 +15,7 @@ function Editor({
   addDraftToLive,
   copyDraftContent,
   clearDraft,
+  backgroundImage,
   showToast,
   socket,
   updateUserActivity
@@ -345,7 +346,12 @@ function Editor({
         )}
       </div>
 
-      <div className={`editor-wrapper ${isDraftMode ? 'draft-mode' : ''}`}>
+      <div 
+        className={`editor-wrapper ${isDraftMode ? 'draft-mode' : ''} ${backgroundImage ? 'has-background-image' : ''}`}
+        style={{
+          '--background-image': backgroundImage ? `url(${backgroundImage})` : 'none'
+        }}
+      >
         {/* Copy Button - changes function based on mode */}
         <button 
           className="copy-icon-btn" 
@@ -416,7 +422,7 @@ function Editor({
               if (updateUserActivity) updateUserActivity()
             }}
             placeholder="Start typing your doc here. Highlight something to toss it into the AI blender..."
-            className="collaborative-editor"
+            className={`collaborative-editor ${backgroundImage ? 'has-background-image' : ''}`}
           />
         )}
 
@@ -453,7 +459,10 @@ function Editor({
               if (updateUserActivity) updateUserActivity()
             }}
             placeholder="Compose your draft here privately before adding to the shared document..."
-            className="collaborative-editor draft-editor"
+            className={`collaborative-editor draft-editor ${backgroundImage ? 'has-background-image' : ''}`}
+            style={{
+              '--background-image': backgroundImage ? `url(${backgroundImage})` : 'none'
+            }}
           />
         )}
 

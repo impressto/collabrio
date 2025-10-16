@@ -436,10 +436,14 @@ body > #root > .collabrio-app {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #ffffff;
+  background-color: #ffffff;
   border: 1px solid #e9ecef;
   border-top: none;
   border-radius: 0 0 8px 8px;
+}
+
+.collabrio-app .editor-wrapper.has-background-image {
+  background-color: transparent;
 }
 
 .collabrio-app .copy-icon-btn {
@@ -595,7 +599,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app .draft-editor {
-  background: #fffbf0;
+  background-color: #fffbf0;
 }
 
 .collabrio-app .editor-wrapper.draft-mode {
@@ -617,12 +621,29 @@ body > #root > .collabrio-app {
   line-height: 1.5;
   resize: none;
   outline: none;
-  background: #ffffff;
+  background-color: #ffffff;
 }
 
 .collabrio-app .collaborative-editor:focus {
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Background image with 50% opacity */
+.collabrio-app .collaborative-editor.has-background-image {
+  position: relative;
+}
+
+.collabrio-app .editor-wrapper.has-background-image {
+  background-image: var(--background-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.collabrio-app .collaborative-editor.has-background-image {
+  opacity: 0.7; /* 70% opacity to see background image through */
 }
 
 /* Modal Styles */
@@ -817,7 +838,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app.dark-theme .collaborative-editor {
-  background: #2d3748 !important;
+  background-color: #2d3748 !important;
   color: #e0e0e0 !important;
   border: 1px solid #4a5568 !important;
 }
@@ -825,6 +846,15 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .collaborative-editor:focus {
   border-color: #667eea !important;
   box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+}
+
+/* Dark theme background image with 50% opacity */
+.collabrio-app.dark-theme .collaborative-editor.has-background-image {
+  position: relative;
+}
+
+.collabrio-app.dark-theme .collaborative-editor.has-background-image {
+  opacity: 0.7; /* 70% opacity to see background image through */
 }
 
 .collabrio-app.dark-theme .editor-container {
@@ -925,9 +955,13 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app.dark-theme .editor-wrapper {
-  background: #2d3748 !important;
+  background-color: #2d3748 !important;
   border: 1px solid #4a5568 !important;
   border-top: none !important;
+}
+
+.collabrio-app.dark-theme .editor-wrapper.has-background-image {
+  background-color: transparent !important;
 }
 
 .collabrio-app.dark-theme .add-draft-btn {
@@ -1022,7 +1056,7 @@ body > #root > .collabrio-app {
 }
 
 .collabrio-app.dark-theme .draft-editor {
-  background: #2d3748 !important;
+  background-color: #2d3748 !important;
   color: #e0e0e0 !important;
 }
 
@@ -2675,6 +2709,26 @@ body > #root > .collabrio-app {
   transform: translateY(-1px);
 }
 
+.collabrio-app .image-background-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collabrio-app .image-background-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
 .collabrio-app .image-close-btn {
   background: #6c757d;
   color: white;
@@ -2835,6 +2889,14 @@ body > #root > .collabrio-app {
 
 .collabrio-app.dark-theme .image-download-btn:hover {
   background: #3182ce;
+}
+
+.collabrio-app.dark-theme .image-background-btn {
+  background: #38a169;
+}
+
+.collabrio-app.dark-theme .image-background-btn:hover {
+  background: #2f855a;
 }
 
 .collabrio-app.dark-theme .image-close-btn {

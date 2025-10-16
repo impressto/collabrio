@@ -627,6 +627,9 @@ function App() {
     // Handle direct AI responses (for silent icebreaker injection)
     socket.on('ai-response-direct', (data) => {
       if (data.requestId && data.requestId.startsWith('icebreaker-') && data.response) {
+        // Stop the timer audio when icebreaker response is received
+        audioManager.stop('timer')
+        
         // Silently inject the AI response into the document
         const aiResponse = data.response.trim()
         
@@ -721,6 +724,12 @@ function App() {
       
       // Create the AI prompt
       const prompt = createIcebreakerPrompt(selectedTopic)
+      
+      // Start playing the timer audio in loop
+      audioManager.play('timer', {
+        loop: true,
+        volume: config.audioVolume || 0.8
+      })
       
       // Send the prompt to the socket server for AI processing (silent mode)
       socketRef.current.emit('ask-ai-direct', {

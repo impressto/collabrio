@@ -2,6 +2,29 @@
 // This file manages all shared audio files used across the application
 
 export const sharedAudioClips = [
+  // System audio files
+  {
+    key: 'timer',
+    filename: 'audio/timer.mp3',
+    emoji: '⏰',
+    label: 'Timer',
+    displayName: 'Timer'
+  },
+  {
+    key: 'userJoin',
+    filename: 'audio/chime.mp3',
+    emoji: '🔔',
+    label: 'User Join',
+    displayName: 'User Join Chime'
+  },
+  {
+    key: 'userLeave',
+    filename: 'audio/leave.mp3',
+    emoji: '🚪',
+    label: 'User Leave',
+    displayName: 'User Leave'
+  },
+  // Shared audio clips
   {
     key: 'agony',
     filename: 'audio/agony.mp3',
@@ -356,9 +379,13 @@ export const getAudioDisplayNames = () => {
 }
 
 export const getToolbarAudioOptions = () => {
+  // Filter out system sounds from toolbar options
+  const systemSounds = ['timer', 'userJoin', 'userLeave']
+  const userAudioClips = sharedAudioClips.filter(clip => !systemSounds.includes(clip.key))
+  
   return [
     { value: '', label: '🔊 React' },
-    ...sharedAudioClips.map(clip => ({
+    ...userAudioClips.map(clip => ({
       value: clip.key,
       label: `${clip.emoji} ${clip.label}`
     }))

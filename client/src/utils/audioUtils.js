@@ -116,15 +116,10 @@ export const audioManager = new AudioManager()
 
 // AudioManager initialization complete
 
-// Preload all sounds
-audioManager.preloadSound('userJoin', 'chime.mp3')
-audioManager.preloadSound('userLeave', 'leave.mp3')
-audioManager.preloadSound('timer', 'timer.mp3')
-
 // Preload shared audio files from centralized configuration
 import { sharedAudioClips } from '../config/sharedAudio.js'
 
-// Preload all shared audio files
+// Preload all shared audio files (including system sounds)
 sharedAudioClips.forEach(clip => {
   audioManager.preloadSound(clip.key, clip.filename)
 })

@@ -93,14 +93,6 @@ function Toolbar({
         onClick={handleFileShare} 
         className="share-file-button"
         title="Share a file with session participants"
-      >
-        📎 Attach
-      </button>
-            <button 
-        id="file-share-btn"
-        onClick={handleFileShare}
-        className="share-button"
-        title="Share a file with session participants"
         disabled={!isConnected}
       >
         📎 Attach

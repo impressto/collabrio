@@ -94,6 +94,10 @@ function App() {
   // Button cooldown state
   const [randomCooldown, setRandomCooldown] = useState(0)
   const [randomCooldownTimer, setRandomCooldownTimer] = useState(null)
+  
+  // Use refs for icebreaker data to persist across async operations
+  const icebreakerCursorPositionRef = useRef(null)
+  const icebreakerEditorModeRef = useRef(null)
 
   // Identity state
   const [userIdentity, setUserIdentity] = useState(() => {
@@ -632,13 +636,30 @@ function App() {
         
         // Silently inject the AI response into the document
         const aiResponse = data.response.trim()
+        const insertPosition = icebreakerCursorPositionRef.current // Get from ref
+        const targetEditorMode = icebreakerEditorModeRef.current // Get from ref
         
-        // Use callback to get the most current document state
+        // Icebreakers should always go to live document (collaborative area)
         setDocument(prevDocument => {
-          const injection = prevDocument.length > 0 ? `\n\n${aiResponse}` : aiResponse
-          const newDocument = prevDocument + injection
+          let newDocument
           
-          // Broadcast the change to other users
+          if (insertPosition !== null && insertPosition >= 0) {
+            // Insert at the stored cursor position
+            const beforeCursor = prevDocument.substring(0, insertPosition)
+            const afterCursor = prevDocument.substring(insertPosition)
+            
+            // Add appropriate spacing
+            const spacing = beforeCursor.length > 0 && !beforeCursor.endsWith('\n') ? '\n\n' : ''
+            const endSpacing = afterCursor.length > 0 && !afterCursor.startsWith('\n') ? '\n\n' : ''
+            
+            newDocument = beforeCursor + spacing + aiResponse + endSpacing + afterCursor
+          } else {
+            // Fallback to appending at the end (original behavior)
+            const injection = prevDocument.length > 0 ? `\n\n${aiResponse}` : aiResponse
+            newDocument = prevDocument + injection
+          }
+          
+          // Always broadcast icebreakers to other users (since they're collaborative content)
           socket.emit('document-change', {
             sessionId: sessionId,
             document: newDocument
@@ -647,9 +668,27 @@ function App() {
           return newDocument
         })
         
-        // Auto-scroll to bottom after icebreaker injection
+        // Clear the stored state after use
+        icebreakerCursorPositionRef.current = null
+        icebreakerEditorModeRef.current = null
+        
+        // Focus and position cursor after the inserted text
         setTimeout(() => {
-          autoScrollToBottom()
+          // Always focus the live textarea after icebreaker insertion
+          const activeTextarea = textareaRef.current
+          
+          if (activeTextarea && insertPosition !== null && insertPosition >= 0) {
+            // Calculate the spacing that was added before the response
+            const beforeText = activeTextarea.value.substring(0, insertPosition)
+            const spacing = beforeText.length > 0 && !beforeText.endsWith('\n') ? '\n\n' : ''
+            const newCursorPosition = insertPosition + spacing.length + aiResponse.length
+            
+            activeTextarea.selectionStart = activeTextarea.selectionEnd = newCursorPosition
+            activeTextarea.focus()
+          } else {
+            // Fallback to auto-scroll to bottom (original behavior)
+            autoScrollToBottom()
+          }
         }, 100) // Small delay to ensure DOM is updated
       }
     })
@@ -718,6 +757,31 @@ function App() {
       }, 1000)
       
       setRandomCooldownTimer(timer)
+      
+      // Capture cursor position for icebreaker insertion
+      // Always insert into live document, but use cursor position intelligently
+      const liveTextarea = textareaRef.current
+      const draftTextarea = draftRef.current
+      
+      icebreakerEditorModeRef.current = 'live' // Force icebreakers to go to live mode
+      
+      if (liveTextarea) {
+        let targetCursorPos
+        
+        if (editorMode === 'live') {
+          // User is in live mode - use their current cursor position
+          targetCursorPos = liveTextarea.selectionStart
+        } else {
+          // User is in draft mode - insert at the end of live document
+          // This makes sense because icebreakers are meant to add new collaborative content
+          targetCursorPos = liveTextarea.value.length
+        }
+        
+        icebreakerCursorPositionRef.current = targetCursorPos
+      } else {
+        // Fallback to end of document if no textarea reference
+        icebreakerCursorPositionRef.current = null
+      }
       
       // Use specific topic if provided, otherwise get a random one
       const selectedTopic = specificTopic || getRandomTopic()
@@ -1089,6 +1153,7 @@ function App() {
           onRemoveImage={removeSharedImage}
           onDeleteCachedImage={deleteCachedImage}
           onSetAsBackground={handleSetAsBackground}
+          editorMode={editorMode}
         />
 
         <Editor 

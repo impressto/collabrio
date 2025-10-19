@@ -181,5 +181,76 @@ export function testRandomization(iterations = 20) {
  * @returns {string} The formatted prompt for the AI
  */
 export function createIcebreakerPrompt(topic) {
-  return `Generate a short, factual statement or fact related to ${topic}`;
+  // Array of different prompt styles to add variation
+  const promptStyles = [
+    `Generate a fascinating and lesser-known fact about ${topic}`,
+    `Share an interesting and surprising detail related to ${topic}`,
+    `Tell me something quirky and unusual about ${topic}`,
+    `Provide a random, mind-blowing fact about ${topic}`,
+    `Share a weird but true story related to ${topic}`,
+    `Give me an amusing and educational fact about ${topic}`,
+    `Tell me something unexpected and intriguing about ${topic}`,
+    `Share a fun and obscure piece of trivia about ${topic}`,
+    `Provide a bizarre but factual detail about ${topic}`,
+    `Tell me a strange and interesting fact about ${topic}`
+  ]
+  
+  // Array of additional randomizing elements
+  const modifiers = [
+    'that most people don\'t know',
+    'that would surprise everyone',
+    'that sounds made up but isn\'t',
+    'that happened in history',
+    'from around the world',
+    'that challenges common assumptions',
+    'that\'s both funny and educational',
+    'that would make a great conversation starter',
+    'that\'s stranger than fiction',
+    'that connects to everyday life'
+  ]
+  
+  // Array of response format instructions
+  const formats = [
+    'Keep it concise but engaging.',
+    'Make it conversational and interesting.',
+    'Present it as a mini story if possible.',
+    'Include a surprising twist or detail.',
+    'Make it memorable and shareable.',
+    'Focus on the most fascinating aspect.',
+    'Add context that makes it more relatable.',
+    'Highlight what makes this particularly unusual.'
+  ]
+  
+  // Select random elements to create variety
+  const randomStyle = promptStyles[Math.floor(Math.random() * promptStyles.length)]
+  const randomModifier = modifiers[Math.floor(Math.random() * modifiers.length)]
+  const randomFormat = formats[Math.floor(Math.random() * formats.length)]
+  
+  // Add timestamp-based entropy to ensure uniqueness
+  const timestamp = Date.now()
+  const randomSeed = (timestamp % 1000) + Math.floor(Math.random() * 1000)
+  
+  // Construct the varied prompt
+  const prompt = `${randomStyle} ${randomModifier}. ${randomFormat} [Context: This is request #${randomSeed} about "${topic}" - please provide a unique response different from any previous responses about this topic.]`
+  
+  return prompt
+}
+
+/**
+ * Test function to demonstrate prompt variation
+ * @param {string} topic - Topic to test with
+ * @param {number} count - Number of prompts to generate
+ * @returns {Array<string>} Array of different prompts for the same topic
+ */
+export function testPromptVariation(topic = 'space exploration', count = 5) {
+  console.log(`🧪 Testing prompt variation for topic: "${topic}"`)
+  const prompts = []
+  
+  for (let i = 0; i < count; i++) {
+    const prompt = createIcebreakerPrompt(topic)
+    prompts.push(prompt)
+    console.log(`${i + 1}. ${prompt}`)
+  }
+  
+  return prompts
 }

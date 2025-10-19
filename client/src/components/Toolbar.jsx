@@ -18,7 +18,8 @@ function Toolbar({
   sharedImages = [],
   onRemoveImage,
   onDeleteCachedImage,
-  onSetAsBackground
+  onSetAsBackground,
+  editorMode
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
   const [showIcebreakerDropdown, setShowIcebreakerDropdown] = useState(false)
@@ -37,6 +38,14 @@ function Toolbar({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  // Close icebreaker dropdown and audio popup when switching to draft mode
+  useEffect(() => {
+    if (editorMode === 'draft') {
+      setShowIcebreakerDropdown(false)
+      setShowAudioPopup(false)
+    }
+  }, [editorMode])
 
   const handleFileShare = () => {
     const input = document.createElement('input');
@@ -103,9 +112,15 @@ function Toolbar({
         <button 
           id="icebreaker-dropdown-btn"
           onClick={handleIcebreakerDropdownToggle}
-          className={`share-button ${randomCooldown > 0 ? 'disabled' : ''} ${showIcebreakerDropdown ? 'active' : ''}`}
-          disabled={randomCooldown > 0}
-          title={randomCooldown > 0 ? `Please wait ${randomCooldown} seconds` : "Select an icebreaker topic"}
+          className={`share-button ${(randomCooldown > 0 || editorMode === 'draft') ? 'disabled' : ''} ${showIcebreakerDropdown ? 'active' : ''}`}
+          disabled={randomCooldown > 0 || editorMode === 'draft'}
+          title={
+            editorMode === 'draft' 
+              ? "Switch to Live mode to use icebreakers" 
+              : randomCooldown > 0 
+                ? `Please wait ${randomCooldown} seconds` 
+                : "Select an icebreaker topic"
+          }
         >
           🎲 {randomCooldown > 0 ? `Wait (${randomCooldown}s)` : 'Random'} {showIcebreakerDropdown ? '▲' : '▼'}
         </button>
@@ -117,7 +132,7 @@ function Toolbar({
                 key={index}
                 className="icebreaker-dropdown-item"
                 onClick={() => handleIcebreakerTopicSelect(topic)}
-                disabled={randomCooldown > 0}
+                disabled={randomCooldown > 0 || editorMode === 'draft'}
               >
                 {topic}
               </button>
@@ -129,8 +144,12 @@ function Toolbar({
         id="audio-selector-btn"
         onClick={handleAudioButtonClick}
         className="audio-selector-button"
-        title="Play sound for all session participants"
-        disabled={!isConnected}
+        title={
+          editorMode === 'draft' 
+            ? "Switch to Live mode to use audio reactions" 
+            : "Play sound for all session participants"
+        }
+        disabled={!isConnected || editorMode === 'draft'}
       >
         🔊 React
       </button>

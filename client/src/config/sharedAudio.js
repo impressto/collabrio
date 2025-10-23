@@ -131,13 +131,6 @@ export const sharedAudioClips = [
     displayName: 'Evil Laugh'
   },
   {
-    key: 'ewww-you-nasty',
-    filename: 'audio/ewww-you-nasty.mp3',
-    emoji: '🤮',
-    label: 'Eww Nasty',
-    displayName: 'Eww You Nasty'
-  },
-  {
     key: 'exlposion',
     filename: 'audio/exlposion.mp3',
     emoji: '💣',
@@ -194,6 +187,13 @@ export const sharedAudioClips = [
     displayName: 'Huh'
   },
   {
+    key: 'intense',
+    filename: 'audio/intense.mp3',
+    emoji: '⚡',
+    label: 'Intense',
+    displayName: 'Intense Music'
+  },
+  {
     key: 'lego-sound',
     filename: 'audio/lego-sound.mp3',
     emoji: '🧱',
@@ -241,6 +241,13 @@ export const sharedAudioClips = [
     emoji: '😬',
     label: 'Oh No Cringe',
     displayName: 'Oh No Cringe'
+  },
+  {
+    key: 'polka',
+    filename: 'audio/polka.mp3',
+    emoji: '🎵',
+    label: 'Polka',
+    displayName: 'Polka Music'
   },
   {
     key: 'prowler',
@@ -346,13 +353,6 @@ export const sharedAudioClips = [
     emoji: '🎉',
     label: 'Yippee',
     displayName: 'Yippee'
-  },
-  {
-    key: 'you-fat-bald-bastard',
-    filename: 'audio/you-fat-bald-bastard.mp3',
-    emoji: '😠',
-    label: 'Fat Bald Bastard',
-    displayName: 'You Fat Bald Bastard'
   },
   {
     key: 'you-just-have-to-say-that-youre-fine',

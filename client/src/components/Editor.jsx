@@ -122,29 +122,32 @@ function Editor({
 
   // Handle text selection for Ask AI button
   const handleTextSelection = useCallback((e) => {
-    const textarea = e.target
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selection = textarea.value.substring(start, end)
-    
-    if (selection.length > 0) {
-      if (selection.length <= config.askAiMaxChars) {
-        // Selection is within limit - show Ask AI button
-        setSelectedText(selection)
-        setShowAskAI(true)
-        setTextTooLong(false)
+    // Use setTimeout to ensure selection is properly updated
+    setTimeout(() => {
+      const textarea = e.target
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const selection = textarea.value.substring(start, end)
+      
+      if (selection.length > 0) {
+        if (selection.length <= config.askAiMaxChars) {
+          // Selection is within limit - show Ask AI button
+          setSelectedText(selection)
+          setShowAskAI(true)
+          setTextTooLong(false)
+        } else {
+          // Selection is too long - show warning message instead
+          setSelectedText('')
+          setShowAskAI(false)
+          setTextTooLong(true)
+        }
       } else {
-        // Selection is too long - show warning message instead
-        setSelectedText('')
+        // No selection - hide everything
         setShowAskAI(false)
-        setTextTooLong(true)
+        setSelectedText('')
+        setTextTooLong(false)
       }
-    } else {
-      // No selection - hide everything
-      setShowAskAI(false)
-      setSelectedText('')
-      setTextTooLong(false)
-    }
+    }, 0)
   }, [])
 
   // Handle Ask AI button click
@@ -207,6 +210,26 @@ function Editor({
       showToast('Cannot connect to AI service. Please try again.')
     }
   }, [selectedText, socket, sessionId, showToast, askAiCooldown, askAiCooldownTimer, document])
+
+  // Add selectionchange event listener for more reliable selection detection
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const activeElement = window.document.activeElement
+      if (activeElement && activeElement.classList.contains('collaborative-editor')) {
+        handleTextSelection({ target: activeElement })
+      }
+    }
+
+    if (typeof window !== 'undefined' && window.document) {
+      window.document.addEventListener('selectionchange', handleSelectionChange)
+    }
+    
+    return () => {
+      if (typeof window !== 'undefined' && window.document) {
+        window.document.removeEventListener('selectionchange', handleSelectionChange)
+      }
+    }
+  }, [handleTextSelection])
 
   // Hide Ask AI button when clicking outside or pressing Escape
   useEffect(() => {
@@ -425,6 +448,7 @@ function Editor({
               // Track user activity on key releases
               if (updateUserActivity) updateUserActivity()
             }}
+            onSelect={handleTextSelection}
             onClick={() => {
               // Track user activity on clicks
               if (updateUserActivity) updateUserActivity()
@@ -462,6 +486,7 @@ function Editor({
               // Track user activity on key releases
               if (updateUserActivity) updateUserActivity()
             }}
+            onSelect={handleTextSelection}
             onClick={() => {
               // Track user activity on clicks
               if (updateUserActivity) updateUserActivity()

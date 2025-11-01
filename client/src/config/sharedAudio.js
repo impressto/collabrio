@@ -95,6 +95,13 @@ export const sharedAudioClips = [
     label: 'Cat Laugh',
     displayName: 'Cat Laugh'
   },
+    {
+    key: 'coffin',
+    filename: 'audio/coffin.mp3',
+    emoji: '⚰️',
+    label: 'Coffin',
+    displayName: 'Coffin Dance'
+  },
   {
     key: 'confetti-pop-sound',
     filename: 'audio/confetti-pop-sound.mp3',
@@ -185,13 +192,6 @@ export const sharedAudioClips = [
     emoji: '🤷',
     label: 'Huh',
     displayName: 'Huh'
-  },
-  {
-    key: 'intense',
-    filename: 'audio/intense.mp3',
-    emoji: '⚡',
-    label: 'Intense',
-    displayName: 'Intense Music'
   },
   {
     key: 'lego-sound',

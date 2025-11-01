@@ -3,7 +3,7 @@ const path = require('path');
 
 // File sharing configuration
 const getFileConfig = () => ({
-  maxFileSize: (parseInt(process.env.MAX_FILE_SIZE_MB) || 5) * 1024 * 1024, // Default: 5MB
+  maxFileSize: (parseInt(process.env.MAX_FILE_SIZE_MB) || 100) * 1024 * 1024, // Default: 100MB
   timeoutMinutes: parseInt(process.env.FILE_TIMEOUT_MINUTES) || 5,
   chunkSize: 64 * 1024, // 64KB (fixed for protocol compatibility)
   maxUploadsPerUser: parseInt(process.env.MAX_UPLOADS_PER_USER) || 3,

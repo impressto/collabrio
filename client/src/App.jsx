@@ -76,8 +76,8 @@ function App() {
   
   // Server configuration state
   const [serverConfig, setServerConfig] = useState({
-    maxFileSize: 5 * 1024 * 1024, // Default 5MB
-    maxFileSizeMB: 5,
+    maxFileSize: 100 * 1024 * 1024, // Default 100MB
+    maxFileSizeMB: 100,
     fileTimeout: 300000, // 5 minutes
     maxUploadsPerUser: 3,
     uploadWindow: 300000 // 5 minutes

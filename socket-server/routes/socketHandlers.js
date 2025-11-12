@@ -438,6 +438,137 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       console.log(`[${new Date().toISOString()}] Broadcasted audio "${audioKey}" to other clients in session ${audioSessionId}`);
     });
 
+    // Drawing game words list
+    const DRAWING_WORDS = [
+      'cat', 'dog', 'house', 'tree', 'car', 'flower', 'bird', 'fish', 'sun', 'moon',
+      'star', 'cloud', 'mountain', 'river', 'book', 'phone', 'computer', 'pizza', 'cake', 'apple',
+      'banana', 'guitar', 'piano', 'bicycle', 'airplane', 'boat', 'train', 'butterfly', 'elephant', 'lion',
+      'penguin', 'rainbow', 'snowman', 'castle', 'bridge', 'clock', 'heart', 'diamond', 'arrow', 'crown',
+      'key', 'door', 'window', 'chair', 'table', 'lamp', 'mirror', 'camera', 'balloon', 'umbrella'
+    ];
+
+    // Handle game start
+    socket.on('start-game', ({ sessionId: gameSessionId, starter }) => {
+      console.log(`[${new Date().toISOString()}] Game start request by ${starter} in session ${gameSessionId}`);
+      
+      if (!gameSessionId || !starter) {
+        console.warn('Invalid start-game request: missing required fields');
+        return;
+      }
+
+      // Get random word
+      const randomWord = DRAWING_WORDS[Math.floor(Math.random() * DRAWING_WORDS.length)];
+      
+      // Set game timer
+      const gameTimeLimit = 90; // 90 seconds
+      
+      // Start the game
+      io.to(gameSessionId).emit('game-started', {
+        drawer: starter,
+        word: randomWord,
+        timeLeft: gameTimeLimit
+      });
+      
+      // Start game timer
+      let timeLeft = gameTimeLimit;
+      const gameTimer = setInterval(() => {
+        timeLeft--;
+        
+        // Send timer update
+        io.to(gameSessionId).emit('game-timer-update', { timeLeft });
+        
+        // End game when time runs out
+        if (timeLeft <= 0) {
+          clearInterval(gameTimer);
+          io.to(gameSessionId).emit('game-ended', { winner: null });
+        }
+      }, 1000);
+      
+      // Store timer reference (you might want to add this to sessionManager)
+      if (!global.gameTimers) global.gameTimers = {};
+      global.gameTimers[gameSessionId] = gameTimer;
+      
+      console.log(`[${new Date().toISOString()}] Game started in session ${gameSessionId}: ${starter} drawing "${randomWord}"`);
+    });
+
+    // Handle game guess
+    socket.on('game-guess', ({ sessionId: gameSessionId, guess, username }) => {
+      console.log(`[${new Date().toISOString()}] Game guess by ${username} in session ${gameSessionId}: "${guess}"`);
+      
+      if (!gameSessionId || !guess || !username) {
+        console.warn('Invalid game-guess request: missing required fields');
+        return;
+      }
+
+      // Broadcast guess to all players
+      io.to(gameSessionId).emit('game-guess', {
+        username,
+        guess,
+        timestamp: Date.now()
+      });
+
+      // You would need to track the current word and check for correct answers
+      // For now, we'll implement a simple check (this should be enhanced)
+      // The word would need to be stored in sessionManager for proper game state
+      console.log(`[${new Date().toISOString()}] Broadcasted guess "${guess}" by ${username} to session ${gameSessionId}`);
+    });
+
+    // Handle drawing updates
+    socket.on('drawing-update', ({ sessionId: gameSessionId, drawingData }) => {
+      console.log(`🎨 [SERVER] Drawing update received for session ${gameSessionId}:`, {
+        type: drawingData?.type,
+        pathsCount: drawingData?.paths?.length,
+        clear: drawingData?.clear,
+        from: drawingData?.from,
+        to: drawingData?.to,
+        timestamp: Date.now()
+      });
+      
+      if (!gameSessionId || !drawingData) {
+        console.warn('🎨 [SERVER] Invalid drawing-update request: missing required fields');
+        return;
+      }
+
+      // Log the drawing data structure based on type
+      if (drawingData.type === 'draw_line') {
+        console.log(`🎨 [SERVER] Line drawing from (${drawingData.from?.x}, ${drawingData.from?.y}) to (${drawingData.to?.x}, ${drawingData.to?.y})`);
+      } else if (drawingData.type === 'clear') {
+        console.log(`🎨 [SERVER] Canvas clear request`);
+      } else if (drawingData.paths) {
+        console.log(`🎨 [SERVER] Paths data:`, drawingData.paths.map((path, i) => `Path ${i}: ${path.length} points`));
+      }
+
+      // Broadcast drawing update to all other players (not the drawer)
+      console.log(`🎨 [SERVER] Broadcasting drawing update to session ${gameSessionId}`);
+      socket.to(gameSessionId).emit('drawing-update', {
+        drawingData,
+        timestamp: Date.now()
+      });
+      
+      console.log(`🎨 [SERVER] Drawing update broadcasted successfully`);
+    });
+
+    // Handle game end (manual)
+    socket.on('end-game', ({ sessionId: gameSessionId }) => {
+      console.log(`[${new Date().toISOString()}] Manual game end request for session ${gameSessionId}`);
+      
+      if (!gameSessionId) {
+        console.warn('Invalid end-game request: missing sessionId');
+        return;
+      }
+
+      // Clear any active game timer
+      if (global.gameTimers && global.gameTimers[gameSessionId]) {
+        clearInterval(global.gameTimers[gameSessionId]);
+        delete global.gameTimers[gameSessionId];
+      }
+
+      // End the game
+      io.to(gameSessionId).emit('game-ended', { winner: null });
+      
+      console.log(`[${new Date().toISOString()}] Game ended manually in session ${gameSessionId}`);
+    });
+
     // Handle disconnect
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`);

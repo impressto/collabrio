@@ -3184,3 +3184,371 @@ body > #root > .collabrio-app {
     width: 100%;
   }
 }
+
+/* Drawing Game Styles */
+.collabrio-app .drawing-game-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.collabrio-app .drawing-game-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.collabrio-app .drawing-game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.collabrio-app .drawing-game-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.collabrio-app .close-game-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.collabrio-app .close-game-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.collabrio-app .game-info {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.collabrio-app .game-status {
+  text-align: center;
+}
+
+.collabrio-app .game-status p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.collabrio-app .drawing-word {
+  font-size: 1.1rem;
+  color: #28a745;
+  font-weight: 600;
+}
+
+.collabrio-app .time-remaining {
+  font-size: 1rem;
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.collabrio-app .game-result {
+  text-align: center;
+  padding: 1rem;
+  background: #d4edda;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.collabrio-app .game-result h4 {
+  margin: 0 0 0.5rem 0;
+  color: #155724;
+}
+
+.collabrio-app .game-result p {
+  margin: 0;
+  color: #155724;
+}
+
+.collabrio-app .drawing-canvas-container {
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.collabrio-app .drawing-canvas {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.collabrio-app .drawing-controls {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.collabrio-app .clear-canvas-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.collabrio-app .clear-canvas-btn:hover {
+  background: #5a6268;
+}
+
+.collabrio-app .guessing-area {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.collabrio-app .guess-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.collabrio-app .guess-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.collabrio-app .guess-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.collabrio-app .guess-submit-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.collabrio-app .guess-submit-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.collabrio-app .guess-submit-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.collabrio-app .game-guesses {
+  padding: 1rem 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.collabrio-app .game-guesses h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.collabrio-app .guesses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.collabrio-app .guess-item {
+  padding: 0.5rem 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.collabrio-app .guess-item.correct-guess {
+  background: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.collabrio-app .correct-indicator {
+  color: #28a745;
+  font-weight: 600;
+}
+
+/* Dark theme drawing game styles */
+.collabrio-app.dark-theme .drawing-game-modal {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .drawing-game-header {
+  background: #4a5568;
+  border-bottom-color: #718096;
+}
+
+.collabrio-app.dark-theme .drawing-game-header h3 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .close-game-btn {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .close-game-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .game-info {
+  background: #4a5568;
+  border-bottom-color: #718096;
+}
+
+.collabrio-app.dark-theme .game-status p {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .drawing-word {
+  color: #68d391;
+}
+
+.collabrio-app.dark-theme .time-remaining {
+  color: #f56565;
+}
+
+.collabrio-app.dark-theme .game-result {
+  background: #22543d;
+  color: #68d391;
+}
+
+.collabrio-app.dark-theme .game-result h4,
+.collabrio-app.dark-theme .game-result p {
+  color: #68d391;
+}
+
+.collabrio-app.dark-theme .drawing-canvas-container {
+  border-bottom-color: #718096;
+}
+
+.collabrio-app.dark-theme .drawing-canvas {
+  border-color: #718096;
+}
+
+.collabrio-app.dark-theme .clear-canvas-btn {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .clear-canvas-btn:hover {
+  background: #718096;
+}
+
+.collabrio-app.dark-theme .guessing-area {
+  border-bottom-color: #718096;
+}
+
+.collabrio-app.dark-theme .guess-input {
+  background: #4a5568;
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .guess-input:focus {
+  border-color: #63b3ed;
+}
+
+.collabrio-app.dark-theme .guess-submit-btn {
+  background: #38a169;
+}
+
+.collabrio-app.dark-theme .guess-submit-btn:hover:not(:disabled) {
+  background: #2f855a;
+}
+
+.collabrio-app.dark-theme .guess-submit-btn:disabled {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .game-guesses h4 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .guess-item {
+  background: #4a5568;
+  border-color: #718096;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .guess-item.correct-guess {
+  background: #22543d;
+  border-color: #38a169;
+  color: #68d391;
+}
+
+.collabrio-app.dark-theme .correct-indicator {
+  color: #68d391;
+}
+
+/* Responsive design for drawing game */
+@media (max-width: 768px) {
+  .collabrio-app .drawing-game-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .collabrio-app .drawing-canvas {
+    width: 300px;
+    height: 225px;
+  }
+  
+  .collabrio-app .drawing-game-header,
+  .collabrio-app .game-info,
+  .collabrio-app .drawing-canvas-container,
+  .collabrio-app .guessing-area,
+  .collabrio-app .game-guesses {
+    padding: 0.75rem 1rem;
+  }
+  
+  .collabrio-app .guess-form {
+    flex-direction: column;
+  }
+  
+  .collabrio-app .guess-submit-btn {
+    width: 100%;
+  }
+}

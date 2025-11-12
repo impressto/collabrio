@@ -19,7 +19,8 @@ function Toolbar({
   onRemoveImage,
   onDeleteCachedImage,
   onSetAsBackground,
-  editorMode
+  editorMode,
+  onStartGame
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
   const [showIcebreakerDropdown, setShowIcebreakerDropdown] = useState(false)
@@ -140,6 +141,22 @@ function Toolbar({
           </div>
         )}
       </div>
+      
+      {/* Games Button */}
+      <button 
+        id="games-btn"
+        onClick={onStartGame}
+        className={`share-button ${editorMode === 'draft' ? 'disabled' : ''}`}
+        disabled={editorMode === 'draft'}
+        title={
+          editorMode === 'draft' 
+            ? "Switch to Live mode to play games" 
+            : "Start a game for all participants"
+        }
+      >
+        🎮 Games
+      </button>
+      
       <button 
         id="audio-selector-btn"
         onClick={handleAudioButtonClick}

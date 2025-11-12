@@ -18,6 +18,7 @@ import IdentityModal from './components/IdentityModal'
 import SchoolAuthModal from './components/SchoolAuthModal'
 import FloatingIcon from './components/FloatingIcon'
 import ImageThumbnail from './components/ImageThumbnail'
+import DrawingGame from './components/DrawingGame'
 
 // Utilities
 import { 
@@ -94,6 +95,17 @@ function App() {
   // Button cooldown state
   const [randomCooldown, setRandomCooldown] = useState(0)
   const [randomCooldownTimer, setRandomCooldownTimer] = useState(null)
+  
+  // Drawing game state
+  const [gameActive, setGameActive] = useState(false)
+  const [gameState, setGameState] = useState({
+    drawer: null,
+    word: '',
+    timeLeft: 90,
+    guesses: [],
+    isCorrectGuess: false,
+    winner: null
+  })
   
   // Use refs for icebreaker data to persist across async operations
   const icebreakerCursorPositionRef = useRef(null)
@@ -710,6 +722,66 @@ function App() {
       }
     })
 
+    // Game-related socket events
+    socket.on('game-started', (data) => {
+      setGameActive(true)
+      setGameState({
+        drawer: data.drawer,
+        word: data.word,
+        timeLeft: data.timeLeft || 90,
+        guesses: [],
+        isCorrectGuess: false,
+        winner: null
+      })
+      showToast(`Drawing game started! ${data.drawer} is drawing "${data.word}"`, 'success')
+    })
+
+    socket.on('game-ended', (data) => {
+      setGameActive(false)
+      setGameState(prev => ({
+        ...prev,
+        winner: data.winner,
+        isCorrectGuess: !!data.winner
+      }))
+      if (data.winner) {
+        showToast(`Game ended! ${data.winner} guessed correctly!`, 'success')
+      } else {
+        showToast('Game ended! Time ran out.', 'warning')
+      }
+      
+      // Auto-close game after 3 seconds
+      setTimeout(() => {
+        setGameActive(false)
+        setGameState({
+          drawer: null,
+          word: '',
+          timeLeft: 90,
+          guesses: [],
+          isCorrectGuess: false,
+          winner: null
+        })
+      }, 3000)
+    })
+
+    socket.on('game-guess', (data) => {
+      setGameState(prev => ({
+        ...prev,
+        guesses: [...prev.guesses, data]
+      }))
+    })
+
+    socket.on('game-timer-update', (data) => {
+      setGameState(prev => ({
+        ...prev,
+        timeLeft: data.timeLeft
+      }))
+    })
+
+    socket.on('drawing-update', (data) => {
+      // This will be handled by the DrawingGame component through socket prop
+      // No need to store drawing data in App state
+    })
+
     socketRef.current = socket
   }
 
@@ -1077,6 +1149,16 @@ function App() {
     }
   }
 
+  const startGame = () => {
+    if (socketRef.current && isConnected && sessionId) {
+      // Emit start-game event to server
+      socketRef.current.emit('start-game', {
+        sessionId,
+        starter: userIdentity.username || generateFunnyUsername()
+      })
+    }
+  }
+
   const cancelUpload = () => {
     setIsUploading(false)
     setUploadProgress(0)
@@ -1154,6 +1236,7 @@ function App() {
           onDeleteCachedImage={deleteCachedImage}
           onSetAsBackground={handleSetAsBackground}
           editorMode={editorMode}
+          onStartGame={startGame}
         />
 
         <Editor 
@@ -1222,6 +1305,17 @@ function App() {
         
         <Footer connectionType={connectionType} sessionId={sessionId} />
       </div>
+
+      {/* Drawing Game */}
+      {gameActive && (
+        <DrawingGame
+          gameState={gameState}
+          socket={socketRef.current}
+          sessionId={sessionId}
+          currentUser={userIdentity.username || generateFunnyUsername()}
+          onClose={() => setGameActive(false)}
+        />
+      )}
 
       {/* Floating Audio Icons */}
       {floatingIcons.map((icon) => (

@@ -1330,6 +1330,15 @@ function App() {
           currentUser={userIdentity.username || generateFunnyUsername()}
           onClose={() => {
             setShowGameModal(false)
+            
+            // Notify server that this user closed their game modal
+            if (socketRef.current && sessionId) {
+              socketRef.current.emit('close-game-modal', {
+                sessionId: sessionId,
+                user: userIdentity.username || generateFunnyUsername()
+              })
+            }
+            
             // Reset game state when closing modal (only affects this user)
             setGameState({
               drawer: null,

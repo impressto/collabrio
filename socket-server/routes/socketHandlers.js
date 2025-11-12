@@ -678,7 +678,36 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       console.log(`[${new Date().toISOString()}] Game ended manually in session ${gameSessionId}`);
     });
 
+    // Handle user closing game modal
+    socket.on('close-game-modal', ({ sessionId: gameSessionId, user }) => {
+      console.log(`[${new Date().toISOString()}] User ${user} closed game modal in session ${gameSessionId}`);
+      
+      if (!gameSessionId || !user) {
+        console.warn('Invalid close-game-modal request: missing required fields');
+        return;
+      }
 
+      // Check if there's an active game and if this user is the drawer
+      if (global.activeGames && global.activeGames[gameSessionId]) {
+        const gameState = global.activeGames[gameSessionId];
+        
+        // If the person closing the modal is the drawer (who initiated the game)
+        if (gameState.drawer === user) {
+          console.log(`[${new Date().toISOString()}] Drawer ${user} closed modal, re-enabling game button for all users in session ${gameSessionId}`);
+          
+          // Re-enable game button for all users since the drawer closed their modal
+          io.to(gameSessionId).emit('game-status-change', { gameActive: false });
+          
+          // Clean up the game state since the drawer left
+          delete global.activeGames[gameSessionId];
+        } else {
+          console.log(`[${new Date().toISOString()}] Non-drawer ${user} closed modal, keeping game button disabled for all users in session ${gameSessionId}`);
+          // Don't re-enable the button since a non-drawer closed their modal
+        }
+      } else {
+        console.log(`[${new Date().toISOString()}] No active game found for session ${gameSessionId} when ${user} closed modal`);
+      }
+    });
 
     // Handle disconnect
     socket.on('disconnect', () => {
@@ -689,6 +718,23 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       }
       
       if (sessionId && clientId) {
+        // Check if the disconnecting user was the drawer of an active game
+        if (global.activeGames && global.activeGames[sessionId]) {
+          const gameState = global.activeGames[sessionId];
+          const clientData = sessionManager.getClientFromSession(sessionId, clientId);
+          const disconnectingUser = clientData ? clientData.username : null;
+          
+          if (gameState.drawer === disconnectingUser) {
+            console.log(`[${new Date().toISOString()}] Drawer ${disconnectingUser} disconnected, re-enabling game button for all users in session ${sessionId}`);
+            
+            // Re-enable game button for all users since the drawer left
+            io.to(sessionId).emit('game-status-change', { gameActive: false });
+            
+            // Clean up the game state since the drawer left
+            delete global.activeGames[sessionId];
+          }
+        }
+        
         const shouldCleanupSession = sessionManager.removeClientFromSession(sessionId, clientId);
         
         if (shouldCleanupSession) {
@@ -722,6 +768,23 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       }
       
       if (sessionId && clientId) {
+        // Check if the leaving user was the drawer of an active game
+        if (global.activeGames && global.activeGames[sessionId]) {
+          const gameState = global.activeGames[sessionId];
+          const clientData = sessionManager.getClientFromSession(sessionId, clientId);
+          const leavingUser = clientData ? clientData.username : null;
+          
+          if (gameState.drawer === leavingUser) {
+            console.log(`[${new Date().toISOString()}] Drawer ${leavingUser} left session, re-enabling game button for all users in session ${sessionId}`);
+            
+            // Re-enable game button for all users since the drawer left
+            io.to(sessionId).emit('game-status-change', { gameActive: false });
+            
+            // Clean up the game state since the drawer left
+            delete global.activeGames[sessionId];
+          }
+        }
+        
         const shouldCleanupSession = sessionManager.removeClientFromSession(sessionId, clientId);
         
         if (shouldCleanupSession) {

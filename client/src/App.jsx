@@ -777,6 +777,21 @@ function App() {
       }))
     })
 
+    socket.on('current-game-state', (data) => {
+      // Handle receiving current game state when joining a session with active game
+      console.log('Received current game state:', data)
+      setGameActive(true)
+      setGameState({
+        drawer: data.drawer,
+        word: data.word,
+        timeLeft: data.timeLeft,
+        guesses: data.guesses || [],
+        isCorrectGuess: false,
+        winner: null
+      })
+      showToast(`Joined active drawing game! ${data.drawer} is drawing.`, 'info')
+    })
+
     socket.on('drawing-update', (data) => {
       // This will be handled by the DrawingGame component through socket prop
       // No need to store drawing data in App state

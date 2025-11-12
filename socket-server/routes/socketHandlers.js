@@ -76,6 +76,9 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       
       // Send cached images
       await imageCache.sendCachedImagesToClient(sessionId, socket);
+      
+      // Send current game state if there's an active game
+      sendCurrentGameState(sessionId, socket);
     });
 
     // Document content sending helper
@@ -447,6 +450,29 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       'key', 'door', 'window', 'chair', 'table', 'lamp', 'mirror', 'camera', 'balloon', 'umbrella'
     ];
 
+    // Game state tracker - store active games per session
+    if (!global.activeGames) global.activeGames = {};
+
+    // Send current game state to new user
+    function sendCurrentGameState(sessionId, socket) {
+      if (global.activeGames && global.activeGames[sessionId]) {
+        const gameState = global.activeGames[sessionId];
+        console.log(`🎮 [GAME] Sending current game state to new user in session ${sessionId}`);
+        socket.emit('game-started', {
+          drawer: gameState.drawer,
+          word: gameState.word,
+          timeLeft: gameState.timeLeft
+        });
+        
+        // Also send any accumulated guesses
+        if (gameState.guesses && gameState.guesses.length > 0) {
+          gameState.guesses.forEach(guess => {
+            socket.emit('game-guess', guess);
+          });
+        }
+      }
+    }
+
     // Handle game start
     socket.on('start-game', ({ sessionId: gameSessionId, starter }) => {
       console.log(`[${new Date().toISOString()}] Game start request by ${starter} in session ${gameSessionId}`);
@@ -462,6 +488,16 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       // Set game timer
       const gameTimeLimit = 90; // 90 seconds
       
+      // Store game state
+      if (!global.activeGames) global.activeGames = {};
+      global.activeGames[gameSessionId] = {
+        drawer: starter,
+        word: randomWord,
+        timeLeft: gameTimeLimit,
+        guesses: [],
+        startTime: Date.now()
+      };
+      
       // Start the game
       io.to(gameSessionId).emit('game-started', {
         drawer: starter,
@@ -474,17 +510,26 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       const gameTimer = setInterval(() => {
         timeLeft--;
         
+        // Update stored game state
+        if (global.activeGames[gameSessionId]) {
+          global.activeGames[gameSessionId].timeLeft = timeLeft;
+        }
+        
         // Send timer update
         io.to(gameSessionId).emit('game-timer-update', { timeLeft });
         
         // End game when time runs out
         if (timeLeft <= 0) {
           clearInterval(gameTimer);
+          // Clean up game state
+          if (global.activeGames[gameSessionId]) {
+            delete global.activeGames[gameSessionId];
+          }
           io.to(gameSessionId).emit('game-ended', { winner: null });
         }
       }, 1000);
       
-      // Store timer reference (you might want to add this to sessionManager)
+      // Store timer reference
       if (!global.gameTimers) global.gameTimers = {};
       global.gameTimers[gameSessionId] = gameTimer;
       
@@ -500,16 +545,20 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         return;
       }
 
-      // Broadcast guess to all players
-      io.to(gameSessionId).emit('game-guess', {
+      const guessData = {
         username,
         guess,
         timestamp: Date.now()
-      });
+      };
 
-      // You would need to track the current word and check for correct answers
-      // For now, we'll implement a simple check (this should be enhanced)
-      // The word would need to be stored in sessionManager for proper game state
+      // Store guess in game state
+      if (global.activeGames && global.activeGames[gameSessionId]) {
+        global.activeGames[gameSessionId].guesses.push(guessData);
+      }
+
+      // Broadcast guess to all players
+      io.to(gameSessionId).emit('game-guess', guessData);
+
       console.log(`[${new Date().toISOString()}] Broadcasted guess "${guess}" by ${username} to session ${gameSessionId}`);
     });
 
@@ -563,6 +612,11 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       if (global.gameTimers && global.gameTimers[gameSessionId]) {
         clearInterval(global.gameTimers[gameSessionId]);
         delete global.gameTimers[gameSessionId];
+      }
+
+      // Clean up game state
+      if (global.activeGames && global.activeGames[gameSessionId]) {
+        delete global.activeGames[gameSessionId];
       }
 
       // End the game

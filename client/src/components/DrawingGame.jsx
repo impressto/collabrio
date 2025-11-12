@@ -316,13 +316,15 @@ function DrawingGame({
           ) : (
             <>
               <div className="game-status">
-                <p><strong>Drawer:</strong> {gameState.drawer || 'Unknown'}</p>
-                {isDrawer ? (
-                  <p className="drawing-word">Draw: <strong>{gameState.word}</strong></p>
-                ) : (
-                  <p>Guess what {gameState.drawer} is drawing!</p>
-                )}
-                <p className="time-remaining">Time: {formatTime(gameState.timeLeft || 0)}</p>
+                <p>
+                  <strong>Drawer:</strong> {gameState.drawer || 'Unknown'} • {' '}
+                  {isDrawer ? (
+                    <span className="drawing-word">Draw: <strong>{gameState.word}</strong></span>
+                  ) : (
+                    <span>Guess what {gameState.drawer} is drawing!</span>
+                  )} • {' '}
+                  <span className="time-remaining">Time: {formatTime(gameState.timeLeft || 0)}</span>
+                </p>
               </div>
             </>
           )}
@@ -331,8 +333,8 @@ function DrawingGame({
         <div className="drawing-canvas-container">
           <canvas
             ref={canvasRef}
-            width={400}
-            height={300}
+            width={550}
+            height={413}
             className="drawing-canvas"
             onMouseDown={startDrawing}
             onMouseMove={draw}

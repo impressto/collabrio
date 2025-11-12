@@ -3532,8 +3532,8 @@ body > #root > .collabrio-app {
   }
   
   .collabrio-app .drawing-canvas {
-    width: 300px;
-    height: 225px;
+    width: 400px;
+    height: 300px;
   }
   
   .collabrio-app .drawing-game-header,

@@ -97,7 +97,8 @@ function App() {
   const [randomCooldownTimer, setRandomCooldownTimer] = useState(null)
   
   // Drawing game state
-  const [gameActive, setGameActive] = useState(false)
+  const [gameActive, setGameActive] = useState(false) // Controls button disable/enable
+  const [showGameModal, setShowGameModal] = useState(false) // Controls modal visibility
   const [gameState, setGameState] = useState({
     drawer: null,
     word: '',
@@ -727,6 +728,7 @@ function App() {
     // Game-related socket events
     socket.on('game-started', (data) => {
       setGameActive(true)
+      setShowGameModal(true)
       setGameState({
         drawer: data.drawer,
         word: data.word,
@@ -735,7 +737,7 @@ function App() {
         isCorrectGuess: false,
         winner: null
       })
-      showToast(`Guess the Sketch started! ${data.drawer} is drawing "${data.word}"`, 'success')
+      // No toast notification for game start - modal provides all information
     })
 
     socket.on('game-ended', (data) => {
@@ -747,18 +749,10 @@ function App() {
         isCorrectGuess: !!(data.winners && data.winners.length > 0)
       }))
       
-      if (data.winners && data.winners.length > 0) {
-        if (data.winners.length === 1) {
-          showToast(`Game ended! ${data.winners[0]} guessed correctly!`, 'success')
-        } else {
-          showToast(`Game ended! ${data.winners.length} players guessed correctly!`, 'success')
-        }
-      } else {
-        showToast(`Game ended! Time ran out. The word was "${data.correctWord}"`, 'warning')
-      }
-      
+      // No toast notifications for game end - all information shown in modal
       // Keep the modal open so users can see who won
-      // Users can manually close it by clicking the X button
+      // Modal visibility is controlled separately from gameActive
+      // Users must manually close it by clicking the X button
     })
 
     socket.on('game-guess', (data) => {
@@ -779,6 +773,7 @@ function App() {
       // Handle receiving current game state when joining a session with active game
       console.log('Received current game state:', data)
       setGameActive(true)
+      setShowGameModal(true)
       setGameState({
         drawer: data.drawer,
         word: data.word,
@@ -787,7 +782,7 @@ function App() {
         isCorrectGuess: false,
         winner: null
       })
-      showToast(`Joined active drawing game! ${data.drawer} is drawing.`, 'info')
+      // No toast notification for joining game - modal shows all necessary information
     })
 
     socket.on('game-status-change', (data) => {
@@ -1327,14 +1322,14 @@ function App() {
       </div>
 
       {/* Guess the Sketch Game */}
-      {gameActive && (
+      {showGameModal && (
         <DrawingGame
           gameState={gameState}
           socket={socketRef.current}
           sessionId={sessionId}
           currentUser={userIdentity.username || generateFunnyUsername()}
           onClose={() => {
-            setGameActive(false)
+            setShowGameModal(false)
             // Reset game state when closing modal (only affects this user)
             setGameState({
               drawer: null,
@@ -1346,6 +1341,7 @@ function App() {
               winners: [],
               correctWord: ''
             })
+            // gameActive is controlled by server game-status-change events
             // No server communication needed - modal close only affects individual user
           }}
         />

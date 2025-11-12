@@ -66,3 +66,5 @@ socket-server/messages/*
 socket-server/sessions.db
 gtag_include.php
 socket-server/cached-images/*
+socket-server/.syncthing*
+

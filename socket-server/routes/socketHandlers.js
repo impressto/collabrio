@@ -486,7 +486,7 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       const randomWord = DRAWING_WORDS[Math.floor(Math.random() * DRAWING_WORDS.length)];
       
       // Set game timer
-      const gameTimeLimit = 90; // 90 seconds
+      const gameTimeLimit = 60; // 60 seconds
       
       // Store game state
       if (!global.activeGames) global.activeGames = {};

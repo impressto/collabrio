@@ -10,7 +10,7 @@ function DrawingGame({
   const canvasRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [guess, setGuess] = useState('')
-  const [hasSubmittedGuess, setHasSubmittedGuess] = useState(false)
+  const [guessesRemaining, setGuessesRemaining] = useState(3)
   const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 })
   
   const isDrawer = gameState?.drawer === currentUser
@@ -102,6 +102,13 @@ function DrawingGame({
       socket.off('drawing-update', handleDrawingUpdate)
     }
   }, [socket, isDrawer])
+
+  // Reset guesses when a new game starts
+  useEffect(() => {
+    if (gameState?.drawer && gameState?.word) {
+      setGuessesRemaining(3)
+    }
+  }, [gameState?.drawer, gameState?.word])
 
   // Redraw canvas function
   const redrawCanvas = (ctx, paths) => {
@@ -271,9 +278,9 @@ function DrawingGame({
 
   const submitGuess = (e) => {
     e.preventDefault()
-    if (!guess.trim() || hasSubmittedGuess || isDrawer || hasGameEnded) return
+    if (!guess.trim() || guessesRemaining <= 0 || isDrawer || hasGameEnded) return
     
-    setHasSubmittedGuess(true)
+    setGuessesRemaining(prev => prev - 1)
     
     // Send guess to server
     if (socket && sessionId) {
@@ -362,16 +369,16 @@ function DrawingGame({
                 type="text"
                 value={guess}
                 onChange={(e) => setGuess(e.target.value)}
-                placeholder="Enter your guess..."
+                placeholder={guessesRemaining > 0 ? "Enter your guess..." : "No guesses remaining"}
                 className="guess-input"
-                disabled={hasSubmittedGuess}
+                disabled={guessesRemaining <= 0}
               />
               <button 
                 type="submit" 
                 className="guess-submit-btn"
-                disabled={!guess.trim() || hasSubmittedGuess}
+                disabled={!guess.trim() || guessesRemaining <= 0}
               >
-                {hasSubmittedGuess ? '✓ Submitted' : 'Guess'}
+                {guessesRemaining <= 0 ? 'No Guesses Left' : `Guess (${guessesRemaining} left)`}
               </button>
             </form>
           </div>

@@ -101,7 +101,7 @@ function App() {
   const [gameState, setGameState] = useState({
     drawer: null,
     word: '',
-    timeLeft: 90,
+    timeLeft: 60,
     guesses: [],
     isCorrectGuess: false,
     winner: null
@@ -737,7 +737,6 @@ function App() {
     })
 
     socket.on('game-ended', (data) => {
-      setGameActive(false)
       setGameState(prev => ({
         ...prev,
         winner: data.winner,
@@ -749,18 +748,8 @@ function App() {
         showToast('Game ended! Time ran out.', 'warning')
       }
       
-      // Auto-close game after 3 seconds
-      setTimeout(() => {
-        setGameActive(false)
-        setGameState({
-          drawer: null,
-          word: '',
-          timeLeft: 90,
-          guesses: [],
-          isCorrectGuess: false,
-          winner: null
-        })
-      }, 3000)
+      // Keep the modal open so users can see who won
+      // Users can manually close it by clicking the X button
     })
 
     socket.on('game-guess', (data) => {
@@ -1328,7 +1317,18 @@ function App() {
           socket={socketRef.current}
           sessionId={sessionId}
           currentUser={userIdentity.username || generateFunnyUsername()}
-          onClose={() => setGameActive(false)}
+          onClose={() => {
+            setGameActive(false)
+            // Reset game state when closing modal so users can start new games
+            setGameState({
+              drawer: null,
+              word: '',
+              timeLeft: 60,
+              guesses: [],
+              isCorrectGuess: false,
+              winner: null
+            })
+          }}
         />
       )}
 

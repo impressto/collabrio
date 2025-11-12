@@ -314,10 +314,18 @@ function DrawingGame({
           {hasGameEnded ? (
             <div className="game-result">
               <h4>🎉 Game Over!</h4>
-              {gameState.winner ? (
-                <p><strong>{gameState.winner}</strong> guessed it correctly: <strong>{gameState.word}</strong></p>
+              {gameState.winners && gameState.winners.length > 0 ? (
+                <div>
+                  <p><strong>Correct guessers:</strong></p>
+                  <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+                    {gameState.winners.map((winner, index) => (
+                      <li key={index}><strong>{winner}</strong></li>
+                    ))}
+                  </ul>
+                  <p>The word was: <strong>{gameState.correctWord || gameState.word}</strong></p>
+                </div>
               ) : (
-                <p>Time's up! The word was: <strong>{gameState.word}</strong></p>
+                <p>Time's up! The word was: <strong>{gameState.correctWord || gameState.word}</strong></p>
               )}
             </div>
           ) : (
@@ -388,9 +396,9 @@ function DrawingGame({
           <h4>Guesses:</h4>
           <div className="guesses-list">
             {gameState.guesses?.map((guessData, index) => (
-              <div key={index} className={`guess-item ${guessData.correct ? 'correct-guess' : ''}`}>
+              <div key={index} className={`guess-item ${guessData.isCorrect ? 'correct-guess' : ''}`}>
                 <strong>{guessData.username}:</strong> {guessData.guess}
-                {guessData.correct && <span className="correct-indicator"> ✓</span>}
+                {guessData.isCorrect && <span className="correct-indicator"> ✓</span>}
               </div>
             ))}
           </div>

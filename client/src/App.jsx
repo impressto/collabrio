@@ -104,7 +104,9 @@ function App() {
     timeLeft: 60,
     guesses: [],
     isCorrectGuess: false,
-    winner: null
+    winner: null,
+    winners: [],
+    correctWord: ''
   })
   
   // Use refs for icebreaker data to persist across async operations
@@ -739,13 +741,20 @@ function App() {
     socket.on('game-ended', (data) => {
       setGameState(prev => ({
         ...prev,
-        winner: data.winner,
-        isCorrectGuess: !!data.winner
+        winner: data.winner, // Keep for backward compatibility
+        winners: data.winners || [],
+        correctWord: data.correctWord || prev.word,
+        isCorrectGuess: !!(data.winners && data.winners.length > 0)
       }))
-      if (data.winner) {
-        showToast(`Game ended! ${data.winner} guessed correctly!`, 'success')
+      
+      if (data.winners && data.winners.length > 0) {
+        if (data.winners.length === 1) {
+          showToast(`Game ended! ${data.winners[0]} guessed correctly!`, 'success')
+        } else {
+          showToast(`Game ended! ${data.winners.length} players guessed correctly!`, 'success')
+        }
       } else {
-        showToast('Game ended! Time ran out.', 'warning')
+        showToast(`Game ended! Time ran out. The word was "${data.correctWord}"`, 'warning')
       }
       
       // Keep the modal open so users can see who won
@@ -779,6 +788,12 @@ function App() {
         winner: null
       })
       showToast(`Joined active drawing game! ${data.drawer} is drawing.`, 'info')
+    })
+
+    socket.on('game-status-change', (data) => {
+      // Handle game status changes to enable/disable game button for all users
+      console.log('Game status change:', data)
+      setGameActive(data.gameActive)
     })
 
     socket.on('drawing-update', (data) => {
@@ -1241,6 +1256,7 @@ function App() {
           onSetAsBackground={handleSetAsBackground}
           editorMode={editorMode}
           onStartGame={startGame}
+          gameActive={gameActive}
         />
 
         <Editor 
@@ -1319,15 +1335,18 @@ function App() {
           currentUser={userIdentity.username || generateFunnyUsername()}
           onClose={() => {
             setGameActive(false)
-            // Reset game state when closing modal so users can start new games
+            // Reset game state when closing modal (only affects this user)
             setGameState({
               drawer: null,
               word: '',
               timeLeft: 60,
               guesses: [],
               isCorrectGuess: false,
-              winner: null
+              winner: null,
+              winners: [],
+              correctWord: ''
             })
+            // No server communication needed - modal close only affects individual user
           }}
         />
       )}

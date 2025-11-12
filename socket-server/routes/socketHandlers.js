@@ -454,6 +454,10 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       if (global.activeGames && global.activeGames[sessionId]) {
         const gameState = global.activeGames[sessionId];
         console.log(`🎮 [GAME] Sending current game state to new user in session ${sessionId}`);
+        
+        // Send game status to disable button
+        socket.emit('game-status-change', { gameActive: true });
+        
         socket.emit('game-started', {
           drawer: gameState.drawer,
           word: gameState.word,
@@ -491,6 +495,7 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         word: randomWord,
         timeLeft: gameTimeLimit,
         guesses: [],
+        winners: [],
         startTime: Date.now()
       };
       
@@ -500,6 +505,9 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         word: randomWord,
         timeLeft: gameTimeLimit
       });
+      
+      // Broadcast game status to disable buttons for all users
+      io.to(gameSessionId).emit('game-status-change', { gameActive: true });
       
       // Start game timer
       let timeLeft = gameTimeLimit;
@@ -517,11 +525,24 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         // End game when time runs out
         if (timeLeft <= 0) {
           clearInterval(gameTimer);
+          // Get winners before cleanup
+          const winners = global.activeGames[gameSessionId]?.winners || [];
+          const correctWord = global.activeGames[gameSessionId]?.word || '';
+          
           // Clean up game state
           if (global.activeGames[gameSessionId]) {
             delete global.activeGames[gameSessionId];
           }
-          io.to(gameSessionId).emit('game-ended', { winner: null });
+          
+          io.to(gameSessionId).emit('game-ended', { 
+            winners: winners,
+            winner: winners.length > 0 ? winners[0] : null, // Keep backward compatibility
+            correctWord: correctWord,
+            reason: 'timeout'
+          });
+          
+          // Re-enable game button for all users when game actually ends
+          io.to(gameSessionId).emit('game-status-change', { gameActive: false });
         }
       }, 1000);
       
@@ -547,15 +568,35 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         timestamp: Date.now()
       };
 
-      // Store guess in game state
+      // Check if guess is correct
+      let isCorrect = false;
       if (global.activeGames && global.activeGames[gameSessionId]) {
+        const correctWord = global.activeGames[gameSessionId].word;
+        isCorrect = guess.trim().toLowerCase() === correctWord.toLowerCase();
+        
+        // Store guess in game state
         global.activeGames[gameSessionId].guesses.push(guessData);
+        
+        // Track correct guesses
+        if (isCorrect) {
+          if (!global.activeGames[gameSessionId].winners) {
+            global.activeGames[gameSessionId].winners = [];
+          }
+          // Only add if not already in winners list
+          if (!global.activeGames[gameSessionId].winners.includes(username)) {
+            global.activeGames[gameSessionId].winners.push(username);
+            console.log(`🎉 [${new Date().toISOString()}] Correct guess by ${username}! Current winners: ${global.activeGames[gameSessionId].winners.join(', ')}`);
+          }
+        }
       }
 
-      // Broadcast guess to all players
-      io.to(gameSessionId).emit('game-guess', guessData);
+      // Broadcast guess to all players with correct flag
+      io.to(gameSessionId).emit('game-guess', {
+        ...guessData,
+        isCorrect: isCorrect
+      });
 
-      console.log(`[${new Date().toISOString()}] Broadcasted guess "${guess}" by ${username} to session ${gameSessionId}`);
+      console.log(`[${new Date().toISOString()}] Broadcasted guess "${guess}" by ${username} to session ${gameSessionId} (correct: ${isCorrect})`);
     });
 
     // Handle drawing updates
@@ -610,16 +651,34 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         delete global.gameTimers[gameSessionId];
       }
 
+      // Get winners before cleanup
+      const winners = global.activeGames && global.activeGames[gameSessionId] 
+        ? global.activeGames[gameSessionId].winners || [] 
+        : [];
+      const correctWord = global.activeGames && global.activeGames[gameSessionId]
+        ? global.activeGames[gameSessionId].word || ''
+        : '';
+
       // Clean up game state
       if (global.activeGames && global.activeGames[gameSessionId]) {
         delete global.activeGames[gameSessionId];
       }
 
       // End the game
-      io.to(gameSessionId).emit('game-ended', { winner: null });
+      io.to(gameSessionId).emit('game-ended', { 
+        winners: winners,
+        winner: winners.length > 0 ? winners[0] : null, // Keep backward compatibility
+        correctWord: correctWord,
+        reason: 'manual'
+      });
+      
+      // Re-enable game button for all users when game actually ends
+      io.to(gameSessionId).emit('game-status-change', { gameActive: false });
       
       console.log(`[${new Date().toISOString()}] Game ended manually in session ${gameSessionId}`);
     });
+
+
 
     // Handle disconnect
     socket.on('disconnect', () => {

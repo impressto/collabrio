@@ -20,7 +20,8 @@ function Toolbar({
   onDeleteCachedImage,
   onSetAsBackground,
   editorMode,
-  onStartGame
+  onStartGame,
+  gameActive
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
   const [showIcebreakerDropdown, setShowIcebreakerDropdown] = useState(false)
@@ -146,12 +147,14 @@ function Toolbar({
       <button 
         id="games-btn"
         onClick={onStartGame}
-        className={`share-button ${editorMode === 'draft' ? 'disabled' : ''}`}
-        disabled={editorMode === 'draft'}
+        className={`share-button ${editorMode === 'draft' || gameActive ? 'disabled' : ''}`}
+        disabled={editorMode === 'draft' || gameActive}
         title={
           editorMode === 'draft' 
             ? "Switch to Live mode to play Guess the Sketch" 
-            : "Start a drawing and guessing game for all participants"
+            : gameActive
+              ? "A game is already in progress"
+              : "Start a drawing and guessing game for all participants"
         }
       >
         🎮 Guess the Sketch

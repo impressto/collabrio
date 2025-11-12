@@ -3723,6 +3723,33 @@ body > #root > .collabrio-app {
   color: #68d391;
 }
 
+.collabrio-app.dark-theme .assign-master-btn {
+  background: #38a169 !important;
+  color: #ffffff !important;
+}
+
+.collabrio-app.dark-theme .assign-master-btn:hover {
+  background: #2f855a !important;
+}
+
+.collabrio-app.dark-theme .skip-assignment-btn,
+.collabrio-app.dark-theme .assignment-selection button {
+  background: #4a5568 !important;
+  color: #e2e8f0 !important;
+  border-color: #2d3748 !important;
+}
+
+.collabrio-app.dark-theme .skip-assignment-btn:hover,
+.collabrio-app.dark-theme .assignment-selection button:hover {
+  background: #2d3748 !important;
+}
+
+.collabrio-app.dark-theme .assignment-selection select {
+  background: #4a5568 !important;
+  color: #e2e8f0 !important;
+  border-color: #2d3748 !important;
+}
+
 /* Responsive design for word selection and drawing game */
 @media (max-width: 768px) {
   .collabrio-app .word-selection-modal {

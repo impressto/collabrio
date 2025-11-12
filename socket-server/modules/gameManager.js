@@ -1,6 +1,8 @@
 class GameManager {
   constructor() {
     this.activeGames = {}; // Store active game sessions
+    this.gameTimers = {}; // Store active game timers
+    this.assignmentTimers = {}; // Store assignment timeout timers
   }
 
   // Get all available words
@@ -83,6 +85,13 @@ class GameManager {
 
     const gameTimeLimit = this.getGameTimeLimit();
     
+    // Clear any existing timer for this session
+    if (this.gameTimers[sessionId]) {
+      console.log(`[${new Date().toISOString()}] Clearing existing timer for session ${sessionId}`);
+      clearInterval(this.gameTimers[sessionId]);
+      delete this.gameTimers[sessionId];
+    }
+    
     // Store game state
     this.activeGames[sessionId] = {
       drawer: starter,
@@ -112,6 +121,8 @@ class GameManager {
 
   // Start game timer
   startGameTimer(sessionId, timeLeft, io) {
+    console.log(`[${new Date().toISOString()}] Starting game timer for session ${sessionId} with ${timeLeft} seconds`);
+    
     const gameTimer = setInterval(() => {
       timeLeft--;
       
@@ -125,26 +136,31 @@ class GameManager {
 
       // End game when time runs out
       if (timeLeft <= 0) {
+        console.log(`[${new Date().toISOString()}] Game timer expired for session ${sessionId}`);
         clearInterval(gameTimer);
+        delete this.gameTimers[sessionId];
         
         if (this.activeGames[sessionId]) {
           const gameState = this.activeGames[sessionId];
           const winners = gameState.winners || [];
           
+          // Send game ended event with assignment option for original drawer
           io.to(sessionId).emit('game-ended', { 
             reason: 'timeout', 
             word: gameState.word,
-            winners: winners.length > 0 ? winners : null
+            winners: winners.length > 0 ? winners : null,
+            canAssignNext: true, // Allow assignment of next game master
+            originalDrawer: gameState.drawer
           });
           
-          // Clean up game state
-          delete this.activeGames[sessionId];
-          
-          // Re-enable game button for all users when game actually ends
-          io.to(sessionId).emit('game-status-change', { gameActive: false });
+          // Start assignment timeout (30 seconds)
+          this.startAssignmentTimeout(sessionId, io);
         }
       }
     }, 1000);
+    
+    // Store timer reference for cleanup
+    this.gameTimers[sessionId] = gameTimer;
   }
 
   // End a game manually
@@ -161,21 +177,30 @@ class GameManager {
       return false;
     }
 
+    // Clear any existing timer
+    if (this.gameTimers[sessionId]) {
+      console.log(`[${new Date().toISOString()}] Clearing timer for manually ended game in session ${sessionId}`);
+      clearInterval(this.gameTimers[sessionId]);
+      delete this.gameTimers[sessionId];
+    }
+
     const gameState = this.activeGames[sessionId];
     const winners = gameState.winners || [];
     
     // Clean up game state
     delete this.activeGames[sessionId];
 
-    // End the game
+    // End the game with assignment option
     io.to(sessionId).emit('game-ended', { 
       reason: 'manual', 
       word: gameState.word,
-      winners: winners.length > 0 ? winners : null
+      winners: winners.length > 0 ? winners : null,
+      canAssignNext: true, // Allow assignment of next game master
+      originalDrawer: gameState.drawer
     });
 
-    // Re-enable game button for all users when game actually ends
-    io.to(sessionId).emit('game-status-change', { gameActive: false });
+    // Start assignment timeout (30 seconds)
+    this.startAssignmentTimeout(sessionId, io);
     
     console.log(`[${new Date().toISOString()}] Game ended manually in session ${sessionId}`);
     return true;
@@ -257,6 +282,12 @@ class GameManager {
       if (gameState.drawer === user) {
         console.log(`[${new Date().toISOString()}] Drawer ${user} closed modal, re-enabling game button for all users in session ${sessionId}`);
         
+        // Clear any existing timer
+        if (this.gameTimers[sessionId]) {
+          clearInterval(this.gameTimers[sessionId]);
+          delete this.gameTimers[sessionId];
+        }
+        
         // Re-enable game button for all users since the drawer closed their modal
         io.to(sessionId).emit('game-status-change', { gameActive: false });
         
@@ -284,6 +315,12 @@ class GameManager {
     
     if (gameState.drawer === username) {
       console.log(`[${new Date().toISOString()}] Drawer ${username} left session, re-enabling game button for all users in session ${sessionId}`);
+      
+      // Clear any existing timer
+      if (this.gameTimers[sessionId]) {
+        clearInterval(this.gameTimers[sessionId]);
+        delete this.gameTimers[sessionId];
+      }
       
       // Re-enable game button for all users since the drawer left
       io.to(sessionId).emit('game-status-change', { gameActive: false });
@@ -330,6 +367,135 @@ class GameManager {
         });
       }
     }
+  }
+
+  // Start assignment timeout
+  startAssignmentTimeout(sessionId, io) {
+    const timeoutDuration = 30000; // 30 seconds
+    
+    console.log(`[${new Date().toISOString()}] Starting assignment timeout for session ${sessionId} (${timeoutDuration/1000}s)`);
+    
+    const timeoutId = setTimeout(() => {
+      console.log(`[${new Date().toISOString()}] Assignment timeout expired for session ${sessionId}`);
+      
+      // Clean up game state
+      if (this.activeGames[sessionId]) {
+        delete this.activeGames[sessionId];
+      }
+      
+      // Clean up timeout reference
+      delete this.assignmentTimers[sessionId];
+      
+      // Re-enable game button for all users
+      io.to(sessionId).emit('game-status-change', { gameActive: false });
+      
+      // Notify that assignment expired
+      io.to(sessionId).emit('assignment-expired');
+    }, timeoutDuration);
+    
+    this.assignmentTimers[sessionId] = timeoutId;
+  }
+
+  // Assign next game master
+  assignGameMaster(sessionId, assigner, newGameMaster, io) {
+    console.log(`[${new Date().toISOString()}] Game master assignment: ${assigner} assigning to ${newGameMaster} in session ${sessionId}`);
+    
+    if (!sessionId || !assigner || !newGameMaster) {
+      console.warn('Invalid assign-game-master request: missing required fields');
+      return false;
+    }
+
+    // Check if there's a completed game waiting for assignment
+    if (this.activeGames[sessionId]) {
+      const gameState = this.activeGames[sessionId];
+      
+      // Only the original drawer can assign the next game master
+      if (gameState.drawer !== assigner) {
+        console.warn(`User ${assigner} is not authorized to assign game master in session ${sessionId}`);
+        return false;
+      }
+
+      // Clear assignment timeout
+      if (this.assignmentTimers[sessionId]) {
+        clearTimeout(this.assignmentTimers[sessionId]);
+        delete this.assignmentTimers[sessionId];
+      }
+
+      // Clean up the completed game state
+      delete this.activeGames[sessionId];
+
+      // Notify all users about the new game master assignment
+      io.to(sessionId).emit('game-master-assigned', {
+        newGameMaster: newGameMaster,
+        assignedBy: assigner
+      });
+
+      // Re-enable game button for all users
+      io.to(sessionId).emit('game-status-change', { gameActive: false });
+
+      console.log(`[${new Date().toISOString()}] Game master assigned to ${newGameMaster} by ${assigner} in session ${sessionId}`);
+      return true;
+    } else {
+      console.warn(`No completed game found for assignment in session ${sessionId}`);
+      return false;
+    }
+  }
+
+  // Skip assignment and end game normally
+  skipAssignment(sessionId, user, io) {
+    console.log(`[${new Date().toISOString()}] Skipping game master assignment in session ${sessionId} by ${user}`);
+    
+    if (!this.activeGames[sessionId]) {
+      console.warn(`No completed game found to skip assignment in session ${sessionId}`);
+      return false;
+    }
+
+    const gameState = this.activeGames[sessionId];
+    
+    // Only the original drawer can skip assignment
+    if (gameState.drawer !== user) {
+      console.warn(`User ${user} is not authorized to skip assignment in session ${sessionId}`);
+      return false;
+    }
+
+    // Clear assignment timeout
+    if (this.assignmentTimers[sessionId]) {
+      clearTimeout(this.assignmentTimers[sessionId]);
+      delete this.assignmentTimers[sessionId];
+    }
+
+    // Clean up the completed game state
+    delete this.activeGames[sessionId];
+
+    // Re-enable game button for all users
+    io.to(sessionId).emit('game-status-change', { gameActive: false });
+
+    // Notify that assignment was skipped
+    io.to(sessionId).emit('assignment-skipped', {
+      skippedBy: user
+    });
+
+    console.log(`[${new Date().toISOString()}] Game master assignment skipped by ${user} in session ${sessionId}`);
+    return true;
+  }
+
+  // Clean up all timers (useful for server shutdown)
+  cleanup() {
+    console.log(`[${new Date().toISOString()}] Cleaning up all game timers and assignment timers`);
+    
+    // Clear game timers
+    Object.keys(this.gameTimers).forEach(sessionId => {
+      clearInterval(this.gameTimers[sessionId]);
+    });
+    
+    // Clear assignment timers
+    Object.keys(this.assignmentTimers).forEach(sessionId => {
+      clearTimeout(this.assignmentTimers[sessionId]);
+    });
+    
+    this.gameTimers = {};
+    this.assignmentTimers = {};
+    this.activeGames = {};
   }
 }
 

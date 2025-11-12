@@ -5,6 +5,7 @@ function DrawingGame({
   socket,
   sessionId,
   currentUser, 
+  sessionUsers,
   onClose
 }) {
   const canvasRef = useRef(null)
@@ -12,9 +13,13 @@ function DrawingGame({
   const [guess, setGuess] = useState('')
   const [guessesRemaining, setGuessesRemaining] = useState(3)
   const [lastPoint, setLastPoint] = useState({ x: 0, y: 0 })
+  const [showAssignmentOptions, setShowAssignmentOptions] = useState(false)
+  const [selectedUser, setSelectedUser] = useState('')
   
   const isDrawer = gameState?.drawer === currentUser
+  const isOriginalDrawer = gameState?.originalDrawer === currentUser
   const hasGameEnded = gameState?.winner !== null || gameState?.timeLeft <= 0
+  const canAssignNext = gameState?.canAssignNext && isOriginalDrawer
   const correctGuess = gameState?.isCorrectGuess
 
   // Drawing data to sync with other clients
@@ -276,8 +281,31 @@ function DrawingGame({
     }
   }
 
-  const submitGuess = (e) => {
-    e.preventDefault()
+    const assignGameMaster = () => {
+    if (!selectedUser || !socket || !sessionId) return
+    
+    socket.emit('assign-game-master', {
+      sessionId: sessionId,
+      assigner: currentUser,
+      newGameMaster: selectedUser
+    })
+    
+    setShowAssignmentOptions(false)
+    setSelectedUser('')
+  }
+
+  const skipAssignment = () => {
+    if (!socket || !sessionId) return
+    
+    socket.emit('skip-assignment', {
+      sessionId: sessionId,
+      user: currentUser
+    })
+    
+    setShowAssignmentOptions(false)
+  }
+
+  const submitGuess = () => {
     if (!guess.trim() || guessesRemaining <= 0 || isDrawer || hasGameEnded) return
     
     setGuessesRemaining(prev => prev - 1)
@@ -326,6 +354,101 @@ function DrawingGame({
                 </div>
               ) : (
                 <p>Time's up! The word was: <strong>{gameState.correctWord || gameState.word}</strong></p>
+              )}
+              
+              {canAssignNext && !showAssignmentOptions && (
+                <div className="assignment-prompt">
+                  <p style={{ margin: '1rem 0 0.5rem', color: '#0066cc' }}>
+                    <strong>Want to keep playing?</strong>
+                  </p>
+                  <button 
+                    className="assign-master-btn"
+                    onClick={() => setShowAssignmentOptions(true)}
+                    style={{
+                      background: '#4CAF50',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      marginRight: '8px'
+                    }}
+                  >
+                    Assign Next Game Master
+                  </button>
+                  <button 
+                    className="skip-assignment-btn"
+                    onClick={skipAssignment}
+                    style={{
+                      background: '#f5f5f5',
+                      color: '#666',
+                      border: '1px solid #ddd',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    End Game
+                  </button>
+                </div>
+              )}
+
+              {showAssignmentOptions && canAssignNext && (
+                <div className="assignment-selection">
+                  <p style={{ margin: '1rem 0 0.5rem', fontWeight: 'bold' }}>
+                    Choose the next game master:
+                  </p>
+                  <select 
+                    value={selectedUser}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    style={{
+                      padding: '8px',
+                      marginRight: '8px',
+                      borderRadius: '4px',
+                      border: '1px solid #ddd',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">Select a user...</option>
+                    {sessionUsers?.filter(user => user.username !== currentUser).map((user, index) => (
+                      <option key={index} value={user.username}>
+                        {user.username}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    onClick={assignGameMaster}
+                    disabled={!selectedUser}
+                    style={{
+                      background: selectedUser ? '#4CAF50' : '#ccc',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: selectedUser ? 'pointer' : 'not-allowed',
+                      fontSize: '14px',
+                      marginRight: '8px'
+                    }}
+                  >
+                    Assign
+                  </button>
+                  <button 
+                    onClick={() => setShowAssignmentOptions(false)}
+                    style={{
+                      background: '#f5f5f5',
+                      color: '#666',
+                      border: '1px solid #ddd',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
             </div>
           ) : (

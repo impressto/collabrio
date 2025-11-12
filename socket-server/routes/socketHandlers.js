@@ -510,6 +510,16 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       gameManager.handleModalClose(gameSessionId, user, io);
     });
 
+    // Handle game master assignment
+    socket.on('assign-game-master', ({ sessionId: gameSessionId, assigner, newGameMaster }) => {
+      gameManager.assignGameMaster(gameSessionId, assigner, newGameMaster, io);
+    });
+
+    // Handle skipping game master assignment
+    socket.on('skip-assignment', ({ sessionId: gameSessionId, user }) => {
+      gameManager.skipAssignment(gameSessionId, user, io);
+    });
+
     // Handle disconnect
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`);

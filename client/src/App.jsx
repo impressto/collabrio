@@ -756,13 +756,27 @@ function App() {
         winner: data.winner, // Keep for backward compatibility
         winners: data.winners || [],
         correctWord: data.correctWord || prev.word,
-        isCorrectGuess: !!(data.winners && data.winners.length > 0)
+        isCorrectGuess: !!(data.winners && data.winners.length > 0),
+        canAssignNext: data.canAssignNext || false,
+        originalDrawer: data.originalDrawer
       }))
       
       // No toast notifications for game end - all information shown in modal
       // Keep the modal open so users can see who won
       // Modal visibility is controlled separately from gameActive
       // Users must manually close it by clicking the X button
+    })
+
+    socket.on('game-master-assigned', (data) => {
+      showToast(`🎮 ${data.newGameMaster} is now the game master! (assigned by ${data.assignedBy})`, 'info')
+    })
+
+    socket.on('assignment-skipped', (data) => {
+      showToast(`Game ended by ${data.skippedBy}`, 'info')
+    })
+
+    socket.on('assignment-expired', () => {
+      showToast('Assignment time expired - game ended', 'info')
     })
 
     socket.on('game-guess', (data) => {
@@ -1355,6 +1369,7 @@ function App() {
           socket={socketRef.current}
           sessionId={sessionId}
           currentUser={userIdentity.username || generateFunnyUsername()}
+          sessionUsers={connectedUsers}
           onClose={() => {
             setShowGameModal(false)
             

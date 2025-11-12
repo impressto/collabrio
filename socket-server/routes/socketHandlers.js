@@ -1,5 +1,10 @@
 // Socket handlers for the main server
+const GameManager = require('../modules/gameManager');
+
 module.exports = (io, sessionManager, fileManager, imageCache, aiService, database) => {
+  
+  // Create GameManager instance
+  const gameManager = new GameManager();
   
   io.on('connection', (socket) => {
     console.log(`New connection: ${socket.id}`);
@@ -78,7 +83,7 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       await imageCache.sendCachedImagesToClient(sessionId, socket);
       
       // Send current game state if there's an active game
-      sendCurrentGameState(sessionId, socket);
+      gameManager.sendCurrentGameState(sessionId, socket, io);
     });
 
     // Document content sending helper
@@ -441,162 +446,21 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       console.log(`[${new Date().toISOString()}] Broadcasted audio "${audioKey}" to other clients in session ${audioSessionId}`);
     });
 
-    // Drawing game words list from environment variable
-    const DRAWING_WORDS = (process.env.DRAWING_WORDS || 
-      'cat,dog,house,tree,car,flower,bird,fish,sun,moon,star,cloud,mountain,river,book,phone,computer,pizza,cake,apple,banana,guitar,piano,bicycle,airplane,boat,train,butterfly,elephant,lion,penguin,rainbow,snowman,castle,bridge,clock,heart,diamond,arrow,crown,key,door,window,chair,table,lamp,mirror,camera,balloon,umbrella')
-      .split(',').map(word => word.trim());
+    // Game functionality is now handled by the GameManager module
 
-    // Game state tracker - store active games per session
-    if (!global.activeGames) global.activeGames = {};
-
-    // Send current game state to new user
-    function sendCurrentGameState(sessionId, socket) {
-      if (global.activeGames && global.activeGames[sessionId]) {
-        const gameState = global.activeGames[sessionId];
-        console.log(`🎮 [GAME] Sending current game state to new user in session ${sessionId}`);
-        
-        // Send game status to disable button
-        socket.emit('game-status-change', { gameActive: true });
-        
-        socket.emit('game-started', {
-          drawer: gameState.drawer,
-          word: gameState.word,
-          timeLeft: gameState.timeLeft
-        });
-        
-        // Also send any accumulated guesses
-        if (gameState.guesses && gameState.guesses.length > 0) {
-          gameState.guesses.forEach(guess => {
-            socket.emit('game-guess', guess);
-          });
-        }
-      }
-    }
-
-    // Handle game start
+    // Handle game start request (send word choices)
     socket.on('start-game', ({ sessionId: gameSessionId, starter }) => {
-      console.log(`[${new Date().toISOString()}] Game start request by ${starter} in session ${gameSessionId}`);
-      
-      if (!gameSessionId || !starter) {
-        console.warn('Invalid start-game request: missing required fields');
-        return;
-      }
+      gameManager.requestGameStart(gameSessionId, starter, socket);
+    });
 
-      // Get random word
-      const randomWord = DRAWING_WORDS[Math.floor(Math.random() * DRAWING_WORDS.length)];
-      
-      // Set game timer from environment variable
-      const gameTimeLimit = parseInt(process.env.GAME_TIME_LIMIT) || 60; // Default 60 seconds
-      
-      // Store game state
-      if (!global.activeGames) global.activeGames = {};
-      global.activeGames[gameSessionId] = {
-        drawer: starter,
-        word: randomWord,
-        timeLeft: gameTimeLimit,
-        guesses: [],
-        winners: [],
-        startTime: Date.now()
-      };
-      
-      // Start the game
-      io.to(gameSessionId).emit('game-started', {
-        drawer: starter,
-        word: randomWord,
-        timeLeft: gameTimeLimit
-      });
-      
-      // Broadcast game status to disable buttons for all users
-      io.to(gameSessionId).emit('game-status-change', { gameActive: true });
-      
-      // Start game timer
-      let timeLeft = gameTimeLimit;
-      const gameTimer = setInterval(() => {
-        timeLeft--;
-        
-        // Update stored game state
-        if (global.activeGames[gameSessionId]) {
-          global.activeGames[gameSessionId].timeLeft = timeLeft;
-        }
-        
-        // Send timer update
-        io.to(gameSessionId).emit('game-timer-update', { timeLeft });
-        
-        // End game when time runs out
-        if (timeLeft <= 0) {
-          clearInterval(gameTimer);
-          // Get winners before cleanup
-          const winners = global.activeGames[gameSessionId]?.winners || [];
-          const correctWord = global.activeGames[gameSessionId]?.word || '';
-          
-          // Clean up game state
-          if (global.activeGames[gameSessionId]) {
-            delete global.activeGames[gameSessionId];
-          }
-          
-          io.to(gameSessionId).emit('game-ended', { 
-            winners: winners,
-            winner: winners.length > 0 ? winners[0] : null, // Keep backward compatibility
-            correctWord: correctWord,
-            reason: 'timeout'
-          });
-          
-          // Re-enable game button for all users when game actually ends
-          io.to(gameSessionId).emit('game-status-change', { gameActive: false });
-        }
-      }, 1000);
-      
-      // Store timer reference
-      if (!global.gameTimers) global.gameTimers = {};
-      global.gameTimers[gameSessionId] = gameTimer;
-      
-      console.log(`[${new Date().toISOString()}] Game started in session ${gameSessionId}: ${starter} drawing "${randomWord}"`);
+    // Handle word selection and actual game start
+    socket.on('select-word', ({ sessionId: gameSessionId, starter, selectedWord }) => {
+      gameManager.startGame(gameSessionId, starter, selectedWord, io);
     });
 
     // Handle game guess
     socket.on('game-guess', ({ sessionId: gameSessionId, guess, username }) => {
-      console.log(`[${new Date().toISOString()}] Game guess by ${username} in session ${gameSessionId}: "${guess}"`);
-      
-      if (!gameSessionId || !guess || !username) {
-        console.warn('Invalid game-guess request: missing required fields');
-        return;
-      }
-
-      const guessData = {
-        username,
-        guess,
-        timestamp: Date.now()
-      };
-
-      // Check if guess is correct
-      let isCorrect = false;
-      if (global.activeGames && global.activeGames[gameSessionId]) {
-        const correctWord = global.activeGames[gameSessionId].word;
-        isCorrect = guess.trim().toLowerCase() === correctWord.toLowerCase();
-        
-        // Store guess in game state
-        global.activeGames[gameSessionId].guesses.push(guessData);
-        
-        // Track correct guesses
-        if (isCorrect) {
-          if (!global.activeGames[gameSessionId].winners) {
-            global.activeGames[gameSessionId].winners = [];
-          }
-          // Only add if not already in winners list
-          if (!global.activeGames[gameSessionId].winners.includes(username)) {
-            global.activeGames[gameSessionId].winners.push(username);
-            console.log(`🎉 [${new Date().toISOString()}] Correct guess by ${username}! Current winners: ${global.activeGames[gameSessionId].winners.join(', ')}`);
-          }
-        }
-      }
-
-      // Broadcast guess to all players with correct flag
-      io.to(gameSessionId).emit('game-guess', {
-        ...guessData,
-        isCorrect: isCorrect
-      });
-
-      console.log(`[${new Date().toISOString()}] Broadcasted guess "${guess}" by ${username} to session ${gameSessionId} (correct: ${isCorrect})`);
+      gameManager.processGuess(gameSessionId, username, guess, io);
     });
 
     // Handle drawing updates
@@ -638,75 +502,12 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
 
     // Handle game end (manual)
     socket.on('end-game', ({ sessionId: gameSessionId }) => {
-      console.log(`[${new Date().toISOString()}] Manual game end request for session ${gameSessionId}`);
-      
-      if (!gameSessionId) {
-        console.warn('Invalid end-game request: missing sessionId');
-        return;
-      }
-
-      // Clear any active game timer
-      if (global.gameTimers && global.gameTimers[gameSessionId]) {
-        clearInterval(global.gameTimers[gameSessionId]);
-        delete global.gameTimers[gameSessionId];
-      }
-
-      // Get winners before cleanup
-      const winners = global.activeGames && global.activeGames[gameSessionId] 
-        ? global.activeGames[gameSessionId].winners || [] 
-        : [];
-      const correctWord = global.activeGames && global.activeGames[gameSessionId]
-        ? global.activeGames[gameSessionId].word || ''
-        : '';
-
-      // Clean up game state
-      if (global.activeGames && global.activeGames[gameSessionId]) {
-        delete global.activeGames[gameSessionId];
-      }
-
-      // End the game
-      io.to(gameSessionId).emit('game-ended', { 
-        winners: winners,
-        winner: winners.length > 0 ? winners[0] : null, // Keep backward compatibility
-        correctWord: correctWord,
-        reason: 'manual'
-      });
-      
-      // Re-enable game button for all users when game actually ends
-      io.to(gameSessionId).emit('game-status-change', { gameActive: false });
-      
-      console.log(`[${new Date().toISOString()}] Game ended manually in session ${gameSessionId}`);
+      gameManager.endGame(gameSessionId, io);
     });
 
     // Handle user closing game modal
     socket.on('close-game-modal', ({ sessionId: gameSessionId, user }) => {
-      console.log(`[${new Date().toISOString()}] User ${user} closed game modal in session ${gameSessionId}`);
-      
-      if (!gameSessionId || !user) {
-        console.warn('Invalid close-game-modal request: missing required fields');
-        return;
-      }
-
-      // Check if there's an active game and if this user is the drawer
-      if (global.activeGames && global.activeGames[gameSessionId]) {
-        const gameState = global.activeGames[gameSessionId];
-        
-        // If the person closing the modal is the drawer (who initiated the game)
-        if (gameState.drawer === user) {
-          console.log(`[${new Date().toISOString()}] Drawer ${user} closed modal, re-enabling game button for all users in session ${gameSessionId}`);
-          
-          // Re-enable game button for all users since the drawer closed their modal
-          io.to(gameSessionId).emit('game-status-change', { gameActive: false });
-          
-          // Clean up the game state since the drawer left
-          delete global.activeGames[gameSessionId];
-        } else {
-          console.log(`[${new Date().toISOString()}] Non-drawer ${user} closed modal, keeping game button disabled for all users in session ${gameSessionId}`);
-          // Don't re-enable the button since a non-drawer closed their modal
-        }
-      } else {
-        console.log(`[${new Date().toISOString()}] No active game found for session ${gameSessionId} when ${user} closed modal`);
-      }
+      gameManager.handleModalClose(gameSessionId, user, io);
     });
 
     // Handle disconnect
@@ -719,20 +520,11 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       
       if (sessionId && clientId) {
         // Check if the disconnecting user was the drawer of an active game
-        if (global.activeGames && global.activeGames[sessionId]) {
-          const gameState = global.activeGames[sessionId];
-          const clientData = sessionManager.getClientFromSession(sessionId, clientId);
-          const disconnectingUser = clientData ? clientData.username : null;
-          
-          if (gameState.drawer === disconnectingUser) {
-            console.log(`[${new Date().toISOString()}] Drawer ${disconnectingUser} disconnected, re-enabling game button for all users in session ${sessionId}`);
-            
-            // Re-enable game button for all users since the drawer left
-            io.to(sessionId).emit('game-status-change', { gameActive: false });
-            
-            // Clean up the game state since the drawer left
-            delete global.activeGames[sessionId];
-          }
+        const clientData = sessionManager.getClientFromSession(sessionId, clientId);
+        const disconnectingUser = clientData ? clientData.username : null;
+        
+        if (disconnectingUser) {
+          gameManager.handleUserLeave(sessionId, disconnectingUser, io);
         }
         
         const shouldCleanupSession = sessionManager.removeClientFromSession(sessionId, clientId);
@@ -769,20 +561,11 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       
       if (sessionId && clientId) {
         // Check if the leaving user was the drawer of an active game
-        if (global.activeGames && global.activeGames[sessionId]) {
-          const gameState = global.activeGames[sessionId];
-          const clientData = sessionManager.getClientFromSession(sessionId, clientId);
-          const leavingUser = clientData ? clientData.username : null;
-          
-          if (gameState.drawer === leavingUser) {
-            console.log(`[${new Date().toISOString()}] Drawer ${leavingUser} left session, re-enabling game button for all users in session ${sessionId}`);
-            
-            // Re-enable game button for all users since the drawer left
-            io.to(sessionId).emit('game-status-change', { gameActive: false });
-            
-            // Clean up the game state since the drawer left
-            delete global.activeGames[sessionId];
-          }
+        const clientData = sessionManager.getClientFromSession(sessionId, clientId);
+        const leavingUser = clientData ? clientData.username : null;
+        
+        if (leavingUser) {
+          gameManager.handleUserLeave(sessionId, leavingUser, io);
         }
         
         const shouldCleanupSession = sessionManager.removeClientFromSession(sessionId, clientId);

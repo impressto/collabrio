@@ -3185,6 +3185,151 @@ body > #root > .collabrio-app {
   }
 }
 
+/* Word Selection Styles */
+.collabrio-app .word-selection-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.collabrio-app .word-selection-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+.collabrio-app .word-selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.collabrio-app .word-selection-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.collabrio-app .close-selection-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.collabrio-app .close-selection-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.collabrio-app .word-selection-content {
+  padding: 24px;
+}
+
+.collabrio-app .selection-instruction {
+  margin: 0 0 20px 0;
+  color: #555;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.collabrio-app .word-choices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.collabrio-app .word-choice-btn {
+  background: #f0f7ff;
+  border: 2px solid #d1e7ff;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a365d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.collabrio-app .word-choice-btn:hover {
+  background: #e6f3ff;
+  border-color: #90cdf4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.collabrio-app .word-choice-btn:active {
+  transform: translateY(0);
+}
+
+.collabrio-app .selection-footer {
+  text-align: center;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 20px;
+  margin-top: 0;
+}
+
+.collabrio-app .cancel-selection-btn {
+  background: #f5f5f5;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collabrio-app .cancel-selection-btn:hover {
+  background: #e8e8e8;
+  border-color: #b0b0b0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Drawing Game Styles */
 .collabrio-app .drawing-game-overlay {
   position: fixed;
@@ -3411,6 +3556,60 @@ body > #root > .collabrio-app {
   font-weight: 600;
 }
 
+/* Dark theme word selection styles */
+.collabrio-app.dark-theme .word-selection-modal {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .word-selection-header {
+  background: #1a202c;
+  border-bottom-color: #4a5568;
+}
+
+.collabrio-app.dark-theme .word-selection-header h3 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .close-selection-btn {
+  color: #a0aec0;
+}
+
+.collabrio-app.dark-theme .close-selection-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .selection-instruction {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .word-choice-btn {
+  background: #4a5568;
+  border-color: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .word-choice-btn:hover {
+  background: #2d3748;
+  border-color: #4299e1;
+}
+
+.collabrio-app.dark-theme .selection-footer {
+  border-top-color: #4a5568;
+}
+
+.collabrio-app.dark-theme .cancel-selection-btn {
+  background: #4a5568;
+  border-color: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .cancel-selection-btn:hover {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
 /* Dark theme drawing game styles */
 .collabrio-app.dark-theme .drawing-game-modal {
   background: #2d3748;
@@ -3524,8 +3723,29 @@ body > #root > .collabrio-app {
   color: #68d391;
 }
 
-/* Responsive design for drawing game */
+/* Responsive design for word selection and drawing game */
 @media (max-width: 768px) {
+  .collabrio-app .word-selection-modal {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .collabrio-app .word-selection-content {
+    padding: 16px;
+  }
+  
+  .collabrio-app .word-choices-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  
+  .collabrio-app .word-choice-btn {
+    padding: 12px 8px;
+    font-size: 13px;
+    min-height: 45px;
+  }
+
+  /* Drawing game mobile styles */
   .collabrio-app .drawing-game-modal {
     max-width: 95vw;
     max-height: 95vh;

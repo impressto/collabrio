@@ -13,6 +13,7 @@ import ShareModal from './components/ShareModal'
 import Toast from './components/Toast'
 import FileNotification from './components/FileNotification'
 import UploadProgress from './components/UploadProgress'
+import WordSelection from './components/WordSelection'
 import Footer from './components/Footer'
 import IdentityModal from './components/IdentityModal'
 import SchoolAuthModal from './components/SchoolAuthModal'
@@ -99,6 +100,8 @@ function App() {
   // Drawing game state
   const [gameActive, setGameActive] = useState(false) // Controls button disable/enable
   const [showGameModal, setShowGameModal] = useState(false) // Controls modal visibility
+  const [showWordSelection, setShowWordSelection] = useState(false) // Controls word selection modal
+  const [wordChoices, setWordChoices] = useState([]) // Available word choices
   const [gameState, setGameState] = useState({
     drawer: null,
     word: '',
@@ -726,9 +729,16 @@ function App() {
     })
 
     // Game-related socket events
+    socket.on('word-selection', (data) => {
+      console.log('Received word choices:', data.wordChoices)
+      setWordChoices(data.wordChoices)
+      setShowWordSelection(true)
+    })
+
     socket.on('game-started', (data) => {
       setGameActive(true)
       setShowGameModal(true)
+      setShowWordSelection(false) // Hide word selection modal
       setGameState({
         drawer: data.drawer,
         word: data.word,
@@ -1165,12 +1175,29 @@ function App() {
 
   const startGame = () => {
     if (socketRef.current && isConnected && sessionId) {
-      // Emit start-game event to server
+      // Request word choices from server
       socketRef.current.emit('start-game', {
         sessionId,
         starter: userIdentity.username || generateFunnyUsername()
       })
     }
+  }
+
+  const selectWord = (selectedWord) => {
+    if (socketRef.current && isConnected && sessionId) {
+      // Send selected word to start the game
+      socketRef.current.emit('select-word', {
+        sessionId,
+        starter: userIdentity.username || generateFunnyUsername(),
+        selectedWord
+      })
+      setShowWordSelection(false)
+    }
+  }
+
+  const cancelWordSelection = () => {
+    setShowWordSelection(false)
+    setWordChoices([])
   }
 
   const cancelUpload = () => {
@@ -1353,6 +1380,16 @@ function App() {
             // gameActive is controlled by server game-status-change events
             // No server communication needed - modal close only affects individual user
           }}
+        />
+      )}
+
+      {/* Word Selection Modal */}
+      {showWordSelection && (
+        <WordSelection
+          wordChoices={wordChoices}
+          currentUser={userIdentity.username || generateFunnyUsername()}
+          onSelectWord={selectWord}
+          onCancel={cancelWordSelection}
         />
       )}
 

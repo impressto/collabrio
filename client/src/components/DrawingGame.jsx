@@ -18,13 +18,21 @@ function DrawingGame({
   
   const isDrawer = gameState?.drawer === currentUser
   const isOriginalDrawer = gameState?.originalDrawer === currentUser
-  const hasGameEnded = gameState?.winner !== null || gameState?.timeLeft <= 0
   const canAssignNext = gameState?.canAssignNext && isOriginalDrawer
   const correctGuess = gameState?.isCorrectGuess
 
   // Drawing data to sync with other clients
   const [drawingPaths, setDrawingPaths] = useState([])
   const [currentPath, setCurrentPath] = useState([])
+  
+  // Client-side timer fallback
+  const [clientTimer, setClientTimer] = useState(gameState?.timeLeft || 60)
+  const timerRef = useRef(null)
+  const lastServerUpdateRef = useRef(Date.now())
+
+  // Use client timer or server timer (whichever is available)
+  const displayTimer = gameState?.timeLeft !== undefined ? gameState.timeLeft : clientTimer
+  const hasGameEnded = gameState?.winner !== null || displayTimer <= 0
 
   // Set up canvas drawing
   useEffect(() => {
@@ -114,6 +122,36 @@ function DrawingGame({
       setGuessesRemaining(3)
     }
   }, [gameState?.drawer, gameState?.word])
+
+  // Client-side timer effect
+  useEffect(() => {
+    if (gameState?.status === 'drawing') {
+      // Start client-side timer
+      timerRef.current = setInterval(() => {
+        setClientTimer(prev => Math.max(0, prev - 1))
+      }, 1000)
+    } else {
+      // Clear timer when not in drawing phase
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    }
+  }, [gameState?.status])
+
+  // Sync client timer with server updates
+  useEffect(() => {
+    if (gameState?.timeLeft !== undefined) {
+      setClientTimer(gameState.timeLeft)
+      lastServerUpdateRef.current = Date.now()
+    }
+  }, [gameState?.timeLeft])
 
   // Redraw canvas function
   const redrawCanvas = (ctx, paths) => {
@@ -461,7 +499,7 @@ function DrawingGame({
                   ) : (
                     <span>Guess what {gameState.drawer} is drawing!</span>
                   )} • {' '}
-                  <span className="time-remaining">Time: {formatTime(gameState.timeLeft || 0)}</span>
+                  <span className="time-remaining">Time: {formatTime(displayTimer || 0)}</span>
                 </p>
               </div>
             </>

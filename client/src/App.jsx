@@ -452,18 +452,24 @@ function App() {
       setIsConnected(true)
       setCurrentUserId(socket.id)
       
-      // Include user identity and school auth when joining session
-      const identity = userIdentity.username ? userIdentity : getStoredIdentity()
-      const schoolAuth = localStorage.getItem('collabrio-school-auth')
-      socket.emit('join-session', { 
-        sessionId, 
-        clientId: socket.id,
-        schoolAuth: schoolAuth,
-        userIdentity: {
-          username: identity?.username || generateFunnyUsername(),
-          avatar: identity?.avatar || AVATAR_OPTIONS[0]
-        }
-      })
+      // Store socket reference immediately so game manager can register listeners
+      socketRef.current = socket
+      
+      // Give a longer delay to ensure game manager listeners are fully registered
+      setTimeout(() => {
+        // Include user identity and school auth when joining session
+        const identity = userIdentity.username ? userIdentity : getStoredIdentity()
+        const schoolAuth = localStorage.getItem('collabrio-school-auth')
+        socket.emit('join-session', { 
+          sessionId, 
+          clientId: socket.id,
+          schoolAuth: schoolAuth,
+          userIdentity: {
+            username: identity?.username || generateFunnyUsername(),
+            avatar: identity?.avatar || AVATAR_OPTIONS[0]
+          }
+        })
+      }, 300) // Longer delay to ensure game manager listeners are registered
     })
 
     socket.on('disconnect', () => {
@@ -734,8 +740,6 @@ function App() {
       // This will be handled by the DrawingGame component through socket prop
       // No need to store drawing data in App state
     })
-
-    socketRef.current = socket
   }
 
   const handleDocumentChange = (e) => {

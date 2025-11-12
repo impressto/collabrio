@@ -114,6 +114,7 @@ export class ClientGameManager {
 
   updateDrawingGameState(updates) {
     const newState = { ...this.gameState.drawingGameState, ...updates }
+    console.log('🎮 [GAME MANAGER] Updating drawing game state:', updates)
     this.gameState.drawingGameState = newState
     this.emit('drawingGameStateChanged', newState)
   }
@@ -159,7 +160,7 @@ export class ClientGameManager {
       this.updateDrawingGameState({
         drawer: userIdentity.username,
         word: selectedWord,
-        timeLeft: 90,
+        timeLeft: 60,
         guesses: [],
         isCorrectGuess: false,
         winner: null
@@ -236,7 +237,7 @@ export class ClientGameManager {
       this.updateDrawingGameState({
         drawer: data.drawer,
         word: data.word,
-        timeLeft: data.timeLeft || 90,
+        timeLeft: data.timeLeft || 60,
         guesses: [],
         isCorrectGuess: false,
         winner: null
@@ -269,6 +270,7 @@ export class ClientGameManager {
   }
 
   handleGameTimerUpdate(data) {
+    console.log('🕒 [GAME MANAGER] Timer update:', data.timeLeft)
     this.updateDrawingGameState({
       timeLeft: data.timeLeft
     })
@@ -276,8 +278,9 @@ export class ClientGameManager {
 
   handleCurrentGameState(data) {
     // Handle receiving current game state when joining a session with active game
-    console.log('Received current game state:', data)
+    console.log('🎮 [GAME MANAGER] Received current game state:', data)
     this.setGameActive(true)
+    this.setCurrentGameType('drawing') // Ensure game type is set
     this.setShowGameModal(true)
     this.updateDrawingGameState({
       drawer: data.drawer,
@@ -311,6 +314,8 @@ export class ClientGameManager {
   // Register all socket event listeners
   registerSocketListeners(socket) {
     if (!socket?.current) return
+    
+    console.log('🎮 [GAME MANAGER] Registering socket listeners')
 
     // Drawing game events
     socket.current.on('word-selection', this.handleWordSelection.bind(this))

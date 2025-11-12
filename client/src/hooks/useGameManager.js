@@ -58,14 +58,14 @@ export function useGameManager(socketRef, sessionId, userIdentity, showToast) {
     }
   }, [socketRef, syncState, showToast])
 
-  // Re-register socket listeners when socket becomes available
+  // Re-register socket listeners when socket becomes available or connects
   useEffect(() => {
-    if (isInitialized.current && socketRef?.current?.connected) {
+    if (isInitialized.current && socketRef?.current) {
       console.log('🎮 Registering game manager socket listeners')
       gameManager.unregisterSocketListeners(socketRef)
       gameManager.registerSocketListeners(socketRef)
     }
-  }, [socketRef?.current?.connected])
+  }, [socketRef?.current, socketRef?.current?.connected])
 
   // Game action handlers
   const startGame = useCallback((gameType = 'drawing') => {

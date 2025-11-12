@@ -479,6 +479,199 @@ class GameManager {
     return true;
   }
 
+  // Start Frogger game
+  startFroggerGame(sessionId, starter, io) {
+    try {
+      console.log(`🐸 [FROGGER] Starting game in session ${sessionId} by ${starter}`);
+      
+      // Check if there's already an active game
+      if (this.activeGames[sessionId]) {
+        console.warn(`🐸 [FROGGER] Game already active in session ${sessionId}`);
+        return false;
+      }
+
+      // Create Frogger game state
+      const gameState = {
+        type: 'frogger',
+        starter,
+        startTime: Date.now(),
+        timeLeft: 120, // 2 minutes
+        players: {},
+        gameEnded: false,
+        leaderboard: []
+      };
+
+      this.activeGames[sessionId] = gameState;
+
+      // Emit to all clients in the session
+      io.to(sessionId).emit('frogger-game-started', {
+        starter,
+        gameType: 'frogger'
+      });
+
+      // Set up timer for Frogger game (2 minutes)
+      this.gameTimers[sessionId] = setInterval(() => {
+        if (this.activeGames[sessionId] && this.activeGames[sessionId].type === 'frogger') {
+          this.activeGames[sessionId].timeLeft -= 1;
+          
+          // Emit time update
+          io.to(sessionId).emit('frogger-timer-update', {
+            timeLeft: this.activeGames[sessionId].timeLeft
+          });
+
+          // End game when time runs out
+          if (this.activeGames[sessionId].timeLeft <= 0) {
+            this.endFroggerGame(sessionId, io);
+          }
+        }
+      }, 1000);
+
+      return true;
+    } catch (error) {
+      console.error('🐸 [FROGGER] Error starting game:', error);
+      return false;
+    }
+  }
+
+  // Handle Frogger player movement
+  handleFroggerMove(sessionId, playerName, position, score, lives, io) {
+    try {
+      const game = this.activeGames[sessionId];
+      if (!game || game.type !== 'frogger' || game.gameEnded) {
+        return false;
+      }
+
+      // Update player state
+      game.players[playerName] = {
+        position,
+        score,
+        lives,
+        lastUpdate: Date.now()
+      };
+
+      // Broadcast movement to other players
+      io.to(sessionId).emit('frogger-player-move', {
+        player: playerName,
+        position,
+        score,
+        lives
+      });
+
+      return true;
+    } catch (error) {
+      console.error('🐸 [FROGGER] Error handling player move:', error);
+      return false;
+    }
+  }
+
+  // Handle Frogger player death
+  handleFroggerPlayerDied(sessionId, playerName, finalScore, io) {
+    try {
+      const game = this.activeGames[sessionId];
+      if (!game || game.type !== 'frogger' || game.gameEnded) {
+        return false;
+      }
+
+      // Update player with final score
+      if (game.players[playerName]) {
+        game.players[playerName].finalScore = finalScore;
+        game.players[playerName].isDead = true;
+      }
+
+      // Check if all players are dead
+      const alivePlayers = Object.values(game.players).filter(player => !player.isDead);
+      if (alivePlayers.length === 0) {
+        this.endFroggerGame(sessionId, io);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('🐸 [FROGGER] Error handling player death:', error);
+      return false;
+    }
+  }
+
+  // End Frogger game
+  endFroggerGame(sessionId, io) {
+    try {
+      const game = this.activeGames[sessionId];
+      if (!game || game.type !== 'frogger') {
+        return false;
+      }
+
+      console.log(`🐸 [FROGGER] Ending game in session ${sessionId}`);
+
+      // Calculate final leaderboard
+      const leaderboard = Object.entries(game.players)
+        .map(([username, data]) => ({
+          username,
+          score: data.finalScore || data.score || 0,
+          lives: data.lives || 0
+        }))
+        .sort((a, b) => b.score - a.score);
+
+      // Determine winners (top scorers)
+      const topScore = leaderboard[0]?.score || 0;
+      const winners = leaderboard.filter(player => player.score === topScore).map(p => p.username);
+
+      // Mark game as ended
+      game.gameEnded = true;
+      game.leaderboard = leaderboard;
+      game.winners = winners;
+
+      // Clear the timer
+      if (this.gameTimers[sessionId]) {
+        clearInterval(this.gameTimers[sessionId]);
+        delete this.gameTimers[sessionId];
+      }
+
+      // Emit game end event
+      io.to(sessionId).emit('frogger-game-end', {
+        leaderboard,
+        winners,
+        finalScores: game.players
+      });
+
+      io.to(sessionId).emit('game-status-change', {
+        gameActive: false
+      });
+
+      // Clean up the game after a delay
+      setTimeout(() => {
+        if (this.activeGames[sessionId] && this.activeGames[sessionId].type === 'frogger') {
+          delete this.activeGames[sessionId];
+        }
+      }, 30000); // 30 seconds
+
+      return true;
+    } catch (error) {
+      console.error('🐸 [FROGGER] Error ending game:', error);
+      return false;
+    }
+  }
+
+  // Check if Frogger game is active
+  isFroggerGameActive(sessionId) {
+    const game = this.activeGames[sessionId];
+    return game && game.type === 'frogger' && !game.gameEnded;
+  }
+
+  // Get Frogger game state
+  getFroggerGameState(sessionId) {
+    const game = this.activeGames[sessionId];
+    if (game && game.type === 'frogger') {
+      return {
+        type: 'frogger',
+        starter: game.starter,
+        timeLeft: game.timeLeft,
+        players: game.players,
+        gameEnded: game.gameEnded,
+        leaderboard: game.leaderboard || []
+      };
+    }
+    return null;
+  }
+
   // Clean up all timers (useful for server shutdown)
   cleanup() {
     console.log(`[${new Date().toISOString()}] Cleaning up all game timers and assignment timers`);

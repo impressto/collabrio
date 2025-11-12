@@ -365,6 +365,56 @@ body > #root > .collabrio-app {
   color: #495057;
 }
 
+/* Games dropdown styles */
+.collabrio-app .games-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.collabrio-app .games-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 2px;
+  min-width: 280px;
+}
+
+.collabrio-app .games-option {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  color: #495057;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.collabrio-app .games-option:hover {
+  background: #f8f9fa;
+  color: #212529;
+}
+
+.collabrio-app .games-option:last-child {
+  border-bottom: none;
+}
+
+.collabrio-app .game-description {
+  display: block;
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
 .collabrio-app .leave-session-button {
   background: #911f1f;
   color: white;
@@ -1165,6 +1215,27 @@ body > #root > .collabrio-app {
 .collabrio-app.dark-theme .icebreaker-dropdown-item:disabled:hover {
   background: #2d3748 !important;
   color: #e2e8f0 !important;
+}
+
+/* Dark theme games dropdown styles */
+.collabrio-app.dark-theme .games-dropdown {
+  background: #2d3748 !important;
+  border: 1px solid #4a5568 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.collabrio-app.dark-theme .games-option {
+  color: #e2e8f0 !important;
+  border-bottom: 1px solid #4a5568 !important;
+}
+
+.collabrio-app.dark-theme .games-option:hover {
+  background: #4a5568 !important;
+  color: #f7fafc !important;
+}
+
+.collabrio-app.dark-theme .game-description {
+  color: #a0aec0 !important;
 }
 
 .collabrio-app.dark-theme .audio-selector {
@@ -3797,5 +3868,277 @@ body > #root > .collabrio-app {
   
   .collabrio-app .guess-submit-btn {
     width: 100%;
+  }
+}
+
+/* Frogger Game Styles */
+.collabrio-app .frogger-game-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.collabrio-app .game-lobby {
+  padding: 2rem;
+  text-align: center;
+}
+
+.collabrio-app .game-instructions {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.collabrio-app .game-instructions h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.collabrio-app .game-instructions ul {
+  margin: 0 0 1.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.collabrio-app .game-instructions li {
+  margin-bottom: 0.5rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.collabrio-app .player-list {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.collabrio-app .player-list h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.collabrio-app .player-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.collabrio-app .player-item:last-child {
+  border-bottom: none;
+}
+
+.collabrio-app .player-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid #333;
+  flex-shrink: 0;
+}
+
+.collabrio-app .start-game-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.collabrio-app .start-game-btn:hover {
+  background: linear-gradient(135deg, #218838, #1ea085);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.collabrio-app .game-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+.collabrio-app .game-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.collabrio-app .stat {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.collabrio-app .frogger-canvas {
+  border: 3px solid #333;
+  border-radius: 8px;
+  background: #87CEEB;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  cursor: crosshair;
+}
+
+.collabrio-app .controls-help {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #e3f2fd;
+  border-radius: 6px;
+  text-align: center;
+  color: #1565c0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.collabrio-app .game-results {
+  padding: 2rem;
+  text-align: center;
+}
+
+.collabrio-app .leaderboard {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.collabrio-app .leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.collabrio-app .leaderboard-entry.winner {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border: 2px solid #ffc107;
+}
+
+.collabrio-app .leaderboard-entry .rank {
+  font-weight: bold;
+  color: #666;
+  min-width: 30px;
+}
+
+.collabrio-app .leaderboard-entry.winner .rank {
+  color: #856404;
+}
+
+.collabrio-app .leaderboard-entry .player-name {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+}
+
+.collabrio-app .leaderboard-entry .player-score {
+  font-weight: bold;
+  color: #28a745;
+}
+
+.collabrio-app .winners {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border: 2px solid #28a745;
+  border-radius: 8px;
+}
+
+.collabrio-app .winners h4 {
+  margin: 0;
+  color: #155724;
+  font-size: 1.1rem;
+}
+
+/* Dark theme support for Frogger */
+.collabrio-app.dark-theme .frogger-game-modal {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .game-instructions h4,
+.collabrio-app.dark-theme .player-list h4 {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .game-instructions li {
+  color: #cbd5e0;
+}
+
+.collabrio-app.dark-theme .player-list {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .player-item {
+  border-bottom-color: #4a5568;
+}
+
+.collabrio-app.dark-theme .game-stats {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .stat {
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .controls-help {
+  background: #2c5282;
+  color: #bee3f8;
+}
+
+.collabrio-app.dark-theme .leaderboard {
+  background: #4a5568;
+}
+
+.collabrio-app.dark-theme .leaderboard-entry {
+  background: #2d3748;
+  color: #e2e8f0;
+}
+
+.collabrio-app.dark-theme .leaderboard-entry .player-name {
+  color: #e2e8f0;
+}
+
+/* Responsive design for Frogger */
+@media (max-width: 768px) {
+  .collabrio-app .frogger-game-modal {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .collabrio-app .frogger-canvas {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .collabrio-app .game-stats {
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+  
+  .collabrio-app .controls-help {
+    font-size: 0.8rem;
   }
 }

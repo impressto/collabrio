@@ -25,13 +25,18 @@ function Toolbar({
 }) {
   const [showAudioPopup, setShowAudioPopup] = useState(false)
   const [showIcebreakerDropdown, setShowIcebreakerDropdown] = useState(false)
+  const [showGamesDropdown, setShowGamesDropdown] = useState(false)
   const icebreakerDropdownRef = useRef(null)
+  const gamesDropdownRef = useRef(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (icebreakerDropdownRef.current && !icebreakerDropdownRef.current.contains(event.target)) {
         setShowIcebreakerDropdown(false)
+      }
+      if (gamesDropdownRef.current && !gamesDropdownRef.current.contains(event.target)) {
+        setShowGamesDropdown(false)
       }
     }
 
@@ -41,10 +46,11 @@ function Toolbar({
     }
   }, [])
 
-  // Close icebreaker dropdown and audio popup when switching to draft mode
+  // Close icebreaker dropdown, games dropdown and audio popup when switching to draft mode
   useEffect(() => {
     if (editorMode === 'draft') {
       setShowIcebreakerDropdown(false)
+      setShowGamesDropdown(false)
       setShowAudioPopup(false)
     }
   }, [editorMode])
@@ -143,22 +149,49 @@ function Toolbar({
         )}
       </div>
       
-      {/* Guess the Sketch Button */}
-      <button 
-        id="games-btn"
-        onClick={onStartGame}
-        className={`share-button ${editorMode === 'draft' || gameActive ? 'disabled' : ''}`}
-        disabled={editorMode === 'draft' || gameActive}
-        title={
-          editorMode === 'draft' 
-            ? "Switch to Live mode to play Guess the Sketch" 
-            : gameActive
-              ? "A game is already in progress"
-              : "Start a drawing and guessing game for all participants"
-        }
-      >
-        🎮 Guess the Sketch
-      </button>
+      {/* Games Dropdown */}
+      <div className="games-dropdown-container" ref={gamesDropdownRef}>
+        <button 
+          id="games-dropdown-btn"
+          onClick={() => setShowGamesDropdown(!showGamesDropdown)}
+          className={`share-button ${editorMode === 'draft' || gameActive ? 'disabled' : ''}`}
+          disabled={editorMode === 'draft' || gameActive}
+          title={
+            editorMode === 'draft' 
+              ? "Switch to Live mode to play games" 
+              : gameActive
+                ? "A game is already in progress"
+                : "Choose a multiplayer game for all participants"
+          }
+        >
+          🎮 Games ▼
+        </button>
+        
+        {showGamesDropdown && !gameActive && editorMode === 'live' && (
+          <div className="games-dropdown">
+            <button 
+              className="games-option"
+              onClick={() => {
+                onStartGame('drawing')
+                setShowGamesDropdown(false)
+              }}
+            >
+              🎨 Guess the Sketch
+              <span className="game-description">Draw and guess words</span>
+            </button>
+            <button 
+              className="games-option"
+              onClick={() => {
+                onStartGame('frogger')
+                setShowGamesDropdown(false)
+              }}
+            >
+              🐸 Frogger
+              <span className="game-description">Cross roads and rivers</span>
+            </button>
+          </div>
+        )}
+      </div>
       
       <button 
         id="audio-selector-btn"

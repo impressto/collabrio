@@ -520,6 +520,27 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       gameManager.skipAssignment(gameSessionId, user, io);
     });
 
+    // Frogger game handlers
+    socket.on('start-frogger-game', ({ sessionId: gameSessionId, starter }) => {
+      console.log(`🐸 [SERVER] Starting Frogger game in session ${gameSessionId} by ${starter}`);
+      gameManager.startFroggerGame(gameSessionId, starter, io);
+    });
+
+    socket.on('frogger-move', ({ sessionId: gameSessionId, player, position, score, lives }) => {
+      gameManager.handleFroggerMove(gameSessionId, player, position, score, lives, io);
+    });
+
+    socket.on('frogger-player-died', ({ sessionId: gameSessionId, player, finalScore }) => {
+      console.log(`🐸 [SERVER] Player ${player} died in session ${gameSessionId} with score ${finalScore}`);
+      gameManager.handleFroggerPlayerDied(gameSessionId, player, finalScore, io);
+    });
+
+    socket.on('close-frogger-modal', ({ sessionId: gameSessionId, user }) => {
+      console.log(`🐸 [SERVER] User ${user} closed Frogger modal in session ${gameSessionId}`);
+      // No server-side action needed for individual modal close in Frogger
+      // Game continues for other players
+    });
+
     // Handle disconnect
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`);

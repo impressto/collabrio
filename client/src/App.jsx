@@ -19,7 +19,7 @@ import IdentityModal from './components/IdentityModal'
 import SchoolAuthModal from './components/SchoolAuthModal'
 import FloatingIcon from './components/FloatingIcon'
 import ImageThumbnail from './components/ImageThumbnail'
-import DrawingGame from './components/DrawingGame'
+import GameContainer from './components/GameContainer'
 
 // Utilities
 import { 
@@ -31,6 +31,7 @@ import {
 import { getRandomTopic, createIcebreakerPrompt } from './utils/icebreakerUtils'
 import { isValidSchoolNumber, getAllSchools, getSchoolName } from './utils/schoolUtils'
 import { sharedAudioManager } from './utils/sharedAudioManager.js'
+import { useGameManager } from './hooks/useGameManager.js'
 
 // Avatar options (same as in IdentityModal)
 const AVATAR_OPTIONS = [
@@ -96,22 +97,6 @@ function App() {
   // Button cooldown state
   const [randomCooldown, setRandomCooldown] = useState(0)
   const [randomCooldownTimer, setRandomCooldownTimer] = useState(null)
-  
-  // Drawing game state
-  const [gameActive, setGameActive] = useState(false) // Controls button disable/enable
-  const [showGameModal, setShowGameModal] = useState(false) // Controls modal visibility
-  const [showWordSelection, setShowWordSelection] = useState(false) // Controls word selection modal
-  const [wordChoices, setWordChoices] = useState([]) // Available word choices
-  const [gameState, setGameState] = useState({
-    drawer: null,
-    word: '',
-    timeLeft: 60,
-    guesses: [],
-    isCorrectGuess: false,
-    winner: null,
-    winners: [],
-    correctWord: ''
-  })
   
   // Use refs for icebreaker data to persist across async operations
   const icebreakerCursorPositionRef = useRef(null)
@@ -195,6 +180,21 @@ function App() {
       setToast({ show: false, message: '', type: 'success' })
     }, 3000)
   }
+
+  // Game management
+  const {
+    gameActive,
+    showGameModal,
+    currentGameType,
+    showWordSelection,
+    wordChoices,
+    drawingGameState,
+    startGame,
+    selectWord,
+    cancelWordSelection,
+    closeGameModal,
+    resetGame
+  } = useGameManager(socketRef, sessionId, userIdentity, showToast)
 
   // Insert text at cursor position in the active editor
   const insertTextAtCursor = (textToInsert) => {
@@ -728,92 +728,7 @@ function App() {
       }
     })
 
-    // Game-related socket events
-    socket.on('word-selection', (data) => {
-      console.log('Received word choices:', data.wordChoices)
-      setWordChoices(data.wordChoices)
-      setShowWordSelection(true)
-    })
-
-    socket.on('game-started', (data) => {
-      setGameActive(true)
-      setShowGameModal(true)
-      setShowWordSelection(false) // Hide word selection modal
-      setGameState({
-        drawer: data.drawer,
-        word: data.word,
-        timeLeft: data.timeLeft || 90,
-        guesses: [],
-        isCorrectGuess: false,
-        winner: null
-      })
-      // No toast notification for game start - modal provides all information
-    })
-
-    socket.on('game-ended', (data) => {
-      setGameState(prev => ({
-        ...prev,
-        winner: data.winner, // Keep for backward compatibility
-        winners: data.winners || [],
-        correctWord: data.correctWord || prev.word,
-        isCorrectGuess: !!(data.winners && data.winners.length > 0),
-        canAssignNext: data.canAssignNext || false,
-        originalDrawer: data.originalDrawer
-      }))
-      
-      // No toast notifications for game end - all information shown in modal
-      // Keep the modal open so users can see who won
-      // Modal visibility is controlled separately from gameActive
-      // Users must manually close it by clicking the X button
-    })
-
-    socket.on('game-master-assigned', (data) => {
-      showToast(`🎮 ${data.newGameMaster} is now the game master! (assigned by ${data.assignedBy})`, 'info')
-    })
-
-    socket.on('assignment-skipped', (data) => {
-      showToast(`Game ended by ${data.skippedBy}`, 'info')
-    })
-
-    socket.on('assignment-expired', () => {
-      showToast('Assignment time expired - game ended', 'info')
-    })
-
-    socket.on('game-guess', (data) => {
-      setGameState(prev => ({
-        ...prev,
-        guesses: [...prev.guesses, data]
-      }))
-    })
-
-    socket.on('game-timer-update', (data) => {
-      setGameState(prev => ({
-        ...prev,
-        timeLeft: data.timeLeft
-      }))
-    })
-
-    socket.on('current-game-state', (data) => {
-      // Handle receiving current game state when joining a session with active game
-      console.log('Received current game state:', data)
-      setGameActive(true)
-      setShowGameModal(true)
-      setGameState({
-        drawer: data.drawer,
-        word: data.word,
-        timeLeft: data.timeLeft,
-        guesses: data.guesses || [],
-        isCorrectGuess: false,
-        winner: null
-      })
-      // No toast notification for joining game - modal shows all necessary information
-    })
-
-    socket.on('game-status-change', (data) => {
-      // Handle game status changes to enable/disable game button for all users
-      console.log('Game status change:', data)
-      setGameActive(data.gameActive)
-    })
+    // Game-related socket events are now handled by useGameManager hook
 
     socket.on('drawing-update', (data) => {
       // This will be handled by the DrawingGame component through socket prop
@@ -943,6 +858,7 @@ function App() {
     setConnectedUsers([]) // Clear user list when leaving
     setFloatingIcons([]) // Clear any floating icons
     setRecentAudioTriggers(new Map()) // Clear audio trigger debouncing
+    resetGame() // Reset all game state
     window.location.hash = ''
     if (socketRef.current) {
       socketRef.current.disconnect()
@@ -1187,32 +1103,7 @@ function App() {
     }
   }
 
-  const startGame = () => {
-    if (socketRef.current && isConnected && sessionId) {
-      // Request word choices from server
-      socketRef.current.emit('start-game', {
-        sessionId,
-        starter: userIdentity.username || generateFunnyUsername()
-      })
-    }
-  }
 
-  const selectWord = (selectedWord) => {
-    if (socketRef.current && isConnected && sessionId) {
-      // Send selected word to start the game
-      socketRef.current.emit('select-word', {
-        sessionId,
-        starter: userIdentity.username || generateFunnyUsername(),
-        selectedWord
-      })
-      setShowWordSelection(false)
-    }
-  }
-
-  const cancelWordSelection = () => {
-    setShowWordSelection(false)
-    setWordChoices([])
-  }
 
   const cancelUpload = () => {
     setIsUploading(false)
@@ -1362,51 +1253,21 @@ function App() {
         <Footer connectionType={connectionType} sessionId={sessionId} />
       </div>
 
-      {/* Guess the Sketch Game */}
-      {showGameModal && (
-        <DrawingGame
-          gameState={gameState}
-          socket={socketRef.current}
-          sessionId={sessionId}
-          currentUser={userIdentity.username || generateFunnyUsername()}
-          sessionUsers={connectedUsers}
-          onClose={() => {
-            setShowGameModal(false)
-            
-            // Notify server that this user closed their game modal
-            if (socketRef.current && sessionId) {
-              socketRef.current.emit('close-game-modal', {
-                sessionId: sessionId,
-                user: userIdentity.username || generateFunnyUsername()
-              })
-            }
-            
-            // Reset game state when closing modal (only affects this user)
-            setGameState({
-              drawer: null,
-              word: '',
-              timeLeft: 60,
-              guesses: [],
-              isCorrectGuess: false,
-              winner: null,
-              winners: [],
-              correctWord: ''
-            })
-            // gameActive is controlled by server game-status-change events
-            // No server communication needed - modal close only affects individual user
-          }}
-        />
-      )}
-
-      {/* Word Selection Modal */}
-      {showWordSelection && (
-        <WordSelection
-          wordChoices={wordChoices}
-          currentUser={userIdentity.username || generateFunnyUsername()}
-          onSelectWord={selectWord}
-          onCancel={cancelWordSelection}
-        />
-      )}
+      {/* Game Container - Handles all game modals */}
+      <GameContainer
+        showGameModal={showGameModal}
+        currentGameType={currentGameType}
+        showWordSelection={showWordSelection}
+        wordChoices={wordChoices}
+        drawingGameState={drawingGameState}
+        socket={socketRef.current}
+        sessionId={sessionId}
+        currentUser={userIdentity.username || generateFunnyUsername()}
+        sessionUsers={connectedUsers}
+        onCloseGame={closeGameModal}
+        onSelectWord={selectWord}
+        onCancelWordSelection={cancelWordSelection}
+      />
 
       {/* Floating Audio Icons */}
       {floatingIcons.map((icon) => (

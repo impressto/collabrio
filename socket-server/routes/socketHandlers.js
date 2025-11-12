@@ -441,14 +441,10 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       console.log(`[${new Date().toISOString()}] Broadcasted audio "${audioKey}" to other clients in session ${audioSessionId}`);
     });
 
-    // Drawing game words list
-    const DRAWING_WORDS = [
-      'cat', 'dog', 'house', 'tree', 'car', 'flower', 'bird', 'fish', 'sun', 'moon',
-      'star', 'cloud', 'mountain', 'river', 'book', 'phone', 'computer', 'pizza', 'cake', 'apple',
-      'banana', 'guitar', 'piano', 'bicycle', 'airplane', 'boat', 'train', 'butterfly', 'elephant', 'lion',
-      'penguin', 'rainbow', 'snowman', 'castle', 'bridge', 'clock', 'heart', 'diamond', 'arrow', 'crown',
-      'key', 'door', 'window', 'chair', 'table', 'lamp', 'mirror', 'camera', 'balloon', 'umbrella'
-    ];
+    // Drawing game words list from environment variable
+    const DRAWING_WORDS = (process.env.DRAWING_WORDS || 
+      'cat,dog,house,tree,car,flower,bird,fish,sun,moon,star,cloud,mountain,river,book,phone,computer,pizza,cake,apple,banana,guitar,piano,bicycle,airplane,boat,train,butterfly,elephant,lion,penguin,rainbow,snowman,castle,bridge,clock,heart,diamond,arrow,crown,key,door,window,chair,table,lamp,mirror,camera,balloon,umbrella')
+      .split(',').map(word => word.trim());
 
     // Game state tracker - store active games per session
     if (!global.activeGames) global.activeGames = {};
@@ -485,8 +481,8 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       // Get random word
       const randomWord = DRAWING_WORDS[Math.floor(Math.random() * DRAWING_WORDS.length)];
       
-      // Set game timer
-      const gameTimeLimit = 60; // 60 seconds
+      // Set game timer from environment variable
+      const gameTimeLimit = parseInt(process.env.GAME_TIME_LIMIT) || 60; // Default 60 seconds
       
       // Store game state
       if (!global.activeGames) global.activeGames = {};

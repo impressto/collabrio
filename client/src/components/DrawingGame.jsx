@@ -299,7 +299,7 @@ function DrawingGame({
     <div className="drawing-game-overlay" onClick={(e) => e.target.classList.contains('drawing-game-overlay') && onClose()}>
       <div className="drawing-game-modal">
         <div className="drawing-game-header">
-          <h3>🎨 Drawing Game</h3>
+          <h3>🎨 Guess the Sketch</h3>
           <button className="close-game-btn" onClick={onClose}>✕</button>
         </div>
 

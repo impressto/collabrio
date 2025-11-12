@@ -733,7 +733,7 @@ function App() {
         isCorrectGuess: false,
         winner: null
       })
-      showToast(`Drawing game started! ${data.drawer} is drawing "${data.word}"`, 'success')
+      showToast(`Guess the Sketch started! ${data.drawer} is drawing "${data.word}"`, 'success')
     })
 
     socket.on('game-ended', (data) => {
@@ -1306,7 +1306,7 @@ function App() {
         <Footer connectionType={connectionType} sessionId={sessionId} />
       </div>
 
-      {/* Drawing Game */}
+      {/* Guess the Sketch Game */}
       {gameActive && (
         <DrawingGame
           gameState={gameState}

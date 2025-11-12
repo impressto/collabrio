@@ -142,7 +142,7 @@ function Toolbar({
         )}
       </div>
       
-      {/* Games Button */}
+      {/* Guess the Sketch Button */}
       <button 
         id="games-btn"
         onClick={onStartGame}
@@ -150,11 +150,11 @@ function Toolbar({
         disabled={editorMode === 'draft'}
         title={
           editorMode === 'draft' 
-            ? "Switch to Live mode to play games" 
-            : "Start a game for all participants"
+            ? "Switch to Live mode to play Guess the Sketch" 
+            : "Start a drawing and guessing game for all participants"
         }
       >
-        🎮 Games
+        🎮 Guess the Sketch
       </button>
       
       <button 

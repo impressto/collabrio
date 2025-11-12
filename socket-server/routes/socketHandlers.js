@@ -534,8 +534,10 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
         console.log(`🎨 [SERVER] Line drawing from (${drawingData.from?.x}, ${drawingData.from?.y}) to (${drawingData.to?.x}, ${drawingData.to?.y})`);
       } else if (drawingData.type === 'clear') {
         console.log(`🎨 [SERVER] Canvas clear request`);
+      } else if (drawingData.type === 'full_sync') {
+        console.log(`🎨 [SERVER] Full sync with ${drawingData.paths?.length} paths`);
       } else if (drawingData.paths) {
-        console.log(`🎨 [SERVER] Paths data:`, drawingData.paths.map((path, i) => `Path ${i}: ${path.length} points`));
+        console.log(`🎨 [SERVER] Legacy paths data:`, drawingData.paths.map((path, i) => `Path ${i}: ${path.length} points`));
       }
 
       // Broadcast drawing update to all other players (not the drawer)

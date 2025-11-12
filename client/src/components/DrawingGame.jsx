@@ -54,14 +54,33 @@ function DrawingGame({
       const canvas = canvasRef.current
       const ctx = canvas.getContext('2d')
       
+      // Set drawing style for received updates
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.lineWidth = 2
+      ctx.strokeStyle = '#000000'
+      
       // Apply the drawing data
       if (data.drawingData) {
-        if (data.drawingData.clear) {
+        if (data.drawingData.clear || data.drawingData.type === 'clear') {
           console.log('🎨 [RECEIVE] Clearing canvas')
           // Clear the canvas
           ctx.fillStyle = '#ffffff'
           ctx.fillRect(0, 0, canvas.width, canvas.height)
           setDrawingPaths([])
+        } else if (data.drawingData.type === 'draw_line') {
+          console.log('🎨 [RECEIVE] Drawing line from', data.drawingData.from, 'to', data.drawingData.to)
+          // Draw the line segment directly without clearing the canvas
+          ctx.beginPath()
+          ctx.moveTo(data.drawingData.from.x, data.drawingData.from.y)
+          ctx.lineTo(data.drawingData.to.x, data.drawingData.to.y)
+          ctx.stroke()
+        } else if (data.drawingData.type === 'full_sync' && data.drawingData.paths) {
+          console.log('🎨 [RECEIVE] Full sync - redrawing complete drawing with', data.drawingData.paths.length, 'paths')
+          // Store the paths in local state
+          setDrawingPaths(data.drawingData.paths)
+          // Redraw the complete canvas
+          redrawCanvas(ctx, data.drawingData.paths)
         } else if (data.drawingData.paths) {
           console.log('🎨 [RECEIVE] Redrawing with', data.drawingData.paths.length, 'paths')
           console.log('🎨 [RECEIVE] Canvas dimensions:', canvas.width, 'x', canvas.height)
@@ -176,13 +195,15 @@ function DrawingGame({
     
     console.log('🎨 [DRAW] Current path length:', newPath.length, 'Total paths:', drawingPaths.length)
     
-    // Send drawing update to other players with all current paths
+    // Send incremental drawing update to other players (just the line segment)
     if (socket && sessionId) {
-      console.log('🎨 [EMIT] Sending drawing-update to server with all paths')
+      console.log('🎨 [EMIT] Sending incremental drawing-update to server')
       socket.emit('drawing-update', {
         sessionId,
         drawingData: {
-          paths: [...drawingPaths, newPath]
+          type: 'draw_line',
+          from: lastPoint,
+          to: point
         }
       })
     } else {
@@ -200,6 +221,19 @@ function DrawingGame({
       setDrawingPaths(prev => {
         const newPaths = [...prev, currentPath]
         console.log('🎨 [DRAW] Total paths after stop:', newPaths.length)
+        
+        // Send complete drawing state after finishing a stroke (for synchronization)
+        if (socket && sessionId) {
+          console.log('🎨 [SYNC] Sending complete drawing state after stroke completion')
+          socket.emit('drawing-update', {
+            sessionId,
+            drawingData: {
+              type: 'full_sync',
+              paths: newPaths
+            }
+          })
+        }
+        
         return newPaths
       })
       setCurrentPath([])
@@ -228,7 +262,7 @@ function DrawingGame({
       socket.emit('drawing-update', {
         sessionId,
         drawingData: {
-          paths: [],
+          type: 'clear',
           clear: true
         }
       })

@@ -15,8 +15,11 @@ const SPRITE_DIMENSIONS = {
   
   // Fallback dimensions for sprites not yet available in base64 format
   'car-red': { width: 64, height: 32 },
-  'turtle-surface': { width: 64, height: 32 },
-  'turtle-diving': { width: 64, height: 32 },
+  'turtle-surface': { width: 32, height: 32 },
+  'turtle-diving': { width: 32, height: 32 },
+  'turtle-diving1': { width: 32, height: 32 },
+  'turtle-diving2': { width: 32, height: 32 },
+  'turtle-diving3': { width: 32, height: 32 },
   'alligator-closed': { width: 80, height: 32 },
   'alligator-open': { width: 80, height: 32 },
   'grass-light': { width: 32, height: 32 },
@@ -306,13 +309,15 @@ function FroggerGame({
           id: `${laneIndex}-${i}`,
           x: (i * spacing) + (Math.random() * spacing * 0.5),
           y: lane.y,
-          width: lane.type === 'truck' ? 80 : lane.type === 'log' ? 100 : 60,
+          width: lane.type === 'truck' ? 80 : lane.type === 'log' ? 100 : lane.type === 'turtle' ? 32 : 60,
           height: 30,
           speed: lane.speed * lane.direction,
           type: lane.type,
           sprite: lane.sprite, // Add sprite key from config
           color: lane.color,
-          laneIndex
+          laneIndex,
+          // Add random animation offset for turtles to make diving more varied
+          animationOffset: lane.type === 'turtle' ? Math.random() * 4800 : 0
         })
       }
     })
@@ -634,17 +639,31 @@ function FroggerGame({
           onLog = true
           currentLogSpeed = obstacle.speed
         } else if (obstacle.type === 'turtle') {
-          // Check if turtle is diving or surfaced
-          const turtleFrame = Math.floor(Date.now() / 2000) % 2
-          const isDiving = turtleFrame === 1
+          // Enhanced turtle diving detection
+          const now = Date.now()
+          const cycleTime = 4800 // Total cycle duration in ms
+          const phaseTime = 800 // Duration of each phase in ms
+          const adjustedTime = (now + obstacle.animationOffset) % cycleTime
+          const currentPhase = Math.floor(adjustedTime / phaseTime)
           
-          if (isDiving) {
-            // Diving turtle - frog drowns
+          // Phases: 0=surface, 1=diving1, 2=diving2, 3=diving3(invisible), 4=diving2, 5=diving1
+          const isSafe = currentPhase === 0 || currentPhase === 1 || currentPhase === 5 // Surface and shallow diving phases
+          const isDeadly = currentPhase === 3 // Completely submerged (invisible)
+          const isRisky = currentPhase === 2 || currentPhase === 4 // Deep diving phases
+          
+          if (isDeadly) {
+            // Turtle is completely submerged - frog drowns immediately
+            console.log('🐸💀 Frog drowned - turtle completely submerged (phase 3)')
             handlePlayerDeath()
-          } else {
-            // Surface turtle - safe to ride
+          } else if (isSafe) {
+            // Turtle is visible and safe to ride
             onLog = true
             currentLogSpeed = obstacle.speed
+          } else if (isRisky) {
+            // Turtle is in deep diving phase - still rideable but warning player
+            onLog = true
+            currentLogSpeed = obstacle.speed
+            // Could add visual warning here in future (screen flash, etc.)
           }
         }
       }
@@ -794,12 +813,53 @@ function FroggerGame({
           if (obstacle.sprite) {
             // Use the sprite key directly with turtle animation support
             let spriteKey = obstacle.sprite
-            // Animate turtles between surface and diving states
+            // Enhanced turtle diving animation with 4 phases
             if (obstacle.type === 'turtle') {
-              const turtleFrame = Math.floor(now / 2000) % 2 // Change every 2 seconds
-              spriteKey = turtleFrame === 0 ? 'turtle' : 'turtle-diving'
+              // Complete diving cycle: surface -> diving1 -> diving2 -> diving3 (invisible) -> diving2 -> diving1 -> surface
+              // Each phase lasts 800ms, complete cycle takes 4.8 seconds
+              const cycleTime = 4800 // Total cycle duration in ms
+              const phaseTime = 800 // Duration of each phase in ms
+              const adjustedTime = (now + obstacle.animationOffset) % cycleTime
+              const currentPhase = Math.floor(adjustedTime / phaseTime)
+              
+              switch (currentPhase) {
+                case 0: // Surface - visible turtle
+                  spriteKey = 'turtle'
+                  break
+                case 1: // Starting to dive
+                  spriteKey = 'turtle-diving1'
+                  break
+                case 2: // Deeper diving
+                  spriteKey = 'turtle-diving2'
+                  break
+                case 3: // Completely submerged (invisible)
+                  spriteKey = 'turtle-diving3'
+                  break
+                case 4: // Emerging
+                  spriteKey = 'turtle-diving2'
+                  break
+                case 5: // Almost surfaced
+                  spriteKey = 'turtle-diving1'
+                  break
+                default: // Back to surface
+                  spriteKey = 'turtle'
+              }
+              
+              // For turtle-diving3, make the turtle invisible or very faint
+              if (currentPhase === 3) {
+                // Don't draw the turtle at all when fully submerged, or draw it very faintly
+                ctx.save()
+                ctx.globalAlpha = 0.1 // Very faint visibility to show position but indicate it's submerged
+                drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
+                ctx.restore()
+              } else {
+                // Draw normally for all other phases
+                drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
+              }
+            } else {
+              // Non-turtle obstacles draw normally
+              drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
             }
-            drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
         } else {
           // Fallback to colored rectangle if no sprite defined
           ctx.fillStyle = obstacle.color
@@ -987,6 +1047,7 @@ function FroggerGame({
                 <li>On mobile: Tap left/right/up/down of the frog to move in that direction</li>
                 <li>Cross roads safely - avoid cars and trucks!</li>
                 <li>Jump on logs and turtles to cross the river</li>
+                <li><strong>⚠️ Turtles dive underwater!</strong> When they're completely submerged you'll drown!</li>
                 <li>Don't fall in the water!</li>
                 <li>Reach the goal to score points</li>
                 <li>You have {GAME_CONFIG.maxLives} lives</li>

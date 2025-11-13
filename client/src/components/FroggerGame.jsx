@@ -1060,7 +1060,7 @@ function FroggerGame({
 
   if (localGameState.gameEnded) {
     return (
-      <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && handleCloseGame()}>
+      <div className="drawing-game-overlay">
         <div className="drawing-game-modal">
           <div className="drawing-game-header">
             <h3>🐸 Frogger - Game Over!</h3>
@@ -1119,7 +1119,7 @@ function FroggerGame({
   }
 
   return (
-    <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && handleCloseGame()}>
+    <div className="drawing-game-overlay">
       <div className="frogger-game-modal">
         <div className="drawing-game-header">
           <h3>🐸 Frogger - Leaderboard Challenge</h3>

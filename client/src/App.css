@@ -4291,15 +4291,26 @@ body > #root > .collabrio-app {
   
   .collabrio-app .frogger-canvas {
     max-width: 100%;
-    width: 100%;
-    height: auto;
     max-height: 70vh;
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .collabrio-app .game-lobby {
+    padding: 1rem;
+  }
+  
+  .collabrio-app .game-area {
+    padding: 0.5rem;
   }
   
   .collabrio-app .game-stats {
     flex-wrap: wrap;
     gap: 1rem;
     justify-content: center;
+    font-size: 0.85rem;
   }
 
   /* Move game stats above canvas on mobile instead of overlay */
@@ -4315,6 +4326,9 @@ body > #root > .collabrio-app {
   .collabrio-app .frogger-canvas-container {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
   }
   
   .collabrio-app .controls-help {
@@ -4324,6 +4338,54 @@ body > #root > .collabrio-app {
   /* Touch controls maintain consistent small size on mobile */
   .collabrio-app .frogger-touch-controls {
     height: 20px;
+  }
+  
+  /* Difficulty selector responsive */
+  .collabrio-app .difficulty-options {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .collabrio-app .difficulty-option {
+    min-width: 200px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .collabrio-app .frogger-game-modal {
+    margin: 0.25rem;
+    max-width: calc(100vw - 0.5rem);
+    max-height: 99vh;
+    height: 99vh;
+  }
+  
+  .collabrio-app .game-lobby {
+    padding: 0.75rem;
+  }
+  
+  .collabrio-app .game-area {
+    padding: 0.25rem;
+  }
+  
+  .collabrio-app .frogger-canvas {
+    max-height: 65vh;
+  }
+  
+  .collabrio-app .game-stats {
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .collabrio-app .difficulty-option {
+    min-width: 160px;
+    padding: 8px 12px;
+  }
+  
+  .collabrio-app .controls-help {
+    font-size: 0.75rem;
+    padding: 0.5rem;
   }
 }
 

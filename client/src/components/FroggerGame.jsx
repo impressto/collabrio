@@ -75,6 +75,48 @@ function FroggerGame({
   const spriteImagesRef = useRef({})
   const timeoutsRef = useRef([]) // Track all timeouts for cleanup
   
+  // Dynamic canvas sizing state
+  const [canvasSize, setCanvasSize] = useState({
+    width: GAME_CONFIG.canvasWidth,
+    height: GAME_CONFIG.canvasHeight,
+    scale: 1
+  })
+  
+  // Calculate optimal canvas size based on screen dimensions
+  const calculateCanvasSize = useCallback(() => {
+    const maxWidth = Math.min(window.innerWidth * 0.9, 900) // Max 90% of screen width, max 900px
+    const maxHeight = window.innerHeight * 0.7 // Max 70% of screen height
+    
+    const baseWidth = GAME_CONFIG.canvasWidth
+    const baseHeight = GAME_CONFIG.canvasHeight
+    const aspectRatio = baseWidth / baseHeight
+    
+    let newWidth, newHeight, scale
+    
+    // Calculate scale based on both width and height constraints
+    const scaleByWidth = maxWidth / baseWidth
+    const scaleByHeight = maxHeight / baseHeight
+    scale = Math.min(scaleByWidth, scaleByHeight, 1) // Never scale up beyond original size
+    
+    newWidth = Math.floor(baseWidth * scale)
+    newHeight = Math.floor(baseHeight * scale)
+    
+    return { width: newWidth, height: newHeight, scale }
+  }, [])
+  
+  // Update canvas size on window resize
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const newSize = calculateCanvasSize()
+      setCanvasSize(newSize)
+    }
+    
+    updateCanvasSize() // Initial calculation
+    window.addEventListener('resize', updateCanvasSize)
+    
+    return () => window.removeEventListener('resize', updateCanvasSize)
+  }, [calculateCanvasSize])
+  
   // Timeout management using refs to avoid circular dependencies
   
   const [gameStarted, setGameStarted] = useState(false)
@@ -520,8 +562,8 @@ function FroggerGame({
     if (!canvas) return
 
     const rect = canvas.getBoundingClientRect()
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
+    const scaleX = GAME_CONFIG.canvasWidth / rect.width
+    const scaleY = GAME_CONFIG.canvasHeight / rect.height
     
     const clickX = (event.clientX - rect.left) * scaleX
     const clickY = (event.clientY - rect.top) * scaleY
@@ -718,22 +760,28 @@ function FroggerGame({
     if (!canvas || localGameState?.gameEnded) return
 
     const ctx = canvas.getContext('2d')
+    const { scale } = canvasSize
+    
+    // Apply scaling transform
+    ctx.save()
+    ctx.scale(scale, scale)
+    
     // Performance optimization: only clear what's needed
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.clearRect(0, 0, GAME_CONFIG.canvasWidth, GAME_CONFIG.canvasHeight)
 
     // Draw background - use solid colors for terrain, sprites for grass safe zones
     // Sky area
     ctx.fillStyle = '#87CEEB'
-    ctx.fillRect(0, 0, canvas.width, GAME_CONFIG.goalY)
+    ctx.fillRect(0, 0, GAME_CONFIG.canvasWidth, GAME_CONFIG.goalY)
     
     // Goal area with grass sprites if available, otherwise green
     if (allSpritesLoaded && spritesLoaded.terrain) {
-      for (let x = 0; x < canvas.width; x += 32) {
+      for (let x = 0; x < GAME_CONFIG.canvasWidth; x += 32) {
         drawSprite(ctx, 'grass', x, GAME_CONFIG.goalY, 32, 40)
       }
     } else {
       ctx.fillStyle = '#90EE90' // Light green for goal area
-      ctx.fillRect(0, GAME_CONFIG.goalY, canvas.width, 40)
+      ctx.fillRect(0, GAME_CONFIG.goalY, GAME_CONFIG.canvasWidth, 40)
     }
     
     // River area - use water sprite tiles if available, otherwise solid blue background
@@ -745,31 +793,31 @@ function FroggerGame({
       const riverHeight = 200
       
       for (let y = riverStartY; y < riverStartY + riverHeight; y += waterSpriteHeight) {
-        for (let x = 0; x < canvas.width; x += waterSpriteWidth) {
+        for (let x = 0; x < GAME_CONFIG.canvasWidth; x += waterSpriteWidth) {
           drawSprite(ctx, 'water', x, y, waterSpriteWidth, waterSpriteHeight)
         }
       }
     } else {
       // Fallback to solid blue background
       ctx.fillStyle = '#4169E1' // Blue for river
-      ctx.fillRect(0, 160, canvas.width, 200)
+      ctx.fillRect(0, 160, GAME_CONFIG.canvasWidth, 200)
     }
 
     // Safe zones with grass sprites if available
     if (allSpritesLoaded && spritesLoaded.terrain) {
-      for (let x = 0; x < canvas.width; x += 32) {
+      for (let x = 0; x < GAME_CONFIG.canvasWidth; x += 32) {
         drawSprite(ctx, 'grass', x, 360, 32, 40)
         drawSprite(ctx, 'grass', x, 560, 32, 40)
       }
     } else {
       ctx.fillStyle = '#90EE90' // Light green for safe zones
-      ctx.fillRect(0, 360, canvas.width, 40)
-      ctx.fillRect(0, 560, canvas.width, 40)
+      ctx.fillRect(0, 360, GAME_CONFIG.canvasWidth, 40)
+      ctx.fillRect(0, 560, GAME_CONFIG.canvasWidth, 40)
     }
 
     // Road area - solid gray background  
     ctx.fillStyle = '#696969' // Gray for road
-    ctx.fillRect(0, 400, canvas.width, 160)
+    ctx.fillRect(0, 400, GAME_CONFIG.canvasWidth, 160)
 
     // Draw lane dividers - use dashed yellow lines
     ctx.strokeStyle = '#FFFF00'
@@ -778,7 +826,7 @@ function FroggerGame({
     for (let i = 435; i < 535; i += 40) {
       ctx.beginPath()
       ctx.moveTo(0, i)
-      ctx.lineTo(canvas.width, i)
+      ctx.lineTo(GAME_CONFIG.canvasWidth, i)
       ctx.stroke()
     }
     ctx.setLineDash([])
@@ -791,7 +839,7 @@ function FroggerGame({
       
       obstacles.forEach(obstacle => {
         // Skip drawing obstacles that are completely off-screen (performance optimization)
-        if (obstacle.x > canvas.width + 50 || obstacle.x < -obstacle.width - 50) return
+        if (obstacle.x > GAME_CONFIG.canvasWidth + 50 || obstacle.x < -obstacle.width - 50) return
         
         if (allSpritesLoaded) {
           // Use the sprite key directly from the obstacle config
@@ -881,13 +929,16 @@ function FroggerGame({
 
     // Draw goal area
     ctx.fillStyle = '#FFD700'
-    ctx.fillRect(0, GAME_CONFIG.goalY - 40, canvas.width, 40)
+    ctx.fillRect(0, GAME_CONFIG.goalY - 40, GAME_CONFIG.canvasWidth, 40)
     ctx.fillStyle = '#000000'
     ctx.font = '20px Arial'
     ctx.textAlign = 'center'
-    ctx.fillText('🏁 GOAL 🏁', canvas.width / 2, GAME_CONFIG.goalY - 15)
+    ctx.fillText('🏁 GOAL 🏁', GAME_CONFIG.canvasWidth / 2, GAME_CONFIG.goalY - 15)
 
-  }, [localGameState, playerPosition, playerDirection, allSpritesLoaded, spritesLoaded, drawSprite])
+    // Restore the context (remove scaling)
+    ctx.restore()
+
+  }, [localGameState, playerPosition, playerDirection, allSpritesLoaded, spritesLoaded, drawSprite, canvasSize])
 
   // Render loop integrated into game loop above to prevent duplicate animation frames
 
@@ -946,6 +997,29 @@ function FroggerGame({
     }
   }
 
+  // Handle closing the frogger game modal
+  const handleCloseGame = useCallback(() => {
+    // Emit socket event to notify server that user is closing the modal
+    if (socket && sessionId && currentUser) {
+      socket.emit('close-frogger-modal', {
+        sessionId,
+        user: currentUser
+      })
+    }
+    
+    // Call the parent close handler
+    onClose()
+  }, [socket, sessionId, currentUser, onClose])
+
+  // Handle difficulty selection and start game
+  const handleDifficultySelection = (selectedDifficulty) => {
+    setDifficulty(selectedDifficulty)
+    // Use setTimeout to ensure state is updated before starting game
+    setTimeout(() => {
+      handleStartGame()
+    }, 0)
+  }
+
   // Play Again handler - resets game and starts immediately without going to lobby
   const handlePlayAgain = () => {
     // Clear any pending timeouts directly
@@ -986,7 +1060,7 @@ function FroggerGame({
 
   if (localGameState.gameEnded) {
     return (
-      <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && handleCloseGame()}>
         <div className="drawing-game-modal">
           <div className="drawing-game-header">
             <h3>🐸 Frogger - Game Over!</h3>
@@ -995,7 +1069,7 @@ function FroggerGame({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onClose();
+                handleCloseGame();
               }}
             >
               ×
@@ -1033,7 +1107,7 @@ function FroggerGame({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onClose();
+                handleCloseGame();
               }}
             >
               Close Game
@@ -1045,7 +1119,7 @@ function FroggerGame({
   }
 
   return (
-    <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && handleCloseGame()}>
       <div className="frogger-game-modal">
         <div className="drawing-game-header">
           <h3>🐸 Frogger - Leaderboard Challenge</h3>
@@ -1054,7 +1128,7 @@ function FroggerGame({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onClose();
+              handleCloseGame();
             }}
           >
             ×
@@ -1072,10 +1146,14 @@ function FroggerGame({
               </ul>
               
               <div className="difficulty-selector" style={{ marginBottom: '20px' }}>
-                <h4>Difficulty Level:</h4>
+                <h4>Click Any Difficulty to Start Game:</h4>
                 <div className="difficulty-options" style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <label 
                     className={`difficulty-option ${difficulty === 'easy' ? 'selected' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleDifficultySelection('easy')
+                    }}
                     style={{ 
                       display: 'flex', 
                       flexDirection: 'column', 
@@ -1093,7 +1171,7 @@ function FroggerGame({
                       name="difficulty" 
                       value="easy" 
                       checked={difficulty === 'easy'}
-                      onChange={(e) => setDifficulty(e.target.value)}
+                      onChange={(e) => handleDifficultySelection(e.target.value)}
                       style={{ display: 'none' }}
                     />
                     <span className="difficulty-label" style={{ textAlign: 'center' }}>
@@ -1104,6 +1182,10 @@ function FroggerGame({
                   </label>
                   <label 
                     className={`difficulty-option ${difficulty === 'normal' ? 'selected' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleDifficultySelection('normal')
+                    }}
                     style={{ 
                       display: 'flex', 
                       flexDirection: 'column', 
@@ -1121,7 +1203,7 @@ function FroggerGame({
                       name="difficulty" 
                       value="normal" 
                       checked={difficulty === 'normal'}
-                      onChange={(e) => setDifficulty(e.target.value)}
+                      onChange={(e) => handleDifficultySelection(e.target.value)}
                       style={{ display: 'none' }}
                     />
                     <span className="difficulty-label" style={{ textAlign: 'center' }}>
@@ -1132,6 +1214,10 @@ function FroggerGame({
                   </label>
                   <label 
                     className={`difficulty-option ${difficulty === 'hard' ? 'selected' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleDifficultySelection('hard')
+                    }}
                     style={{ 
                       display: 'flex', 
                       flexDirection: 'column', 
@@ -1149,7 +1235,7 @@ function FroggerGame({
                       name="difficulty" 
                       value="hard" 
                       checked={difficulty === 'hard'}
-                      onChange={(e) => setDifficulty(e.target.value)}
+                      onChange={(e) => handleDifficultySelection(e.target.value)}
                       style={{ display: 'none' }}
                     />
                     <span className="difficulty-label" style={{ textAlign: 'center' }}>
@@ -1174,10 +1260,6 @@ function FroggerGame({
                 ))}
               </div>
             </div>
-            
-            <button className="start-game-btn" onClick={handleStartGame}>
-              🐸 Start Frogger Game
-            </button>
           </div>
         ) : (
           <div className="game-area">
@@ -1191,13 +1273,16 @@ function FroggerGame({
               
               <canvas
                 ref={canvasRef}
-                width={GAME_CONFIG.canvasWidth}
-                height={GAME_CONFIG.canvasHeight}
+                width={canvasSize.width}
+                height={canvasSize.height}
                 className="frogger-canvas"
                 onClick={handleCanvasClick}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
-                style={{ touchAction: 'none' }}
+                style={{ 
+                  touchAction: 'none',
+                  maxWidth: '100%'
+                }}
               />
             </div>
             

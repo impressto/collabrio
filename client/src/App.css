@@ -3544,6 +3544,7 @@ body > #root > .collabrio-app {
   border-radius: 8px;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  touch-action: none; /* Prevent scrolling and zooming on touch */
 }
 
 .collabrio-app .drawing-controls {
@@ -3876,6 +3877,7 @@ body > #root > .collabrio-app {
   .collabrio-app .drawing-canvas {
     width: 400px;
     height: 300px;
+    touch-action: none; /* Prevent scrolling and zooming on touch */
   }
   
   .collabrio-app .drawing-game-header,

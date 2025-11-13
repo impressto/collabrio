@@ -50,6 +50,19 @@ function DrawingGame({
     console.log('🎨 [CANVAS EFFECT] Clearing canvas for initial setup')
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Add passive touch event listeners to prevent default scrolling behavior
+    const preventTouchDefault = (e) => e.preventDefault()
+    
+    canvas.addEventListener('touchstart', preventTouchDefault, { passive: false })
+    canvas.addEventListener('touchmove', preventTouchDefault, { passive: false })
+    canvas.addEventListener('touchend', preventTouchDefault, { passive: false })
+    
+    return () => {
+      canvas.removeEventListener('touchstart', preventTouchDefault)
+      canvas.removeEventListener('touchmove', preventTouchDefault)
+      canvas.removeEventListener('touchend', preventTouchDefault)
+    }
   }, [])
 
   // Socket event listeners
@@ -206,14 +219,33 @@ function DrawingGame({
     const scaleX = canvas.width / rect.width
     const scaleY = canvas.height / rect.height
 
+    // Handle both mouse and touch events
+    let clientX, clientY
+    if (e.touches && e.touches.length > 0) {
+      // Touch event
+      clientX = e.touches[0].clientX
+      clientY = e.touches[0].clientY
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+      // Touch end event
+      clientX = e.changedTouches[0].clientX
+      clientY = e.changedTouches[0].clientY
+    } else {
+      // Mouse event
+      clientX = e.clientX
+      clientY = e.clientY
+    }
+
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
     }
   }
 
   const startDrawing = (e) => {
     if (!isDrawer || hasGameEnded) return
+    
+    // Prevent default touch behavior to avoid scrolling/zooming
+    e.preventDefault()
     
     console.log('🎨 [DRAW] Starting to draw')
     setIsDrawing(true)
@@ -225,6 +257,9 @@ function DrawingGame({
 
   const draw = (e) => {
     if (!isDrawing || !isDrawer || hasGameEnded) return
+    
+    // Prevent default touch behavior to avoid scrolling/zooming
+    e.preventDefault()
     
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
@@ -261,8 +296,14 @@ function DrawingGame({
     }
   }
 
-  const stopDrawing = () => {
+  const stopDrawing = (e) => {
     if (!isDrawing || !isDrawer) return
+    
+    // Prevent default touch behavior if it's a touch event
+    if (e && e.preventDefault) {
+      e.preventDefault()
+    }
+    
     console.log('🎨 [DRAW] Stopping draw, finalizing path with', currentPath.length, 'points')
     setIsDrawing(false)
     
@@ -516,9 +557,13 @@ function DrawingGame({
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
             style={{ 
               cursor: isDrawer && !hasGameEnded ? 'crosshair' : 'default',
-              pointerEvents: hasGameEnded ? 'none' : 'auto'
+              pointerEvents: hasGameEnded ? 'none' : 'auto',
+              touchAction: 'none' // Prevent scrolling and zooming on touch
             }}
           />
           

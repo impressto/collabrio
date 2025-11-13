@@ -470,7 +470,7 @@ function FroggerGame({
       
       return newPosition
     })
-  }, [localGameState.gameEnded, lives])
+  }, [localGameState.gameEnded, lives, playerDirection, isInvulnerable])
 
   // Handle player death
   const handlePlayerDeath = useCallback(() => {
@@ -604,15 +604,7 @@ function FroggerGame({
     setLogSpeed(currentLogSpeed)
   }, [localGameState, playerPosition, handlePlayerDeath])
 
-  // Move player with log if on one
-  useEffect(() => {
-    if (isOnLog && logSpeed !== 0) {
-      setPlayerPosition(prev => ({
-        ...prev,
-        x: Math.max(0, Math.min(GAME_CONFIG.canvasWidth - GAME_CONFIG.frogSize, prev.x + logSpeed))
-      }))
-    }
-  }, [isOnLog, logSpeed])
+  // Move player with log if on one - integrated into game loop for continuous movement
 
   // Game loop
   useEffect(() => {
@@ -644,6 +636,15 @@ function FroggerGame({
       })
 
       checkCollisions()
+      
+      // Move player with log/turtle if on one (continuous movement)
+      if (isOnLog && logSpeed !== 0) {
+        setPlayerPosition(prev => ({
+          ...prev,
+          x: Math.max(0, Math.min(GAME_CONFIG.canvasWidth - GAME_CONFIG.frogSize, prev.x + logSpeed))
+        }))
+      }
+      
       draw()
       
       // Only continue if game is still running

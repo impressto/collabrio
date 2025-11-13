@@ -3969,7 +3969,7 @@ body > #root > .collabrio-app {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-top: 1.5rem;
+  margin: 1rem;
 }
 
 .collabrio-app .game-over-actions .close-button {

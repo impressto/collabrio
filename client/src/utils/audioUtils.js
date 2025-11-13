@@ -13,6 +13,7 @@ class AudioManager {
       return null
     }
     
+    // Construct full URL using baseUrl for hosted environments
     const audioUrl = `${config.baseUrl}/client/public/${filename}`
     
     try {

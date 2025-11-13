@@ -73,7 +73,6 @@ function FroggerGame({
   const canvasRef = useRef(null)
   const animationRef = useRef(null)
   const spriteImagesRef = useRef({})
-  const audioRef = useRef({})
   const timeoutsRef = useRef([]) // Track all timeouts for cleanup
   
   // Timeout management using refs to avoid circular dependencies
@@ -137,10 +136,10 @@ function FroggerGame({
     setLogSpeed(0)
     setIsInvulnerable(false)
     
-    // Preload game audio files
+    // Preload game audio files (paths relative to public directory)
     audioManager.preloadSound('hop', 'audio/hop.mp3')
     audioManager.preloadSound('splat', 'audio/splat.mp3') 
-    audioManager.preloadSound('horray', 'audio/horray.mp3')
+    audioManager.preloadSound('hooray', 'audio/hooray.mp3')
   }, [])
 
   // Load base64 sprites - instant loading, no network requests!
@@ -202,51 +201,9 @@ function FroggerGame({
     loadBase64Sprites()
   }, [])
 
-  // Load audio files
-  useEffect(() => {
-    const loadAudio = () => {
-      const audioFiles = {
-        hop: '/audio/hop.mp3',
-        splat: '/audio/splat.mp3',
-        hooray: '/audio/hooray.mp3'
-      }
 
-      Object.entries(audioFiles).forEach(([key, path]) => {
-        const audio = new Audio(path)
-        audio.preload = 'auto'
-        audio.volume = 0.5 // Set moderate volume
-        
-        // Handle loading success
-        audio.addEventListener('canplaythrough', () => {
-          console.log(`🔊 Audio loaded: ${key}`)
-        })
-        
-        // Handle loading errors
-        audio.addEventListener('error', (e) => {
-          console.warn(`🔇 Failed to load audio: ${key} from ${path}`, e)
-        })
-        
-        audioRef.current[key] = audio
-      })
-    }
 
-    loadAudio()
-  }, [])
 
-  // Play audio helper function
-  const _playAudio = useCallback((soundKey) => {
-    const audio = audioRef.current[soundKey]
-    if (audio) {
-      try {
-        audio.currentTime = 0 // Reset to start
-        audio.play().catch(e => {
-          console.warn(`🔇 Failed to play audio: ${soundKey}`, e)
-        })
-      } catch (error) {
-        console.warn(`🔇 Error playing audio: ${soundKey}`, error)
-      }
-    }
-  }, [])
 
   // Get player color based on index in session
   const getPlayerColor = useCallback((username) => {
@@ -468,7 +425,7 @@ function FroggerGame({
       if (newY <= GAME_CONFIG.goalY) {
         setScore(s => s + 200)
         // Play success sound
-        audioManager.play('horray')
+        audioManager.play('hooray')
         // Reset position for next round
         const timeoutId = setTimeout(() => {
           setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })

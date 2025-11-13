@@ -924,19 +924,21 @@ function FroggerGame({
           </div>
         ) : (
           <div className="game-area">
-            <div className="game-stats">
-              <div className="stat">Score: {score}</div>
-              <div className="stat">Lives: {'❤️'.repeat(Math.max(0, lives || 0))}</div>
-              <div className="stat">Time: {Math.max(0, localGameState?.timeLeft || 0)}s</div>
-              <div className="stat">Leaderboard: {(localGameState?.leaderboard?.length || 0)} scores</div>
+            <div className="frogger-canvas-container">
+              <div className="game-stats game-stats-overlay">
+                <div className="stat">Score: {score}</div>
+                <div className="stat">Lives: {'❤️'.repeat(Math.max(0, lives || 0))}</div>
+                <div className="stat">Time: {Math.max(0, localGameState?.timeLeft || 0)}s</div>
+                <div className="stat">Leaderboard: {(localGameState?.leaderboard?.length || 0)} scores</div>
+              </div>
+              
+              <canvas
+                ref={canvasRef}
+                width={GAME_CONFIG.canvasWidth}
+                height={GAME_CONFIG.canvasHeight}
+                className="frogger-canvas"
+              />
             </div>
-            
-            <canvas
-              ref={canvasRef}
-              width={GAME_CONFIG.canvasWidth}
-              height={GAME_CONFIG.canvasHeight}
-              className="frogger-canvas"
-            />
             
             <div className="controls-help">
               <p>Use Arrow Keys or WASD to move • Avoid vehicles • Jump on logs/turtles • Reach the goal!</p>

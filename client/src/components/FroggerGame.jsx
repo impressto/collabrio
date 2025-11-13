@@ -56,7 +56,8 @@ const GAME_CONFIG = {
   maxLives: 3
 }
 
-const FROG_COLORS = [
+const ]
+ = [
   '#00ff00', '#ff6b6b', '#4ecdc4', '#45b7d1', 
   '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7',
   '#a29bfe', '#fd79a8', '#e84393', '#00b894'
@@ -790,7 +791,7 @@ function FroggerGame({
     ctx.strokeStyle = '#FFFF00'
     ctx.lineWidth = 2
     ctx.setLineDash([10, 10])
-    for (let i = 420; i < 560; i += 40) {
+    for (let i = 435; i < 535; i += 40) {
       ctx.beginPath()
       ctx.moveTo(0, i)
       ctx.lineTo(canvas.width, i)
@@ -961,6 +962,44 @@ function FroggerGame({
     }
   }
 
+  // Play Again handler - resets game and starts immediately without going to lobby
+  const handlePlayAgain = () => {
+    // Clear any pending timeouts directly
+    timeoutsRef.current.forEach(clearTimeout)
+    timeoutsRef.current = []
+    
+    // Cancel any running animations
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+    
+    // Initialize new game state with fresh obstacles
+    const obstacles = initializeObstacles()
+    setLocalGameState({
+      obstacles,
+      timeLeft: GAME_CONFIG.timeLimit,
+      gameEnded: false,
+      gameStartTime: Date.now(),
+      leaderboard: []
+    })
+    
+    // Reset player state
+    setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })
+    setPlayerDirection('idle')
+    setLives(GAME_CONFIG.maxLives)
+    setScore(0)
+    setIsOnLog(false)
+    setLogSpeed(0)
+    setIsInvulnerable(false)
+    
+    // Keep gameStarted as true to bypass lobby
+    // Request current leaderboard
+    if (socket) {
+      socket.emit('frogger-request-leaderboard', { sessionId })
+    }
+  }
+
   if (localGameState.gameEnded) {
     return (
       <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -1002,7 +1041,7 @@ function FroggerGame({
           </div>
           
           <div className="game-over-actions">
-            <button className="start-game-btn" onClick={handleResetGame}>
+            <button className="start-game-btn" onClick={handlePlayAgain}>
               🐸 Play Again
             </button>
             <button 

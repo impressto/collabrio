@@ -543,6 +543,13 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       if (gameManager.shouldEndFroggerGameOnClose(gameSessionId, user, io)) {
         console.log(`🐸 [SERVER] Ending Frogger game as starter ${user} closed modal in session ${gameSessionId}`);
         gameManager.endFroggerGame(gameSessionId, io);
+      } else {
+        // If the game doesn't end but starter closed their modal, re-enable games button
+        const game = gameManager.activeGames[gameSessionId];
+        if (game && game.type === 'frogger' && game.starter === user) {
+          console.log(`🐸 [SERVER] Frogger starter ${user} closed modal but game continues - re-enabling games button in session ${gameSessionId}`);
+          io.to(gameSessionId).emit('game-status-change', { gameActive: false });
+        }
       }
     });
 

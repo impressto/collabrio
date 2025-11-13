@@ -263,7 +263,7 @@ function FroggerGame({
     if (spriteKey === 'down') actualSpriteKey = 'frog-down'
     if (spriteKey === 'left') actualSpriteKey = 'frog-left'
     if (spriteKey === 'right') actualSpriteKey = 'frog-right'
-    if (spriteKey === 'death') actualSpriteKey = 'frog-idle' // Use idle sprite for death (could add death sprite later)
+    if (spriteKey === 'death') actualSpriteKey = 'squish' // Use squish sprite for death animation
 
     const spriteImage = spriteImagesRef.current[actualSpriteKey]
     
@@ -420,6 +420,9 @@ function FroggerGame({
   // Movement handler
   const movePlayer = useCallback((direction) => {
     if (localGameState.gameEnded || lives <= 0) return
+    
+    // Prevent movement during death animation or invulnerability period
+    if (playerDirection === 'death' || isInvulnerable) return
 
     // Play hop sound for movement
     audioManager.play('hop')
@@ -765,31 +768,10 @@ function FroggerGame({
     }
 
     // Draw the local player
-    const playerColor = getPlayerColor(currentUser)
     const frogSpriteKey = playerDirection === 'idle' || !playerDirection ? 'idle' : playerDirection
     
-    // Draw frog sprite with improved color tint
-    const frogSpriteName = frogSpriteKey === 'idle' ? 'frog-idle' : `frog-${frogSpriteKey}`
-    const frogSprite = spriteImagesRef.current[frogSpriteName]
-    
-    if (frogSprite) {
-      // Draw the frog sprite with color tint
-      ctx.save()
-      
-      // Draw the sprite first
-      ctx.drawImage(frogSprite, playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
-      
-      // Apply a subtle color tint overlay
-      ctx.globalCompositeOperation = 'multiply'
-      ctx.fillStyle = playerColor + '80' // Add transparency to make tint subtle
-      ctx.fillRect(playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
-      
-      ctx.restore()
-    } else {
-      // Fallback - draw colored rectangle
-      ctx.fillStyle = playerColor
-      ctx.fillRect(playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
-    }
+    // Use drawSprite function to properly handle sprite mapping (including death -> squish)
+    drawSprite(ctx, frogSpriteKey, playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
 
     // Draw goal area
     ctx.fillStyle = '#FFD700'
@@ -860,7 +842,7 @@ function FroggerGame({
     return (
       <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
         <div className="drawing-game-modal">
-          <div className="game-header">
+          <div className="drawing-game-header">
             <h3>🐸 Frogger - Game Over!</h3>
             <button className="close-button" onClick={onClose}>×</button>
           </div>
@@ -903,7 +885,7 @@ function FroggerGame({
   return (
     <div className="drawing-game-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="frogger-game-modal">
-        <div className="game-header">
+        <div className="drawing-game-header">
           <h3>🐸 Frogger - Leaderboard Challenge</h3>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
@@ -933,30 +915,6 @@ function FroggerGame({
                   </div>
                 ))}
               </div>
-            </div>
-            
-            <div className="sprite-status">
-              {allSpritesLoaded ? (
-                <div style={{ color: 'green', fontSize: '14px', marginBottom: '10px' }}>
-                  ✓ Enhanced graphics loaded ({Object.values(spriteImagesRef.current || {}).length} sprites)
-                  <div style={{ fontSize: '12px', marginTop: '5px', fontFamily: 'monospace' }}>
-                    Loaded: {Object.keys(spriteImagesRef.current || {}).join(', ') || 'none'}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ color: 'orange', fontSize: '14px', marginBottom: '10px' }}>
-                  ⏳ Loading enhanced graphics... 
-                  <div style={{ fontSize: '12px', marginTop: '5px' }}>
-                    Frog: {spritesLoaded?.frog ? '✓' : '○'} | 
-                    Vehicles: {spritesLoaded?.vehicles ? '✓' : '○'} | 
-                    Water: {spritesLoaded?.water ? '✓' : '○'} | 
-                    Terrain: {spritesLoaded?.terrain ? '✓' : '○'}
-                  </div>
-                  <div style={{ fontSize: '12px', marginTop: '5px', fontFamily: 'monospace' }}>
-                    Current: {Object.keys(spriteImagesRef.current || {}).join(', ') || 'none loaded yet'}
-                  </div>
-                </div>
-              )}
             </div>
             
             <button className="start-game-btn" onClick={handleStartGame}>

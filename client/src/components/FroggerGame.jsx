@@ -71,6 +71,25 @@ function FroggerGame({
   const animationRef = useRef(null)
   const spriteImagesRef = useRef({})
   const audioRef = useRef({})
+  const timeoutsRef = useRef([]) // Track all timeouts for cleanup
+  
+  // Helper function to create tracked timeouts
+  const createTimeout = useCallback((callback, delay) => {
+    const timeoutId = setTimeout(() => {
+      callback()
+      // Remove from tracking array after execution
+      timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId)
+    }, delay)
+    timeoutsRef.current.push(timeoutId)
+    return timeoutId
+  }, [])
+  
+  // Helper function to clear all timeouts
+  const clearAllTimeouts = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout)
+    timeoutsRef.current = []
+  }, [])
+  
   const [gameStarted, setGameStarted] = useState(false)
   const [spritesLoaded, setSpritesLoaded] = useState({
     frog: false,
@@ -97,6 +116,7 @@ function FroggerGame({
   const [score, setScore] = useState(0)
   const [isOnLog, setIsOnLog] = useState(false)
   const [logSpeed, setLogSpeed] = useState(0)
+  const [isInvulnerable, setIsInvulnerable] = useState(false)
 
   // Initialize game state on component mount
   useEffect(() => {
@@ -115,6 +135,7 @@ function FroggerGame({
     setScore(0)
     setIsOnLog(false)
     setLogSpeed(0)
+    setIsInvulnerable(false)
     
     // Preload game audio files
     audioManager.preloadSound('hop', 'audio/hop.mp3')
@@ -320,6 +341,7 @@ function FroggerGame({
 
     console.log('🐸 [CLIENT] Game ended:', reason, 'Final score:', score)
     
+    clearAllTimeouts() // Clear any pending timeouts when game ends
     setLocalGameState(prev => ({ ...prev, gameEnded: true }))
     
     // Submit score to server
@@ -385,6 +407,16 @@ function FroggerGame({
     return () => clearInterval(timer)
   }, [gameStarted, localGameState?.gameEnded, handleGameEnd])
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearAllTimeouts()
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [clearAllTimeouts])
+
   // Movement handler
   const movePlayer = useCallback((direction) => {
     if (localGameState.gameEnded || lives <= 0) return
@@ -427,7 +459,7 @@ function FroggerGame({
         // Play success sound
         audioManager.play('horray')
         // Reset position for next round
-        setTimeout(() => {
+        createTimeout(() => {
           setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })
           setPlayerDirection('idle')
         }, 500)
@@ -439,6 +471,12 @@ function FroggerGame({
 
   // Handle player death
   const handlePlayerDeath = useCallback(() => {
+    // Prevent multiple deaths in rapid succession
+    if (isInvulnerable) return
+    
+    // Make player invulnerable for a short time
+    setIsInvulnerable(true)
+    
     // Play splat sound for collision
     audioManager.play('splat')
     setPlayerDirection('death')
@@ -448,15 +486,16 @@ function FroggerGame({
     
     if (newLives <= 0) {
       // Game over
-      setTimeout(() => handleGameEnd('death'), 1000)
+      createTimeout(() => handleGameEnd('death'), 1000)
     } else {
-      // Reset position after death animation
-      setTimeout(() => {
+      // Reset position after death animation and remove invulnerability
+      createTimeout(() => {
         setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })
         setPlayerDirection('idle')
+        setIsInvulnerable(false) // Remove invulnerability after respawn
       }, 1000)
     }
-  }, [lives, handleGameEnd])
+  }, [lives, handleGameEnd, isInvulnerable])
 
   // Keyboard controls
   useEffect(() => {
@@ -574,35 +613,40 @@ function FroggerGame({
 
   // Game loop
   useEffect(() => {
-    if (!gameStarted) return
+    if (!gameStarted || localGameState?.gameEnded) return
 
     const gameLoop = () => {
       // Update obstacles with defensive checks
       setLocalGameState(prev => {
-        if (!prev || !Array.isArray(prev.obstacles)) {
-          console.warn('🐸 Invalid game state obstacles:', prev?.obstacles)
+        if (!prev || !Array.isArray(prev.obstacles) || prev.gameEnded) {
           return prev || { obstacles: [], timeLeft: GAME_CONFIG.timeLimit, gameEnded: false, gameStartTime: null, leaderboard: [] }
         }
         
         return {
           ...prev,
-          obstacles: prev.obstacles.map(obstacle => ({
-            ...obstacle,
-            x: obstacle.x + obstacle.speed
-          })).map(obstacle => {
+          obstacles: prev.obstacles.map(obstacle => {
+            let newX = obstacle.x + obstacle.speed
             // Wrap around screen
-            if (obstacle.speed > 0 && obstacle.x > GAME_CONFIG.canvasWidth) {
-              obstacle.x = -obstacle.width
-            } else if (obstacle.speed < 0 && obstacle.x < -obstacle.width) {
-              obstacle.x = GAME_CONFIG.canvasWidth
+            if (obstacle.speed > 0 && newX > GAME_CONFIG.canvasWidth) {
+              newX = -obstacle.width
+            } else if (obstacle.speed < 0 && newX < -obstacle.width) {
+              newX = GAME_CONFIG.canvasWidth
             }
-            return obstacle
+            return {
+              ...obstacle,
+              x: newX
+            }
           })
         }
       })
 
       checkCollisions()
-      animationRef.current = requestAnimationFrame(gameLoop)
+      draw()
+      
+      // Only continue if game is still running
+      if (!localGameState?.gameEnded) {
+        animationRef.current = requestAnimationFrame(gameLoop)
+      }
     }
 
     animationRef.current = requestAnimationFrame(gameLoop)
@@ -610,102 +654,88 @@ function FroggerGame({
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
       }
     }
-  }, [gameStarted, checkCollisions])
+  }, [gameStarted, localGameState?.gameEnded, checkCollisions])
 
   // Drawing function
   const draw = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || localGameState?.gameEnded) return
 
     const ctx = canvas.getContext('2d')
+    // Performance optimization: only clear what's needed
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Draw background using individual sprites or fallback colors
+    // Draw background - use solid colors for terrain, sprites for grass safe zones
+    // Sky area
+    ctx.fillStyle = '#87CEEB'
+    ctx.fillRect(0, 0, canvas.width, GAME_CONFIG.goalY)
+    
+    // Goal area with grass sprites if available, otherwise green
     if (allSpritesLoaded && spritesLoaded.terrain) {
-      // Sky area
-      ctx.fillStyle = '#87CEEB'
-      ctx.fillRect(0, 0, canvas.width, GAME_CONFIG.goalY)
-      
-      // Goal area with grass sprites
       for (let x = 0; x < canvas.width; x += 32) {
         drawSprite(ctx, 'grass', x, GAME_CONFIG.goalY, 32, 40)
       }
-      
-      // Safe zones with grass sprites
+    } else {
+      ctx.fillStyle = '#90EE90' // Light green for goal area
+      ctx.fillRect(0, GAME_CONFIG.goalY, canvas.width, 40)
+    }
+    
+    // River area - solid blue background
+    ctx.fillStyle = '#4169E1' // Blue for river
+    ctx.fillRect(0, 160, canvas.width, 200)
+
+    // Safe zones with grass sprites if available
+    if (allSpritesLoaded && spritesLoaded.terrain) {
       for (let x = 0; x < canvas.width; x += 32) {
         drawSprite(ctx, 'grass', x, 360, 32, 40)
         drawSprite(ctx, 'grass', x, 560, 32, 40)
       }
-
-      // River area with water tile sprites
-      for (let y = 160; y < 360; y += 32) {
-        for (let x = 0; x < canvas.width; x += 32) {
-          drawSprite(ctx, 'water-tile', x, y, 32, 32)
-        }
-      }
-
-      // Road area with asphalt sprites
-      for (let y = 400; y < 560; y += 32) {
-        for (let x = 0; x < canvas.width; x += 32) {
-          drawSprite(ctx, 'road-asphalt', x, y, 32, 32)
-        }
-      }
     } else {
-      // Fallback to solid colors if sprites not loaded
-      ctx.fillStyle = '#87CEEB' // Sky blue
-      ctx.fillRect(0, 0, canvas.width, GAME_CONFIG.goalY)
-      
       ctx.fillStyle = '#90EE90' // Light green for safe zones
-      ctx.fillRect(0, GAME_CONFIG.goalY, canvas.width, 40)
       ctx.fillRect(0, 360, canvas.width, 40)
       ctx.fillRect(0, 560, canvas.width, 40)
-
-      ctx.fillStyle = '#4169E1' // Blue for river
-      ctx.fillRect(0, 160, canvas.width, 200)
-
-      ctx.fillStyle = '#696969' // Gray for road
-      ctx.fillRect(0, 400, canvas.width, 160)
     }
 
-    // Draw lane dividers
-    if (allSpritesLoaded && spritesLoaded.terrain) {
-      // Use road line sprites for lane markers
-      for (let i = 420; i < 560; i += 40) {
-        for (let x = 0; x < canvas.width; x += 64) {
-          drawSprite(ctx, 'road-line', x, i, 32, 4)
-        }
-      }
-    } else {
-      // Fallback to dashed lines
-      ctx.strokeStyle = '#FFFF00'
-      ctx.lineWidth = 2
-      ctx.setLineDash([10, 10])
-      for (let i = 420; i < 560; i += 40) {
-        ctx.beginPath()
-        ctx.moveTo(0, i)
-        ctx.lineTo(canvas.width, i)
-        ctx.stroke()
-      }
-      ctx.setLineDash([])
+    // Road area - solid gray background  
+    ctx.fillStyle = '#696969' // Gray for road
+    ctx.fillRect(0, 400, canvas.width, 160)
+
+    // Draw lane dividers - use dashed yellow lines
+    ctx.strokeStyle = '#FFFF00'
+    ctx.lineWidth = 2
+    ctx.setLineDash([10, 10])
+    for (let i = 420; i < 560; i += 40) {
+      ctx.beginPath()
+      ctx.moveTo(0, i)
+      ctx.lineTo(canvas.width, i)
+      ctx.stroke()
     }
+    ctx.setLineDash([])
 
     // Draw obstacles using individual sprites
     const obstacles = localGameState?.obstacles
-    if (obstacles && Array.isArray(obstacles)) {
+    if (obstacles && Array.isArray(obstacles) && obstacles.length > 0) {
+      // Performance optimization: cache animation frame calculation
+      const now = Date.now()
+      
       obstacles.forEach(obstacle => {
-      if (allSpritesLoaded) {
-        // Use the sprite key directly from the obstacle config
-        if (obstacle.sprite) {
-          // Use the sprite key directly with turtle animation support
-          let spriteKey = obstacle.sprite
-          // Animate turtles between surface and diving states
-          if (obstacle.type === 'turtle') {
-            const turtleFrame = Math.floor(Date.now() / 2000) % 2 // Change every 2 seconds
-            spriteKey = turtleFrame === 0 ? 'turtle' : 'turtle-diving'
-          }
-          drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
+        // Skip drawing obstacles that are completely off-screen (performance optimization)
+        if (obstacle.x > canvas.width + 50 || obstacle.x < -obstacle.width - 50) return
+        
+        if (allSpritesLoaded) {
+          // Use the sprite key directly from the obstacle config
+          if (obstacle.sprite) {
+            // Use the sprite key directly with turtle animation support
+            let spriteKey = obstacle.sprite
+            // Animate turtles between surface and diving states
+            if (obstacle.type === 'turtle') {
+              const turtleFrame = Math.floor(now / 2000) % 2 // Change every 2 seconds
+              spriteKey = turtleFrame === 0 ? 'turtle' : 'turtle-diving'
+            }
+            drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
         } else {
           // Fallback to colored rectangle if no sprite defined
           ctx.fillStyle = obstacle.color
@@ -771,21 +801,12 @@ function FroggerGame({
 
   }, [localGameState, playerPosition, currentUser, playerDirection, getPlayerColor, allSpritesLoaded, spritesLoaded, drawSprite])
 
-  // Render loop
-  useEffect(() => {
-    if (!gameStarted) return
-    
-    const renderLoop = () => {
-      draw()
-      requestAnimationFrame(renderLoop)
-    }
-    
-    requestAnimationFrame(renderLoop)
-  }, [gameStarted, draw])
+  // Render loop integrated into game loop above to prevent duplicate animation frames
 
   // Reset game to initial state
   const handleResetGame = () => {
     setGameStarted(false)
+    clearAllTimeouts() // Clear any pending timeouts
     setLocalGameState({
       obstacles: [],
       timeLeft: GAME_CONFIG.timeLimit,
@@ -801,6 +822,7 @@ function FroggerGame({
     setScore(0)
     setIsOnLog(false)
     setLogSpeed(0)
+    setIsInvulnerable(false)
     
     // Cancel any running animations
     if (animationRef.current) {
@@ -826,6 +848,7 @@ function FroggerGame({
     setPlayerDirection('idle')
     setLives(GAME_CONFIG.maxLives)
     setScore(0)
+    setIsInvulnerable(false)
     
     // Request current leaderboard
     if (socket) {

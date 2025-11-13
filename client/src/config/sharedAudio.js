@@ -377,8 +377,8 @@ export const sharedAudioClips = [
     displayName: 'Splat'
   },
   {
-    key: 'horray',
-    filename: 'audio/horray.mp3',
+    key: 'hooray',
+    filename: 'audio/hooray.mp3',
     emoji: '🎉',
     label: 'Hooray',
     displayName: 'Hooray'

@@ -56,8 +56,7 @@ const GAME_CONFIG = {
   maxLives: 3
 }
 
-const ]
- = [
+const FROG_COLORS = [
   '#00ff00', '#ff6b6b', '#4ecdc4', '#45b7d1', 
   '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7',
   '#a29bfe', '#fd79a8', '#e84393', '#00b894'
@@ -106,11 +105,23 @@ function FroggerGame({
   const [isOnLog, setIsOnLog] = useState(false)
   const [logSpeed, setLogSpeed] = useState(0)
   const [isInvulnerable, setIsInvulnerable] = useState(false)
+  const [difficulty, setDifficulty] = useState('normal') // easy, normal, hard
+
+  // Calculate speed multiplier based on difficulty
+  const getDifficultyMultiplier = () => {
+    switch (difficulty) {
+      case 'easy': return 0.5   // Half speed
+      case 'normal': return 1.0 // Normal speed
+      case 'hard': return 1.3   // 30% faster
+      default: return 1.0
+    }
+  }
 
   // Initialize game state on component mount
   useEffect(() => {
     // Reset to initial state when component mounts
     setGameStarted(false)
+    setDifficulty('normal') // Reset difficulty to normal on component mount
     setLocalGameState({
       obstacles: [],
       timeLeft: GAME_CONFIG.timeLimit,
@@ -298,6 +309,7 @@ function FroggerGame({
   // Initialize obstacles
   const initializeObstacles = useCallback(() => {
     const obstacles = []
+    const speedMultiplier = getDifficultyMultiplier()
     
     GAME_CONFIG.lanes.forEach((lane, laneIndex) => {
       if (lane.type === 'safe') return
@@ -312,7 +324,7 @@ function FroggerGame({
           y: lane.y,
           width: lane.type === 'truck' ? 80 : lane.type === 'log' ? 100 : lane.type === 'turtle' ? 32 : 60,
           height: 30,
-          speed: lane.speed * lane.direction,
+          speed: lane.speed * lane.direction * speedMultiplier,
           type: lane.type,
           sprite: lane.sprite, // Add sprite key from config
           color: lane.color,
@@ -324,7 +336,7 @@ function FroggerGame({
     })
     
     return obstacles
-  }, [])
+  }, [difficulty])
 
   // Handle game end and score submission
   const handleGameEnd = useCallback((reason = 'completed') => {
@@ -767,9 +779,24 @@ function FroggerGame({
       ctx.fillRect(0, GAME_CONFIG.goalY, canvas.width, 40)
     }
     
-    // River area - solid blue background
-    ctx.fillStyle = '#4169E1' // Blue for river
-    ctx.fillRect(0, 160, canvas.width, 200)
+    // River area - use water sprite tiles if available, otherwise solid blue background
+    if (allSpritesLoaded && spriteImagesRef.current['water']) {
+      // Draw water tiles across the river area
+      const waterSpriteWidth = 60 // Width of water sprite
+      const waterSpriteHeight = 32 // Height of water sprite
+      const riverStartY = 160
+      const riverHeight = 200
+      
+      for (let y = riverStartY; y < riverStartY + riverHeight; y += waterSpriteHeight) {
+        for (let x = 0; x < canvas.width; x += waterSpriteWidth) {
+          drawSprite(ctx, 'water', x, y, waterSpriteWidth, waterSpriteHeight)
+        }
+      }
+    } else {
+      // Fallback to solid blue background
+      ctx.fillStyle = '#4169E1' // Blue for river
+      ctx.fillRect(0, 160, canvas.width, 200)
+    }
 
     // Safe zones with grass sprites if available
     if (allSpritesLoaded && spritesLoaded.terrain) {
@@ -1082,16 +1109,101 @@ function FroggerGame({
             <div className="game-instructions">
               <h4>How to Play:</h4>
               <ul>
-                <li>Move: Arrow keys, WASD, tap around the frog, or use touch buttons</li>
-                <li>On mobile: Tap left/right/up/down of the frog to move in that direction</li>
-                <li>Cross roads safely - avoid cars and trucks!</li>
-                <li>Jump on logs and turtles to cross the river</li>
-                <li><strong>⚠️ Turtles dive underwater!</strong> When they're completely submerged you'll drown!</li>
-                <li>Don't fall in the water!</li>
-                <li>Reach the goal to score points</li>
-                <li>You have {GAME_CONFIG.maxLives} lives</li>
+                <li>Cross roads safely - avoid cars and trucks! Jump on logs and turtles to cross the river</li>
+                <li><strong>⚠️ Turtles dive underwater!</strong> When they're completely submerged you'll drown! Don't fall in the water!</li>
+                <li>Reach the goal to score points with your {GAME_CONFIG.maxLives} lives</li>
               </ul>
               
+              <div className="difficulty-selector" style={{ marginBottom: '20px' }}>
+                <h4>Difficulty Level:</h4>
+                <div className="difficulty-options" style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <label 
+                    className={`difficulty-option ${difficulty === 'easy' ? 'selected' : ''}`}
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      padding: '10px 15px', 
+                      border: `2px solid ${difficulty === 'easy' ? '#4CAF50' : '#ddd'}`, 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      backgroundColor: difficulty === 'easy' ? '#e8f5e8' : '#f9f9f9',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="difficulty" 
+                      value="easy" 
+                      checked={difficulty === 'easy'}
+                      onChange={(e) => setDifficulty(e.target.value)}
+                      style={{ display: 'none' }}
+                    />
+                    <span className="difficulty-label" style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '5px' }}>🐢</div>
+                      <div style={{ fontWeight: 'bold' }}>Easy</div>
+                      <small style={{ color: '#666', fontSize: '12px' }}>Half speed obstacles</small>
+                    </span>
+                  </label>
+                  <label 
+                    className={`difficulty-option ${difficulty === 'normal' ? 'selected' : ''}`}
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      padding: '10px 15px', 
+                      border: `2px solid ${difficulty === 'normal' ? '#2196F3' : '#ddd'}`, 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      backgroundColor: difficulty === 'normal' ? '#e3f2fd' : '#f9f9f9',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="difficulty" 
+                      value="normal" 
+                      checked={difficulty === 'normal'}
+                      onChange={(e) => setDifficulty(e.target.value)}
+                      style={{ display: 'none' }}
+                    />
+                    <span className="difficulty-label" style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '5px' }}>🐸</div>
+                      <div style={{ fontWeight: 'bold' }}>Normal</div>
+                      <small style={{ color: '#666', fontSize: '12px' }}>Standard speed</small>
+                    </span>
+                  </label>
+                  <label 
+                    className={`difficulty-option ${difficulty === 'hard' ? 'selected' : ''}`}
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      padding: '10px 15px', 
+                      border: `2px solid ${difficulty === 'hard' ? '#FF5722' : '#ddd'}`, 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      backgroundColor: difficulty === 'hard' ? '#fbe9e7' : '#f9f9f9',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <input 
+                      type="radio" 
+                      name="difficulty" 
+                      value="hard" 
+                      checked={difficulty === 'hard'}
+                      onChange={(e) => setDifficulty(e.target.value)}
+                      style={{ display: 'none' }}
+                    />
+                    <span className="difficulty-label" style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '5px' }}>🏎️</div>
+                      <div style={{ fontWeight: 'bold' }}>Hard</div>
+                      <small style={{ color: '#666', fontSize: '12px' }}>30% faster obstacles</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <div className="player-list">
                 <h4>Session Players ({sessionUsers.length}):</h4>
                 {sessionUsers.map(user => (

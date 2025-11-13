@@ -352,18 +352,26 @@ class GameManager {
       // Send game status to disable button
       socket.emit('game-status-change', { gameActive: true });
       
-      // Send current game state
-      socket.emit('current-game-state', {
-        drawer: gameState.drawer,
-        word: gameState.word,
-        timeLeft: gameState.timeLeft,
-        guesses: gameState.guesses || []
-      });
+      if (gameState.type === 'drawing') {
+        // Send current drawing game state
+        socket.emit('current-game-state', {
+          drawer: gameState.drawer,
+          word: gameState.word,
+          timeLeft: gameState.timeLeft,
+          guesses: gameState.guesses || []
+        });
 
-      // Send any previous guesses
-      if (gameState.guesses && gameState.guesses.length > 0) {
-        gameState.guesses.forEach(guess => {
-          socket.emit('game-guess', guess);
+        // Send any previous guesses
+        if (gameState.guesses && gameState.guesses.length > 0) {
+          gameState.guesses.forEach(guess => {
+            socket.emit('game-guess', guess);
+          });
+        }
+      } else if (gameState.type === 'frogger') {
+        // Send current Frogger game state - leaderboard based
+        console.log(`🐸 [FROGGER] Sending current Frogger state to new user: ${gameState.leaderboard?.length || 0} scores`);
+        socket.emit('frogger-leaderboard-update', {
+          leaderboard: gameState.leaderboard || []
         });
       }
     }
@@ -490,15 +498,14 @@ class GameManager {
         return false;
       }
 
-      // Create Frogger game state
+      // Create Frogger game state - score-based leaderboard system
       const gameState = {
         type: 'frogger',
         starter,
         startTime: Date.now(),
         timeLeft: 120, // 2 minutes
-        players: {},
         gameEnded: false,
-        leaderboard: []
+        leaderboard: [] // Array of {player, score, timeLeft, endReason, timestamp}
       };
 
       this.activeGames[sessionId] = gameState;
@@ -533,60 +540,58 @@ class GameManager {
     }
   }
 
-  // Handle Frogger player movement
-  handleFroggerMove(sessionId, playerName, position, score, lives, io) {
+  // Handle Frogger score submission
+  handleFroggerScoreSubmit(sessionId, playerName, finalScore, timeLeft, endReason, io) {
     try {
       const game = this.activeGames[sessionId];
       if (!game || game.type !== 'frogger' || game.gameEnded) {
+        console.log(`🐸 [FROGGER] Cannot submit score - game not active in session ${sessionId}`);
         return false;
       }
 
-      // Update player state
-      game.players[playerName] = {
-        position,
-        score,
-        lives,
-        lastUpdate: Date.now()
+      // Add score to leaderboard
+      const scoreEntry = {
+        player: playerName,
+        score: finalScore,
+        timeLeft: timeLeft || 0,
+        endReason: endReason || 'unknown',
+        timestamp: Date.now()
       };
 
-      // Broadcast movement to other players
-      io.to(sessionId).emit('frogger-player-move', {
-        player: playerName,
-        position,
-        score,
-        lives
-      });
+      // Remove any existing score for this player and add the new one
+      game.leaderboard = game.leaderboard.filter(entry => entry.player !== playerName);
+      game.leaderboard.push(scoreEntry);
+      
+      // Sort leaderboard by score (descending)
+      game.leaderboard.sort((a, b) => b.score - a.score);
+
+      console.log(`🐸 [FROGGER] Score submitted: ${playerName} = ${finalScore} (${endReason})`);
+
+      // Broadcast updated leaderboard to all players in session
+      this.sendFroggerLeaderboard(sessionId, io);
 
       return true;
     } catch (error) {
-      console.error('🐸 [FROGGER] Error handling player move:', error);
+      console.error('🐸 [FROGGER] Error handling score submission:', error);
       return false;
     }
   }
 
-  // Handle Frogger player death
-  handleFroggerPlayerDied(sessionId, playerName, finalScore, io) {
+  // Send current leaderboard to session
+  sendFroggerLeaderboard(sessionId, io) {
     try {
       const game = this.activeGames[sessionId];
-      if (!game || game.type !== 'frogger' || game.gameEnded) {
+      if (!game || game.type !== 'frogger') {
         return false;
       }
 
-      // Update player with final score
-      if (game.players[playerName]) {
-        game.players[playerName].finalScore = finalScore;
-        game.players[playerName].isDead = true;
-      }
-
-      // Check if all players are dead
-      const alivePlayers = Object.values(game.players).filter(player => !player.isDead);
-      if (alivePlayers.length === 0) {
-        this.endFroggerGame(sessionId, io);
-      }
+      io.to(sessionId).emit('frogger-leaderboard-update', {
+        leaderboard: game.leaderboard
+      });
 
       return true;
     } catch (error) {
-      console.error('🐸 [FROGGER] Error handling player death:', error);
+      console.error('🐸 [FROGGER] Error sending leaderboard:', error);
       return false;
     }
   }
@@ -601,18 +606,12 @@ class GameManager {
 
       console.log(`🐸 [FROGGER] Ending game in session ${sessionId}`);
 
-      // Calculate final leaderboard
-      const leaderboard = Object.entries(game.players)
-        .map(([username, data]) => ({
-          username,
-          score: data.finalScore || data.score || 0,
-          lives: data.lives || 0
-        }))
-        .sort((a, b) => b.score - a.score);
+      // Use existing leaderboard as final results
+      const leaderboard = game.leaderboard;
 
       // Determine winners (top scorers)
       const topScore = leaderboard[0]?.score || 0;
-      const winners = leaderboard.filter(player => player.score === topScore).map(p => p.username);
+      const winners = leaderboard.filter(entry => entry.score === topScore).map(entry => entry.player);
 
       // Mark game as ended
       game.gameEnded = true;
@@ -626,10 +625,9 @@ class GameManager {
       }
 
       // Emit game end event
-      io.to(sessionId).emit('frogger-game-end', {
+      io.to(sessionId).emit('frogger-session-end', {
         leaderboard,
-        winners,
-        finalScores: game.players
+        winners
       });
 
       io.to(sessionId).emit('game-status-change', {
@@ -664,7 +662,6 @@ class GameManager {
         type: 'frogger',
         starter: game.starter,
         timeLeft: game.timeLeft,
-        players: game.players,
         gameEnded: game.gameEnded,
         leaderboard: game.leaderboard || []
       };

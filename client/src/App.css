@@ -3965,6 +3965,32 @@ body > #root > .collabrio-app {
   box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
+.collabrio-app .game-over-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.collabrio-app .game-over-actions .close-button {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.collabrio-app .game-over-actions .close-button:hover {
+  background: linear-gradient(135deg, #c82333, #bd2130);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
 .collabrio-app .game-area {
   display: flex;
   flex-direction: column;

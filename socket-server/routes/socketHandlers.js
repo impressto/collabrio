@@ -526,13 +526,14 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       gameManager.startFroggerGame(gameSessionId, starter, io);
     });
 
-    socket.on('frogger-move', ({ sessionId: gameSessionId, player, position, score, lives }) => {
-      gameManager.handleFroggerMove(gameSessionId, player, position, score, lives, io);
+    socket.on('frogger-score-submit', ({ sessionId: gameSessionId, player, finalScore, timeLeft, endReason }) => {
+      console.log(`🐸 [SERVER] Score submitted by ${player} in session ${gameSessionId}: ${finalScore} (${endReason})`);
+      gameManager.handleFroggerScoreSubmit(gameSessionId, player, finalScore, timeLeft, endReason, io);
     });
 
-    socket.on('frogger-player-died', ({ sessionId: gameSessionId, player, finalScore }) => {
-      console.log(`🐸 [SERVER] Player ${player} died in session ${gameSessionId} with score ${finalScore}`);
-      gameManager.handleFroggerPlayerDied(gameSessionId, player, finalScore, io);
+    socket.on('frogger-request-leaderboard', ({ sessionId: gameSessionId }) => {
+      console.log(`🐸 [SERVER] Leaderboard requested for session ${gameSessionId}`);
+      gameManager.sendFroggerLeaderboard(gameSessionId, io);
     });
 
     socket.on('close-frogger-modal', ({ sessionId: gameSessionId, user }) => {

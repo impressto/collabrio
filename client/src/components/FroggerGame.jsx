@@ -3,30 +3,18 @@ import React, { useState, useRef, useEffect, useCallback } from 'react'
 // Import base64 encoded sprites - no network loading required!
 import { FROGGER_SPRITES, SPRITE_DIMENSIONS as IMPORTED_SPRITE_DIMENSIONS, getSprite } from './FroggerSprites'
 
+// Import audio manager for sound effects
+import { audioManager } from '../utils/audioUtils'
+
 // Base64 sprites imported successfully
 console.log('🎨 Frogger sprites imported:', Object.keys(FROGGER_SPRITES || {}).length, 'sprites available')
 
-// Enhanced sprite dimensions with fallbacks for missing sprites
+// Use imported sprite dimensions and add fallbacks for missing sprites only
 const SPRITE_DIMENSIONS = {
-  // Frog sprites (from base64)
-  'frog-idle': { width: 32, height: 32 },
-  'frog-up': { width: 32, height: 32 },
-  'frog-down': { width: 32, height: 32 },
-  'frog-left': { width: 32, height: 32 },
-  'frog-right': { width: 32, height: 32 },
-  'frog-death': { width: 32, height: 32 },
+  ...IMPORTED_SPRITE_DIMENSIONS, // Use the imported dimensions from FroggerSprites.js
   
-  // Vehicle sprites (from base64)
-  'truck-green': { width: 96, height: 32 },
-  'truck-orange': { width: 96, height: 32 },
-  
-  // Fallback dimensions for missing sprites
+  // Fallback dimensions for sprites not yet available in base64 format
   'car-red': { width: 64, height: 32 },
-  'car-blue': { width: 64, height: 32 },
-  'car-yellow': { width: 64, height: 32 },
-  'log-short': { width: 80, height: 32 },
-  'log-medium': { width: 100, height: 32 },
-  'log-long': { width: 120, height: 32 },
   'turtle-surface': { width: 64, height: 32 },
   'turtle-diving': { width: 64, height: 32 },
   'alligator-closed': { width: 80, height: 32 },
@@ -45,19 +33,19 @@ const GAME_CONFIG = {
   frogSize: 32,      // Matches sprite size
   frogSpeed: 40,     // pixels per move
   lanes: [
-    // Road section (bottom to middle) - using available truck sprites and colored rectangles for cars
-    { y: 520, direction: 1, speed: 2, type: 'car', sprite: null, color: '#ff0000' }, // Red car (fallback rectangle)
+    // Road section (bottom to middle) - using available truck and car sprites
+    { y: 520, direction: 1, speed: 2, type: 'car', sprite: 'car-blue', color: '#0066cc' }, // Blue car (base64 sprite)
     { y: 480, direction: -1, speed: 3, type: 'truck', sprite: 'truck-orange', color: '#ff6600' }, // Orange truck (base64)
-    { y: 440, direction: 1, speed: 2.5, type: 'car', sprite: null, color: '#ffaa00' }, // Yellow car (fallback rectangle)
+    { y: 440, direction: 1, speed: 2.5, type: 'car', sprite: 'car-yellow', color: '#ffaa00' }, // Yellow car (base64 sprite)
     { y: 400, direction: -1, speed: 1.5, type: 'truck', sprite: 'truck-green', color: '#00cc66' }, // Green truck (base64)
     // Safe zone (middle)
-    { y: 360, direction: 0, speed: 0, type: 'safe', sprite: null, color: '#90EE90' }, // Grass (fallback rectangle)
-    // River section (middle to top) - using colored rectangles as we don't have these sprites yet
-    { y: 320, direction: 1, speed: 1.8, type: 'log', sprite: null, color: '#8B4513' }, // Log (fallback rectangle)
-    { y: 280, direction: -1, speed: 2.2, type: 'turtle', sprite: null, color: '#228B22' }, // Turtle (fallback rectangle)
-    { y: 240, direction: 1, speed: 1.5, type: 'log', sprite: null, color: '#8B4513' }, // Log (fallback rectangle)
-    { y: 200, direction: -1, speed: 2.8, type: 'turtle', sprite: null, color: '#228B22' }, // Turtle (fallback rectangle)
-    { y: 160, direction: 1, speed: 2, type: 'log', sprite: null, color: '#8B4513' }, // Log (fallback rectangle)
+    { y: 360, direction: 0, speed: 0, type: 'safe', sprite: 'grass', color: '#90EE90' }, // Grass (base64 sprite)
+    // River section (middle to top) - using log-medium and turtle sprites
+    { y: 320, direction: 1, speed: 1.8, type: 'log', sprite: 'log-medium', color: '#8B4513' }, // Log (base64 sprite)
+    { y: 280, direction: -1, speed: 2.2, type: 'turtle', sprite: 'turtle', color: '#228B22' }, // Turtle (base64 sprite)
+    { y: 240, direction: 1, speed: 1.5, type: 'log', sprite: 'log-medium', color: '#8B4513' }, // Log (base64 sprite)
+    { y: 200, direction: -1, speed: 2.8, type: 'turtle', sprite: 'turtle', color: '#228B22' }, // Turtle (base64 sprite)
+    { y: 160, direction: 1, speed: 2, type: 'log', sprite: 'log-medium', color: '#8B4513' }, // Log (base64 sprite)
   ],
   startY: 560,
   goalY: 120,
@@ -82,6 +70,7 @@ function FroggerGame({
   const canvasRef = useRef(null)
   const animationRef = useRef(null)
   const spriteImagesRef = useRef({})
+  const audioRef = useRef({})
   const [gameStarted, setGameStarted] = useState(false)
   const [spritesLoaded, setSpritesLoaded] = useState({
     frog: false,
@@ -126,6 +115,11 @@ function FroggerGame({
     setScore(0)
     setIsOnLog(false)
     setLogSpeed(0)
+    
+    // Preload game audio files
+    audioManager.preloadSound('hop', 'audio/hop.mp3')
+    audioManager.preloadSound('splat', 'audio/splat.mp3') 
+    audioManager.preloadSound('horray', 'audio/horray.mp3')
   }, [])
 
   // Load base64 sprites - instant loading, no network requests!
@@ -159,12 +153,13 @@ function FroggerGame({
         console.log(`🎨 Sprite loading complete: ${successCount}/${loadingPromises.length} sprites loaded`)
         console.log('📋 Final loaded sprites:', Object.keys(spriteImagesRef.current))
         
-        // Set loading states
+        // Set loading states based on what we actually have
+        const loadedSpriteKeys = Object.keys(spriteImagesRef.current)
         setSpritesLoaded({
-          frog: successCount > 0,        // We have frog sprites in base64
-          vehicles: successCount > 0,    // We have truck sprites in base64  
-          water: false,                  // No water sprites yet (will use fallbacks)
-          terrain: false                 // No terrain sprites yet (will use fallbacks)
+          frog: loadedSpriteKeys.some(key => key.startsWith('frog-')),
+          vehicles: loadedSpriteKeys.some(key => key.startsWith('truck-') || key.startsWith('car-')),
+          water: loadedSpriteKeys.some(key => key.includes('log') || key.includes('turtle')),
+          terrain: loadedSpriteKeys.some(key => key === 'grass' || key.includes('grass'))
         })
         
         // Enable enhanced graphics after sprites are loaded
@@ -186,6 +181,52 @@ function FroggerGame({
     loadBase64Sprites()
   }, [])
 
+  // Load audio files
+  useEffect(() => {
+    const loadAudio = () => {
+      const audioFiles = {
+        hop: '/audio/hop.mp3',
+        splat: '/audio/splat.mp3',
+        hooray: '/audio/hooray.mp3'
+      }
+
+      Object.entries(audioFiles).forEach(([key, path]) => {
+        const audio = new Audio(path)
+        audio.preload = 'auto'
+        audio.volume = 0.5 // Set moderate volume
+        
+        // Handle loading success
+        audio.addEventListener('canplaythrough', () => {
+          console.log(`🔊 Audio loaded: ${key}`)
+        })
+        
+        // Handle loading errors
+        audio.addEventListener('error', (e) => {
+          console.warn(`🔇 Failed to load audio: ${key} from ${path}`, e)
+        })
+        
+        audioRef.current[key] = audio
+      })
+    }
+
+    loadAudio()
+  }, [])
+
+  // Play audio helper function
+  const playAudio = useCallback((soundKey) => {
+    const audio = audioRef.current[soundKey]
+    if (audio) {
+      try {
+        audio.currentTime = 0 // Reset to start
+        audio.play().catch(e => {
+          console.warn(`🔇 Failed to play audio: ${soundKey}`, e)
+        })
+      } catch (error) {
+        console.warn(`🔇 Error playing audio: ${soundKey}`, error)
+      }
+    }
+  }, [])
+
   // Get player color based on index in session
   const getPlayerColor = useCallback((username) => {
     const userIndex = sessionUsers.findIndex(user => user.username === username)
@@ -205,7 +246,7 @@ function FroggerGame({
 
     const spriteImage = spriteImagesRef.current[actualSpriteKey]
     
-    // DEBUG: Log sprite requests (only when sprite is missing)
+    // DEBUG: Log missing sprites for troubleshooting
     if (!spriteImage && (actualSpriteKey.startsWith('frog-') || actualSpriteKey.startsWith('truck-'))) {
       console.log(`🎨 MISSING SPRITE: "${spriteKey}" -> "${actualSpriteKey}" | Available:`, Object.keys(spriteImagesRef.current))
     }
@@ -348,6 +389,9 @@ function FroggerGame({
   const movePlayer = useCallback((direction) => {
     if (localGameState.gameEnded || lives <= 0) return
 
+    // Play hop sound for movement
+    audioManager.play('hop')
+
     // Update player direction for animation
     setPlayerDirection(direction)
 
@@ -380,6 +424,8 @@ function FroggerGame({
       // Check for goal
       if (newY <= GAME_CONFIG.goalY) {
         setScore(s => s + 200)
+        // Play success sound
+        audioManager.play('horray')
         // Reset position for next round
         setTimeout(() => {
           setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })
@@ -393,6 +439,8 @@ function FroggerGame({
 
   // Handle player death
   const handlePlayerDeath = useCallback(() => {
+    // Play splat sound for collision
+    audioManager.play('splat')
     setPlayerDirection('death')
     
     const newLives = lives - 1
@@ -479,10 +527,23 @@ function FroggerGame({
         if (obstacle.type === 'car' || obstacle.type === 'truck') {
           // Hit by vehicle - player dies
           handlePlayerDeath()
-        } else if (obstacle.type === 'log' || obstacle.type === 'turtle') {
-          // On a log/turtle - move with it
+        } else if (obstacle.type === 'log') {
+          // On a log - move with it
           onLog = true
           currentLogSpeed = obstacle.speed
+        } else if (obstacle.type === 'turtle') {
+          // Check if turtle is diving or surfaced
+          const turtleFrame = Math.floor(Date.now() / 2000) % 2
+          const isDiving = turtleFrame === 1
+          
+          if (isDiving) {
+            // Diving turtle - frog drowns
+            handlePlayerDeath()
+          } else {
+            // Surface turtle - safe to ride
+            onLog = true
+            currentLogSpeed = obstacle.speed
+          }
         }
       }
     })
@@ -567,15 +628,15 @@ function FroggerGame({
       ctx.fillStyle = '#87CEEB'
       ctx.fillRect(0, 0, canvas.width, GAME_CONFIG.goalY)
       
-      // Goal area with goal grass sprites
+      // Goal area with grass sprites
       for (let x = 0; x < canvas.width; x += 32) {
-        drawSprite(ctx, 'grass-goal', x, GAME_CONFIG.goalY, 32, 40)
+        drawSprite(ctx, 'grass', x, GAME_CONFIG.goalY, 32, 40)
       }
       
-      // Safe zones with light grass
+      // Safe zones with grass sprites
       for (let x = 0; x < canvas.width; x += 32) {
-        drawSprite(ctx, 'grass-light', x, 360, 32, 40)
-        drawSprite(ctx, 'grass-light', x, 560, 32, 40)
+        drawSprite(ctx, 'grass', x, 360, 32, 40)
+        drawSprite(ctx, 'grass', x, 560, 32, 40)
       }
 
       // River area with water tile sprites
@@ -637,11 +698,12 @@ function FroggerGame({
       if (allSpritesLoaded) {
         // Use the sprite key directly from the obstacle config
         if (obstacle.sprite) {
-          // For turtles, add animation by alternating sprite keys
+          // Use the sprite key directly with turtle animation support
           let spriteKey = obstacle.sprite
+          // Animate turtles between surface and diving states
           if (obstacle.type === 'turtle') {
             const turtleFrame = Math.floor(Date.now() / 2000) % 2 // Change every 2 seconds
-            spriteKey = turtleFrame === 0 ? 'turtle-surface' : 'turtle-diving'
+            spriteKey = turtleFrame === 0 ? 'turtle' : 'turtle-diving'
           }
           drawSprite(ctx, spriteKey, obstacle.x, obstacle.y, obstacle.width, obstacle.height)
         } else {
@@ -676,19 +738,28 @@ function FroggerGame({
     const playerColor = getPlayerColor(currentUser)
     const frogSpriteKey = playerDirection === 'idle' || !playerDirection ? 'idle' : playerDirection
     
-    // Draw frog sprite with color tint
-    drawSprite(ctx, frogSpriteKey, playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize, playerColor)
+    // Draw frog sprite with improved color tint
+    const frogSpriteName = frogSpriteKey === 'idle' ? 'frog-idle' : `frog-${frogSpriteKey}`
+    const frogSprite = spriteImagesRef.current[frogSpriteName]
     
-    // Add player border
-    ctx.strokeStyle = '#ffffff'
-    ctx.lineWidth = 3
-    ctx.strokeRect(playerPosition.x - 2, playerPosition.y - 2, GAME_CONFIG.frogSize + 4, GAME_CONFIG.frogSize + 4)
-    
-    // Draw username
-    ctx.fillStyle = '#000000'
-    ctx.font = '12px Arial'
-    ctx.textAlign = 'center'
-    ctx.fillText(currentUser, playerPosition.x + GAME_CONFIG.frogSize/2, playerPosition.y - 8)
+    if (frogSprite) {
+      // Draw the frog sprite with color tint
+      ctx.save()
+      
+      // Draw the sprite first
+      ctx.drawImage(frogSprite, playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
+      
+      // Apply a subtle color tint overlay
+      ctx.globalCompositeOperation = 'multiply'
+      ctx.fillStyle = playerColor + '80' // Add transparency to make tint subtle
+      ctx.fillRect(playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
+      
+      ctx.restore()
+    } else {
+      // Fallback - draw colored rectangle
+      ctx.fillStyle = playerColor
+      ctx.fillRect(playerPosition.x, playerPosition.y, GAME_CONFIG.frogSize, GAME_CONFIG.frogSize)
+    }
 
     // Draw goal area
     ctx.fillStyle = '#FFD700'

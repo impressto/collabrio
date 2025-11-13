@@ -360,6 +360,28 @@ export const sharedAudioClips = [
     emoji: '🙂',
     label: 'Say You\'re Fine',
     displayName: 'You Just Have to Say That You\'re Fine'
+  },
+  // Frogger game audio
+  {
+    key: 'hop',
+    filename: 'audio/hop.mp3',
+    emoji: '🐸',
+    label: 'Hop',
+    displayName: 'Frog Hop'
+  },
+  {
+    key: 'splat',
+    filename: 'audio/splat.mp3',
+    emoji: '💥',
+    label: 'Splat',
+    displayName: 'Splat'
+  },
+  {
+    key: 'horray',
+    filename: 'audio/horray.mp3',
+    emoji: '🎉',
+    label: 'Hooray',
+    displayName: 'Hooray'
   }
 ]
 

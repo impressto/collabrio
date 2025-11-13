@@ -214,6 +214,9 @@ export class ClientGameManager {
           user: userIdentity.username,
           gameType: 'frogger'
         })
+        
+        // Reset gameActive state when closing Frogger modal
+        this.setGameActive(false)
       }
     }
   }

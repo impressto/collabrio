@@ -648,6 +648,35 @@ class GameManager {
     }
   }
 
+  // Check if Frogger game should end when a user closes their modal
+  shouldEndFroggerGameOnClose(sessionId, user, io) {
+    try {
+      const game = this.activeGames[sessionId];
+      if (!game || game.type !== 'frogger' || game.gameEnded) {
+        return false;
+      }
+
+      // If the user who closed the modal was the starter, end the game
+      // This handles the case where the starter opens Frogger alone and then closes it
+      if (game.starter === user) {
+        console.log(`🐸 [FROGGER] Game starter ${user} closed modal - ending game in session ${sessionId}`);
+        return true;
+      }
+
+      // If there are no scores submitted yet (no one has played), and someone closes, end the game
+      if (!game.leaderboard || game.leaderboard.length === 0) {
+        console.log(`🐸 [FROGGER] No scores submitted yet and ${user} closed modal - ending game in session ${sessionId}`);
+        return true;
+      }
+
+      // Otherwise, keep the game running for other players
+      return false;
+    } catch (error) {
+      console.error('🐸 [FROGGER] Error checking if game should end:', error);
+      return false;
+    }
+  }
+
   // Check if Frogger game is active
   isFroggerGameActive(sessionId) {
     const game = this.activeGames[sessionId];

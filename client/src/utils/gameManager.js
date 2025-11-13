@@ -215,8 +215,9 @@ export class ClientGameManager {
           gameType: 'frogger'
         })
         
-        // Reset gameActive state when closing Frogger modal
-        this.setGameActive(false)
+        // Don't reset gameActive state when closing Frogger modal
+        // The game continues for other users until the server ends it
+        // Only the server should control gameActive state for Frogger games
       }
     }
   }

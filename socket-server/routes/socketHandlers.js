@@ -538,8 +538,12 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
 
     socket.on('close-frogger-modal', ({ sessionId: gameSessionId, user }) => {
       console.log(`🐸 [SERVER] User ${user} closed Frogger modal in session ${gameSessionId}`);
-      // No server-side action needed for individual modal close in Frogger
-      // Game continues for other players
+      
+      // Check if this is the starter/only player, and if so, end the game
+      if (gameManager.shouldEndFroggerGameOnClose(gameSessionId, user, io)) {
+        console.log(`🐸 [SERVER] Ending Frogger game as starter ${user} closed modal in session ${gameSessionId}`);
+        gameManager.endFroggerGame(gameSessionId, io);
+      }
     });
 
     // Handle disconnect

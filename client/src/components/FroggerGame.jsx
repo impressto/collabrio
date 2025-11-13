@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 
 // Import base64 encoded sprites - no network loading required!
-import { FROGGER_SPRITES, SPRITE_DIMENSIONS as IMPORTED_SPRITE_DIMENSIONS, getSprite } from './FroggerSprites'
+import { FROGGER_SPRITES, SPRITE_DIMENSIONS as IMPORTED_SPRITE_DIMENSIONS } from './FroggerSprites'
 
 // Import audio manager for sound effects
 import { audioManager } from '../utils/audioUtils'
@@ -60,7 +60,7 @@ const FROG_COLORS = [
 ]
 
 function FroggerGame({ 
-  gameState, 
+  /* gameState prop not used - Frogger manages its own state */
   socket,
   sessionId,
   currentUser, 
@@ -73,22 +73,7 @@ function FroggerGame({
   const audioRef = useRef({})
   const timeoutsRef = useRef([]) // Track all timeouts for cleanup
   
-  // Helper function to create tracked timeouts
-  const createTimeout = useCallback((callback, delay) => {
-    const timeoutId = setTimeout(() => {
-      callback()
-      // Remove from tracking array after execution
-      timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId)
-    }, delay)
-    timeoutsRef.current.push(timeoutId)
-    return timeoutId
-  }, [])
-  
-  // Helper function to clear all timeouts
-  const clearAllTimeouts = useCallback(() => {
-    timeoutsRef.current.forEach(clearTimeout)
-    timeoutsRef.current = []
-  }, [])
+  // Timeout management using refs to avoid circular dependencies
   
   const [gameStarted, setGameStarted] = useState(false)
   const [spritesLoaded, setSpritesLoaded] = useState({
@@ -234,7 +219,7 @@ function FroggerGame({
   }, [])
 
   // Play audio helper function
-  const playAudio = useCallback((soundKey) => {
+  const _playAudio = useCallback((soundKey) => {
     const audio = audioRef.current[soundKey]
     if (audio) {
       try {
@@ -304,7 +289,7 @@ function FroggerGame({
       // Draw sprite without tint
       ctx.drawImage(spriteImage, x, y, drawWidth, drawHeight)
     }
-  }, [allSpritesLoaded])
+  }, [])
 
   // Initialize obstacles
   const initializeObstacles = useCallback(() => {
@@ -341,7 +326,10 @@ function FroggerGame({
 
     console.log('🐸 [CLIENT] Game ended:', reason, 'Final score:', score)
     
-    clearAllTimeouts() // Clear any pending timeouts when game ends
+    // Clear any pending timeouts when game ends
+    timeoutsRef.current.forEach(clearTimeout)
+    timeoutsRef.current = []
+    
     setLocalGameState(prev => ({ ...prev, gameEnded: true }))
     
     // Submit score to server
@@ -410,12 +398,14 @@ function FroggerGame({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      clearAllTimeouts()
+      // Clear all timeouts directly
+      timeoutsRef.current.forEach(clearTimeout)
+      timeoutsRef.current = []
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [clearAllTimeouts])
+  }, [])
 
   // Movement handler
   const movePlayer = useCallback((direction) => {
@@ -462,10 +452,13 @@ function FroggerGame({
         // Play success sound
         audioManager.play('horray')
         // Reset position for next round
-        createTimeout(() => {
+        const timeoutId = setTimeout(() => {
           setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })
           setPlayerDirection('idle')
+          // Remove from tracking array after execution
+          timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId)
         }, 500)
+        timeoutsRef.current.push(timeoutId)
       }
       
       return newPosition
@@ -488,17 +481,25 @@ function FroggerGame({
     setLives(newLives)
     
     if (newLives <= 0) {
-      // Game over
-      createTimeout(() => handleGameEnd('death'), 1000)
+      // Game over - use setTimeout directly to avoid circular dependency
+      const timeoutId = setTimeout(() => {
+        handleGameEnd('death')
+        // Remove from tracking array after execution
+        timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId)
+      }, 1000)
+      timeoutsRef.current.push(timeoutId)
     } else {
       // Reset position after death animation and remove invulnerability
-      createTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setPlayerPosition({ x: GAME_CONFIG.canvasWidth / 2, y: GAME_CONFIG.startY })
         setPlayerDirection('idle')
         setIsInvulnerable(false) // Remove invulnerability after respawn
+        // Remove from tracking array after execution
+        timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId)
       }, 1000)
+      timeoutsRef.current.push(timeoutId)
     }
-  }, [lives, handleGameEnd, isInvulnerable])
+  }, [lives, isInvulnerable, handleGameEnd])
 
   // Keyboard controls
   useEffect(() => {
@@ -534,6 +535,60 @@ function FroggerGame({
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [movePlayer])
+
+  // Touch/Click controls for mobile devices
+  const handleCanvasClick = useCallback((event) => {
+    if (localGameState.gameEnded || lives <= 0) return
+    if (playerDirection === 'death' || isInvulnerable) return
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    
+    const clickX = (event.clientX - rect.left) * scaleX
+    const clickY = (event.clientY - rect.top) * scaleY
+
+    // Calculate relative position to frog
+    const frogCenterX = playerPosition.x + GAME_CONFIG.frogSize / 2
+    const frogCenterY = playerPosition.y + GAME_CONFIG.frogSize / 2
+
+    const deltaX = clickX - frogCenterX
+    const deltaY = clickY - frogCenterY
+
+    // Determine direction based on largest absolute difference
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal movement
+      if (deltaX > 0) {
+        movePlayer('right')
+      } else {
+        movePlayer('left')
+      }
+    } else {
+      // Vertical movement
+      if (deltaY > 0) {
+        movePlayer('down')
+      } else {
+        movePlayer('up')
+      }
+    }
+  }, [localGameState.gameEnded, lives, playerDirection, isInvulnerable, playerPosition, movePlayer])
+
+  // Touch controls for mobile - prevent scrolling and handle touch
+  const handleTouchStart = useCallback((event) => {
+    event.preventDefault() // Prevent scrolling
+    if (event.touches.length === 1) {
+      // Convert touch to click-like event
+      const touch = event.touches[0]
+      const mockEvent = {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      }
+      handleCanvasClick(mockEvent)
+    }
+  }, [handleCanvasClick])
 
   // Collision detection
   const checkCollisions = useCallback(() => {
@@ -661,7 +716,7 @@ function FroggerGame({
         animationRef.current = null
       }
     }
-  }, [gameStarted, localGameState?.gameEnded, checkCollisions])
+  }, [gameStarted, localGameState?.gameEnded, checkCollisions, isOnLog, logSpeed])
 
   // Drawing function
   const draw = useCallback(() => {
@@ -782,14 +837,16 @@ function FroggerGame({
     ctx.textAlign = 'center'
     ctx.fillText('🏁 GOAL 🏁', canvas.width / 2, GAME_CONFIG.goalY - 15)
 
-  }, [localGameState, playerPosition, currentUser, playerDirection, getPlayerColor, allSpritesLoaded, spritesLoaded, drawSprite])
+  }, [localGameState, playerPosition, playerDirection, allSpritesLoaded, spritesLoaded, drawSprite])
 
   // Render loop integrated into game loop above to prevent duplicate animation frames
 
   // Reset game to initial state
   const handleResetGame = () => {
     setGameStarted(false)
-    clearAllTimeouts() // Clear any pending timeouts
+    // Clear any pending timeouts directly
+    timeoutsRef.current.forEach(clearTimeout)
+    timeoutsRef.current = []
     setLocalGameState({
       obstacles: [],
       timeLeft: GAME_CONFIG.timeLimit,
@@ -845,7 +902,16 @@ function FroggerGame({
         <div className="drawing-game-modal">
           <div className="drawing-game-header">
             <h3>🐸 Frogger - Game Over!</h3>
-            <button className="close-button" onClick={onClose}>×</button>
+            <button 
+              className="close-button" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }}
+            >
+              ×
+            </button>
           </div>
           
           <div className="game-results">
@@ -874,7 +940,14 @@ function FroggerGame({
             <button className="start-game-btn" onClick={handleResetGame}>
               🐸 Play Again
             </button>
-            <button className="close-button" onClick={onClose}>
+            <button 
+              className="close-button" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+              }}
+            >
               Close Game
             </button>
           </div>
@@ -888,7 +961,16 @@ function FroggerGame({
       <div className="frogger-game-modal">
         <div className="drawing-game-header">
           <h3>🐸 Frogger - Leaderboard Challenge</h3>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button 
+            className="close-button" 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }}
+          >
+            ×
+          </button>
         </div>
         
         {!gameStarted ? (
@@ -896,7 +978,7 @@ function FroggerGame({
             <div className="game-instructions">
               <h4>How to Play:</h4>
               <ul>
-                <li>Use arrow keys or WASD to move your frog</li>
+                <li>Move: Arrow keys, WASD, tap screen, or use touch buttons</li>
                 <li>Cross roads safely - avoid cars and trucks!</li>
                 <li>Jump on logs and turtles to cross the river</li>
                 <li>Don't fall in the water!</li>
@@ -937,11 +1019,46 @@ function FroggerGame({
                 width={GAME_CONFIG.canvasWidth}
                 height={GAME_CONFIG.canvasHeight}
                 className="frogger-canvas"
+                onClick={handleCanvasClick}
+                onTouchStart={handleTouchStart}
+                style={{ touchAction: 'none' }}
               />
             </div>
             
-            <div className="controls-help">
-              <p>Use Arrow Keys or WASD to move • Avoid vehicles • Jump on logs/turtles • Reach the goal!</p>
+            {/* Touch Control Buttons for Mobile */}
+            <div className="frogger-touch-controls">
+              <button 
+                className="control-btn control-btn-left"
+                onTouchStart={(e) => { e.preventDefault(); movePlayer('left') }}
+                onClick={() => movePlayer('left')}
+                disabled={localGameState.gameEnded || lives <= 0 || playerDirection === 'death' || isInvulnerable}
+              >
+                ⬅
+              </button>
+              <button 
+                className="control-btn control-btn-up"
+                onTouchStart={(e) => { e.preventDefault(); movePlayer('up') }}
+                onClick={() => movePlayer('up')}
+                disabled={localGameState.gameEnded || lives <= 0 || playerDirection === 'death' || isInvulnerable}
+              >
+                ⬆
+              </button>
+              <button 
+                className="control-btn control-btn-down"
+                onTouchStart={(e) => { e.preventDefault(); movePlayer('down') }}
+                onClick={() => movePlayer('down')}
+                disabled={localGameState.gameEnded || lives <= 0 || playerDirection === 'death' || isInvulnerable}
+              >
+                ⬇
+              </button>
+              <button 
+                className="control-btn control-btn-right"
+                onTouchStart={(e) => { e.preventDefault(); movePlayer('right') }}
+                onClick={() => movePlayer('right')}
+                disabled={localGameState.gameEnded || lives <= 0 || playerDirection === 'death' || isInvulnerable}
+              >
+                ➡
+              </button>
             </div>
           </div>
         )}

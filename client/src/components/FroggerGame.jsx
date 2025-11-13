@@ -590,6 +590,11 @@ function FroggerGame({
     }
   }, [handleCanvasClick])
 
+  // Handle touch end for better responsiveness
+  const handleTouchEnd = useCallback((event) => {
+    event.preventDefault() // Prevent default touch behavior
+  }, [])
+
   // Collision detection
   const checkCollisions = useCallback(() => {
     if (localGameState?.gameEnded) return
@@ -978,7 +983,8 @@ function FroggerGame({
             <div className="game-instructions">
               <h4>How to Play:</h4>
               <ul>
-                <li>Move: Arrow keys, WASD, tap screen, or use touch buttons</li>
+                <li>Move: Arrow keys, WASD, tap around the frog, or use touch buttons</li>
+                <li>On mobile: Tap left/right/up/down of the frog to move in that direction</li>
                 <li>Cross roads safely - avoid cars and trucks!</li>
                 <li>Jump on logs and turtles to cross the river</li>
                 <li>Don't fall in the water!</li>
@@ -1021,6 +1027,7 @@ function FroggerGame({
                 className="frogger-canvas"
                 onClick={handleCanvasClick}
                 onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
                 style={{ touchAction: 'none' }}
               />
             </div>

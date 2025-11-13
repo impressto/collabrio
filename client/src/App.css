@@ -4051,6 +4051,7 @@ body > #root > .collabrio-app {
   background: #87CEEB;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   cursor: crosshair;
+  touch-action: none; /* Prevent scrolling and zooming on touch */
 }
 
 .collabrio-app .game-stats-overlay {

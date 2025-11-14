@@ -68,3 +68,4 @@ gtag_include.php
 socket-server/cached-images/*
 socket-server/.syncthing*
 
+client/reference/*

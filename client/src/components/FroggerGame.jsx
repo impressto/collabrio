@@ -149,8 +149,8 @@ function FroggerGame({
   const [difficulty, setDifficulty] = useState('normal') // easy, normal, hard
 
   // Calculate speed multiplier based on difficulty
-  const getDifficultyMultiplier = () => {
-    switch (difficulty) {
+  const getDifficultyMultiplier = (difficultyLevel = difficulty) => {
+    switch (difficultyLevel) {
       case 'easy': return 0.5   // Half speed
       case 'normal': return 1.0 // Normal speed
       case 'hard': return 1.3   // 30% faster
@@ -306,9 +306,9 @@ function FroggerGame({
   }, [])
 
   // Initialize obstacles
-  const initializeObstacles = useCallback(() => {
+  const initializeObstacles = useCallback((difficultyLevel = difficulty) => {
     const obstacles = []
-    const speedMultiplier = getDifficultyMultiplier()
+    const speedMultiplier = getDifficultyMultiplier(difficultyLevel)
     
     GAME_CONFIG.lanes.forEach((lane, laneIndex) => {
       if (lane.type === 'safe') return
@@ -973,9 +973,9 @@ function FroggerGame({
   }
 
   // Start game handler
-  const handleStartGame = () => {
+  const handleStartGame = (difficultyLevel = difficulty) => {
     setGameStarted(true)
-    const obstacles = initializeObstacles()
+    const obstacles = initializeObstacles(difficultyLevel)
     setLocalGameState(prev => ({
       ...prev,
       obstacles,
@@ -1014,10 +1014,8 @@ function FroggerGame({
   // Handle difficulty selection and start game
   const handleDifficultySelection = (selectedDifficulty) => {
     setDifficulty(selectedDifficulty)
-    // Use setTimeout to ensure state is updated before starting game
-    setTimeout(() => {
-      handleStartGame()
-    }, 0)
+    // Pass the selected difficulty directly to handleStartGame to avoid race condition
+    handleStartGame(selectedDifficulty)
   }
 
   // Play Again handler - resets game and starts immediately without going to lobby

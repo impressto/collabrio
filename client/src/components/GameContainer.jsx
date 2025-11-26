@@ -23,7 +23,7 @@ function GameContainer({
 }) {
   return (
     <>
-      {/* Game Modal - Drawing */}
+      {/* Drawing Game Modal */}
       {showGameModal && currentGameType === 'drawing' && (
         <DrawingGame
           gameState={drawingGameState}

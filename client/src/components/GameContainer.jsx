@@ -1,6 +1,5 @@
 import React from 'react'
 import DrawingGame from './DrawingGame'
-import FroggerGame from './FroggerGame'
 import WordSelection from './WordSelection'
 
 function GameContainer({
@@ -24,21 +23,10 @@ function GameContainer({
 }) {
   return (
     <>
-      {/* Game Modal - Drawing or Frogger */}
+      {/* Game Modal - Drawing */}
       {showGameModal && currentGameType === 'drawing' && (
         <DrawingGame
           gameState={drawingGameState}
-          socket={socket}
-          sessionId={sessionId}
-          currentUser={currentUser}
-          sessionUsers={sessionUsers}
-          onClose={onCloseGame}
-        />
-      )}
-
-      {showGameModal && currentGameType === 'frogger' && (
-        <FroggerGame
-          gameState={drawingGameState} // Frogger manages its own state internally
           socket={socket}
           sessionId={sessionId}
           currentUser={currentUser}

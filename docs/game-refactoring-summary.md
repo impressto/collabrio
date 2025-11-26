@@ -11,14 +11,14 @@ Successfully refactored the complex game-related logic from `App.jsx` into a mod
 - **Purpose**: Centralized state management for all game-related functionality
 - **Features**:
   - Event-driven architecture with listeners
-  - Unified state management for both Drawing and Frogger games
+  - Unified state management for the Drawing game
   - Socket event handling abstraction
   - Clean API for game actions
 
 #### 2. **Game Container Component** (`components/GameContainer.jsx`)
 - **Purpose**: UI container for all game modals and components
 - **Features**:
-  - Conditional rendering of Drawing vs Frogger games
+  - Conditional rendering of the Drawing game
   - Props management and event delegation
   - Clean separation between game logic and UI
 
@@ -109,7 +109,6 @@ The new architecture makes it easy to:
 - ✅ All existing functionality preserved
 - ✅ Build successful with no errors
 - ✅ Drawing game fully functional
-- ✅ Frogger game fully functional  
 - ✅ Socket event handling maintained
 - ✅ State management working correctly
 

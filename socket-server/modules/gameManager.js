@@ -352,26 +352,18 @@ class GameManager {
       // Send game status to disable button
       socket.emit('game-status-change', { gameActive: true });
       
-      if (gameState.type === 'drawing') {
-        // Send current drawing game state
-        socket.emit('current-game-state', {
-          drawer: gameState.drawer,
-          word: gameState.word,
-          timeLeft: gameState.timeLeft,
-          guesses: gameState.guesses || []
-        });
+      // Send current drawing game state
+      socket.emit('current-game-state', {
+        drawer: gameState.drawer,
+        word: gameState.word,
+        timeLeft: gameState.timeLeft,
+        guesses: gameState.guesses || []
+      });
 
-        // Send any previous guesses
-        if (gameState.guesses && gameState.guesses.length > 0) {
-          gameState.guesses.forEach(guess => {
-            socket.emit('game-guess', guess);
-          });
-        }
-      } else if (gameState.type === 'frogger') {
-        // Send current Frogger game state - leaderboard based
-        console.log(`🐸 [FROGGER] Sending current Frogger state to new user: ${gameState.leaderboard?.length || 0} scores`);
-        socket.emit('frogger-leaderboard-update', {
-          leaderboard: gameState.leaderboard || []
+      // Send any previous guesses
+      if (gameState.guesses && gameState.guesses.length > 0) {
+        gameState.guesses.forEach(guess => {
+          socket.emit('game-guess', guess);
         });
       }
     }
@@ -485,217 +477,6 @@ class GameManager {
 
     console.log(`[${new Date().toISOString()}] Game master assignment skipped by ${user} in session ${sessionId}`);
     return true;
-  }
-
-  // Start Frogger game
-  startFroggerGame(sessionId, starter, io) {
-    try {
-      console.log(`🐸 [FROGGER] Starting game in session ${sessionId} by ${starter}`);
-      
-      // Check if there's already an active game
-      if (this.activeGames[sessionId]) {
-        console.warn(`🐸 [FROGGER] Game already active in session ${sessionId}`);
-        return false;
-      }
-
-      // Create Frogger game state - score-based leaderboard system
-      const gameState = {
-        type: 'frogger',
-        starter,
-        startTime: Date.now(),
-        timeLeft: 120, // 2 minutes
-        gameEnded: false,
-        leaderboard: [] // Array of {player, score, timeLeft, endReason, timestamp}
-      };
-
-      this.activeGames[sessionId] = gameState;
-
-      // Emit to all clients in the session
-      io.to(sessionId).emit('frogger-game-started', {
-        starter,
-        gameType: 'frogger'
-      });
-
-      // Set up timer for Frogger game (2 minutes)
-      this.gameTimers[sessionId] = setInterval(() => {
-        if (this.activeGames[sessionId] && this.activeGames[sessionId].type === 'frogger') {
-          this.activeGames[sessionId].timeLeft -= 1;
-          
-          // Emit time update
-          io.to(sessionId).emit('frogger-timer-update', {
-            timeLeft: this.activeGames[sessionId].timeLeft
-          });
-
-          // End game when time runs out
-          if (this.activeGames[sessionId].timeLeft <= 0) {
-            this.endFroggerGame(sessionId, io);
-          }
-        }
-      }, 1000);
-
-      return true;
-    } catch (error) {
-      console.error('🐸 [FROGGER] Error starting game:', error);
-      return false;
-    }
-  }
-
-  // Handle Frogger score submission
-  handleFroggerScoreSubmit(sessionId, playerName, finalScore, timeLeft, endReason, io) {
-    try {
-      const game = this.activeGames[sessionId];
-      if (!game || game.type !== 'frogger' || game.gameEnded) {
-        console.log(`🐸 [FROGGER] Cannot submit score - game not active in session ${sessionId}`);
-        return false;
-      }
-
-      // Add score to leaderboard
-      const scoreEntry = {
-        player: playerName,
-        score: finalScore,
-        timeLeft: timeLeft || 0,
-        endReason: endReason || 'unknown',
-        timestamp: Date.now()
-      };
-
-      // Remove any existing score for this player and add the new one
-      game.leaderboard = game.leaderboard.filter(entry => entry.player !== playerName);
-      game.leaderboard.push(scoreEntry);
-      
-      // Sort leaderboard by score (descending)
-      game.leaderboard.sort((a, b) => b.score - a.score);
-
-      console.log(`🐸 [FROGGER] Score submitted: ${playerName} = ${finalScore} (${endReason})`);
-
-      // Broadcast updated leaderboard to all players in session
-      this.sendFroggerLeaderboard(sessionId, io);
-
-      return true;
-    } catch (error) {
-      console.error('🐸 [FROGGER] Error handling score submission:', error);
-      return false;
-    }
-  }
-
-  // Send current leaderboard to session
-  sendFroggerLeaderboard(sessionId, io) {
-    try {
-      const game = this.activeGames[sessionId];
-      if (!game || game.type !== 'frogger') {
-        return false;
-      }
-
-      io.to(sessionId).emit('frogger-leaderboard-update', {
-        leaderboard: game.leaderboard
-      });
-
-      return true;
-    } catch (error) {
-      console.error('🐸 [FROGGER] Error sending leaderboard:', error);
-      return false;
-    }
-  }
-
-  // End Frogger game
-  endFroggerGame(sessionId, io) {
-    try {
-      const game = this.activeGames[sessionId];
-      if (!game || game.type !== 'frogger') {
-        return false;
-      }
-
-      console.log(`🐸 [FROGGER] Ending game in session ${sessionId}`);
-
-      // Use existing leaderboard as final results
-      const leaderboard = game.leaderboard;
-
-      // Determine winners (top scorers)
-      const topScore = leaderboard[0]?.score || 0;
-      const winners = leaderboard.filter(entry => entry.score === topScore).map(entry => entry.player);
-
-      // Mark game as ended
-      game.gameEnded = true;
-      game.leaderboard = leaderboard;
-      game.winners = winners;
-
-      // Clear the timer
-      if (this.gameTimers[sessionId]) {
-        clearInterval(this.gameTimers[sessionId]);
-        delete this.gameTimers[sessionId];
-      }
-
-      // Emit game end event
-      io.to(sessionId).emit('frogger-session-end', {
-        leaderboard,
-        winners
-      });
-
-      io.to(sessionId).emit('game-status-change', {
-        gameActive: false
-      });
-
-      // Clean up the game after a delay
-      setTimeout(() => {
-        if (this.activeGames[sessionId] && this.activeGames[sessionId].type === 'frogger') {
-          delete this.activeGames[sessionId];
-        }
-      }, 30000); // 30 seconds
-
-      return true;
-    } catch (error) {
-      console.error('🐸 [FROGGER] Error ending game:', error);
-      return false;
-    }
-  }
-
-  // Check if Frogger game should end when a user closes their modal
-  shouldEndFroggerGameOnClose(sessionId, user, io) {
-    try {
-      const game = this.activeGames[sessionId];
-      if (!game || game.type !== 'frogger' || game.gameEnded) {
-        return false;
-      }
-
-      // If the user who closed the modal was the starter, end the game
-      // This handles the case where the starter opens Frogger alone and then closes it
-      if (game.starter === user) {
-        console.log(`🐸 [FROGGER] Game starter ${user} closed modal - ending game in session ${sessionId}`);
-        return true;
-      }
-
-      // If there are no scores submitted yet (no one has played), and someone closes, end the game
-      if (!game.leaderboard || game.leaderboard.length === 0) {
-        console.log(`🐸 [FROGGER] No scores submitted yet and ${user} closed modal - ending game in session ${sessionId}`);
-        return true;
-      }
-
-      // Otherwise, keep the game running for other players
-      return false;
-    } catch (error) {
-      console.error('🐸 [FROGGER] Error checking if game should end:', error);
-      return false;
-    }
-  }
-
-  // Check if Frogger game is active
-  isFroggerGameActive(sessionId) {
-    const game = this.activeGames[sessionId];
-    return game && game.type === 'frogger' && !game.gameEnded;
-  }
-
-  // Get Frogger game state
-  getFroggerGameState(sessionId) {
-    const game = this.activeGames[sessionId];
-    if (game && game.type === 'frogger') {
-      return {
-        type: 'frogger',
-        starter: game.starter,
-        timeLeft: game.timeLeft,
-        gameEnded: game.gameEnded,
-        leaderboard: game.leaderboard || []
-      };
-    }
-    return null;
   }
 
   // Clean up all timers (useful for server shutdown)

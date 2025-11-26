@@ -9,7 +9,7 @@ export class ClientGameManager {
       // Common game state
       gameActive: false,
       showGameModal: false,
-      currentGameType: null, // 'drawing' or 'frogger'
+      currentGameType: null, // 'drawing'
       
       // Drawing game specific
       showWordSelection: false,
@@ -135,16 +135,6 @@ export class ClientGameManager {
         starter: userIdentity.username,
         gameType: 'drawing'
       })
-    } else if (gameType === 'frogger') {
-      // Start Frogger game directly
-      this.setShowGameModal(true)
-      this.setGameActive(true)
-      // Emit frogger game start to other players
-      socket.current.emit('start-frogger-game', {
-        sessionId,
-        starter: userIdentity.username,
-        gameType: 'frogger'
-      })
     }
     
     return true
@@ -183,42 +173,28 @@ export class ClientGameManager {
   }
 
   closeGameModal(socket, sessionId, userIdentity) {
-    const gameType = this.getCurrentGameType()
-    
     this.setShowGameModal(false)
     this.setCurrentGameType(null)
     
     // Notify server that this user closed their game modal
     if (socket?.current && sessionId) {
-      if (gameType === 'drawing') {
-        socket.current.emit('close-game-modal', {
-          sessionId: sessionId,
-          user: userIdentity.username,
-          gameType: 'drawing'
-        })
-        
-        // Reset drawing game state when closing modal (only affects this user)
-        this.updateDrawingGameState({
-          drawer: null,
-          word: '',
-          timeLeft: 60,
-          guesses: [],
-          isCorrectGuess: false,
-          winner: null,
-          winners: [],
-          correctWord: ''
-        })
-      } else if (gameType === 'frogger') {
-        socket.current.emit('close-frogger-modal', {
-          sessionId: sessionId,
-          user: userIdentity.username,
-          gameType: 'frogger'
-        })
-        
-        // Don't reset gameActive state when closing Frogger modal
-        // The game continues for other users until the server ends it
-        // Only the server should control gameActive state for Frogger games
-      }
+      socket.current.emit('close-game-modal', {
+        sessionId: sessionId,
+        user: userIdentity.username,
+        gameType: 'drawing'
+      })
+      
+      // Reset drawing game state when closing modal (only affects this user)
+      this.updateDrawingGameState({
+        drawer: null,
+        word: '',
+        timeLeft: 60,
+        guesses: [],
+        isCorrectGuess: false,
+        winner: null,
+        winners: [],
+        correctWord: ''
+      })
     }
   }
 
@@ -303,18 +279,6 @@ export class ClientGameManager {
     this.setGameActive(data.gameActive)
   }
 
-  handleFroggerGameStarted(data) {
-    this.setCurrentGameType('frogger')
-    this.setGameActive(true)
-    this.setShowGameModal(true)
-    this.emit('showToast', { message: `🐸 Frogger game started by ${data.starter}!`, type: 'success' })
-  }
-
-  handleFroggerGameEnded(data) {
-    this.setGameActive(false)
-    this.emit('showToast', { message: `🐸 Frogger game ended!`, type: 'info' })
-  }
-
   // Register all socket event listeners
   registerSocketListeners(socket) {
     if (!socket?.current) return
@@ -329,10 +293,6 @@ export class ClientGameManager {
     socket.current.on('game-timer-update', this.handleGameTimerUpdate.bind(this))
     socket.current.on('current-game-state', this.handleCurrentGameState.bind(this))
     socket.current.on('game-status-change', this.handleGameStatusChange.bind(this))
-
-    // Frogger game events
-    socket.current.on('frogger-game-started', this.handleFroggerGameStarted.bind(this))
-    socket.current.on('frogger-game-ended', this.handleFroggerGameEnded.bind(this))
 
     // Pass through events that need special handling (toasts, etc.)
     socket.current.on('game-master-assigned', (data) => {
@@ -358,7 +318,6 @@ export class ClientGameManager {
     const events = [
       'word-selection', 'game-started', 'game-ended', 'game-guess', 
       'game-timer-update', 'current-game-state', 'game-status-change',
-      'frogger-game-started', 'frogger-game-ended',
       'game-master-assigned', 'assignment-skipped', 'assignment-expired'
     ]
 

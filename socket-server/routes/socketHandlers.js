@@ -520,39 +520,6 @@ module.exports = (io, sessionManager, fileManager, imageCache, aiService, databa
       gameManager.skipAssignment(gameSessionId, user, io);
     });
 
-    // Frogger game handlers
-    socket.on('start-frogger-game', ({ sessionId: gameSessionId, starter }) => {
-      console.log(`🐸 [SERVER] Starting Frogger game in session ${gameSessionId} by ${starter}`);
-      gameManager.startFroggerGame(gameSessionId, starter, io);
-    });
-
-    socket.on('frogger-score-submit', ({ sessionId: gameSessionId, player, finalScore, timeLeft, endReason }) => {
-      console.log(`🐸 [SERVER] Score submitted by ${player} in session ${gameSessionId}: ${finalScore} (${endReason})`);
-      gameManager.handleFroggerScoreSubmit(gameSessionId, player, finalScore, timeLeft, endReason, io);
-    });
-
-    socket.on('frogger-request-leaderboard', ({ sessionId: gameSessionId }) => {
-      console.log(`🐸 [SERVER] Leaderboard requested for session ${gameSessionId}`);
-      gameManager.sendFroggerLeaderboard(gameSessionId, io);
-    });
-
-    socket.on('close-frogger-modal', ({ sessionId: gameSessionId, user }) => {
-      console.log(`🐸 [SERVER] User ${user} closed Frogger modal in session ${gameSessionId}`);
-      
-      // Check if this is the starter/only player, and if so, end the game
-      if (gameManager.shouldEndFroggerGameOnClose(gameSessionId, user, io)) {
-        console.log(`🐸 [SERVER] Ending Frogger game as starter ${user} closed modal in session ${gameSessionId}`);
-        gameManager.endFroggerGame(gameSessionId, io);
-      } else {
-        // If the game doesn't end but starter closed their modal, re-enable games button
-        const game = gameManager.activeGames[gameSessionId];
-        if (game && game.type === 'frogger' && game.starter === user) {
-          console.log(`🐸 [SERVER] Frogger starter ${user} closed modal but game continues - re-enabling games button in session ${gameSessionId}`);
-          io.to(gameSessionId).emit('game-status-change', { gameActive: false });
-        }
-      }
-    });
-
     // Handle disconnect
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`);

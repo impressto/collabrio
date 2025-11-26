@@ -179,16 +179,6 @@ function Toolbar({
               🎨 Guess the Sketch
               <span className="game-description">Draw and guess words</span>
             </button>
-            <button 
-              className="games-option"
-              onClick={() => {
-                onStartGame('frogger')
-                setShowGamesDropdown(false)
-              }}
-            >
-              🐸 Frogger
-              <span className="game-description">Cross roads and rivers</span>
-            </button>
           </div>
         )}
       </div>

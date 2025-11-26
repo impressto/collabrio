@@ -12,7 +12,7 @@
 
 - 📝 **Anonymous Collaboration** - No signup required, share via URL/QR code
 - 🎵 **Shared Audio System** - 25+ reaction sounds with floating icon animations
-- 🎮 **Interactive Games** - Drawing game and Frogger with mobile touch controls
+- 🎮 **Interactive Games** - Drawing game with mobile touch controls
 - 🖼️ **Image Sharing** - Upload, cache, and manage images with thumbnails
 - 🏫 **School Authentication** - Restricted access to authorized educational institutions
 - 📱 **Mobile Optimized** - Touch-friendly interface with gesture controls
@@ -123,7 +123,6 @@ CORS_ORIGINS=http://localhost:5173,https://your-domain.com
 **Game Components:**
 - `GameContainer.jsx` - Game modal management
 - `DrawingGame.jsx` - Collaborative drawing with touch support
-- `FroggerGame.jsx` - Leaderboard challenge with touch controls
 - `WordSelection.jsx` - Drawing game word selection
 
 **Audio System:**
@@ -138,7 +137,7 @@ CORS_ORIGINS=http://localhost:5173,https://your-domain.com
 - `modules/sessionManager.js` - Session creation and persistence
 - `modules/fileManager.js` - File upload and download handling
 - `modules/imageCache.js` - Image caching and metadata management
-- `modules/gameManager.js` - Drawing and Frogger game logic
+- `modules/gameManager.js` - Drawing game logic
 - `modules/aiService.js` - AI integration for enhanced features
 
 **Database:**
@@ -164,20 +163,6 @@ CORS_ORIGINS=http://localhost:5173,https://your-domain.com
 - ✅ Enhanced `getCanvasPoint()` for mouse and touch events
 - ✅ `touch-action: none` to prevent scrolling/zooming
 - ✅ Passive event listeners for performance
-
-### Frogger Game
-**Leaderboard challenge with intuitive touch controls**
-
-**Touch Controls:**
-- ✅ **Directional Tap Detection** - Tap around the frog to move
-- ✅ **Smart Direction Algorithm** - Moves in direction of largest tap distance
-- ✅ **Multiple Input Methods** - Keyboard, touch taps, or button controls
-
-**How Touch Controls Work:**
-- **Tap left of frog** → Moves left
-- **Tap right of frog** → Moves right
-- **Tap above frog** → Moves up
-- **Tap below frog** → Moves down
 
 ---
 
@@ -446,7 +431,6 @@ npm run test:server        # Server tests only
 
 #### Games & Interaction
 - [ ] **Drawing game** - Touch drawing works on mobile
-- [ ] **Frogger controls** - Directional tapping functions
 - [ ] **Audio system** - Sound effects play correctly
 - [ ] **File uploads** - Images upload and cache properly
 
@@ -463,7 +447,6 @@ npm run test:server        # Server tests only
 ### Version 2.2 (November 13, 2025)
 #### 🆕 Mobile Touch Controls
 - **Drawing Game Touch Support** - Full mobile drawing capability
-- **Frogger Touch Controls** - Tap-to-move directional controls
 - **Enhanced Touch Events** - Better preventDefault and touch-action handling
 - **Cross-platform Compatibility** - Unified mouse and touch event handling
 
@@ -471,7 +454,6 @@ npm run test:server        # Server tests only
 #### 🎮 Game System Integration
 - **Game Container Architecture** - Unified game modal system
 - **Drawing Game Enhancements** - Word selection and multiplayer drawing
-- **Frogger Leaderboard** - Competitive gameplay with persistent scoring
 - **Mobile Game Optimization** - Touch-friendly game controls
 
 ### Version 2.0 (October 2025)
